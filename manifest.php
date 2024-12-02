@@ -20,13 +20,13 @@ along with this program.  If not, see <http:// www.gnu.org/licenses/>.
 // This file describes the module, including database tables
 
 // Basic variables
-$name        = 'SEPA';            // The name of the module as it appears to users. Needs to be unique to installation. Also the name of the folder that holds the unit.
+$name        = 'Sepa';            // The name of the module as it appears to users. Needs to be unique to installation. Also the name of the folder that holds the unit.
 $description = 'Manage SEPA information and transaction';            // Short text description
-$entryURL    = "Family_SEPA_view.php";   // The landing page for the unit, used in the main menu
+$entryURL    = "sepa_family_view.php";   // The landing page for the unit, used in the main menu
 $type        = "Additional";  // Do not change.
 $category    = 'Other';            // The main menu area to place the module in
 $version     = '0.0.0';            // Version number
-$author      = 'Ahmad Abbadi';            // Your name
+$author      = 'Ahmad';            // Your name
 $url         = '';            // Your URL
 
 // Module tables & gibbonSettings entries
@@ -43,8 +43,8 @@ $actionRows[0] = [
     'precedence'                => '0',// If it is a grouped action, the precedence controls which is highest action in group
     'category'                  => 'SEPA info', // Optional: subgroups for the right hand side module menu
     'description'               => 'Show SEPA of each family', // Text description
-    'URLList'                   => 'Family_SEPA_view.php', // List of pages included in this action
-    'entryURL'                  => 'Family_SEPA_view.php', // The landing action for the page.
+    'URLList'                   => 'sepa_family_view.php', // List of pages included in this action
+    'entryURL'                  => 'sepa_family_view.php', // The landing action for the page.
     'entrySidebar'              => 'Y', // Whether or not there's a sidebar on entry to the action
     'menuShow'                  => 'Y', // Whether or not this action shows up in menus or if it's hidden
     'defaultPermissionAdmin'    => 'Y', // Default permission for built in role Admin
