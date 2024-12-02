@@ -30,8 +30,48 @@ $author      = 'Ahmad';            // Your name
 $url         = '';            // Your URL
 
 // Module tables & gibbonSettings entries
-//$moduleTables[] = ''; // One array entry for every database table you need to create. Might be nice to preface the table name with the module name, to keep the db neat. 
-//$moduleTables[] = ''; // Also can be used to put data into gibbonSettings. Other sql can be run, but resulting data will not be cleaned up on uninstall.
+// One array entry for every database table you need to create. Might be nice to preface the table name with the module name, to keep the db neat. 
+// Also can be used to put data into gibbonSettings. Other sql can be run, but resulting data will not be cleaned up on uninstall.
+
+$moduleTables[] = "
+    CREATE TABLE `gibbonSEPA` (
+        `gibbonSEPAID` INT(8) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+        `gibbonFamilyID` INT(7) UNSIGNED ZEROFILL NOT NULL,
+        `SEPA_holderName` VARCHAR(255) NOT NULL  COMMENT 'The name of the account holder',
+        `SEPA_IBAN` VARCHAR(22) DEFAULT 'NULL',
+        `SEPA_BIC` VARCHAR(11) DEFAULT NULL,
+        `SEPA_signedDate` date DEFAULT NULL,
+        `comment` TEXT DEFAULT NULL,
+        `fields` text DEFAULT '{}' COMMENT 'JSON object of custom field values',
+         PRIMARY KEY (`gibbonSEPAID`),
+        KEY `gibbonFamilyID` (`gibbonFamilyID`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+     "; 
+
+$moduleTables[] = "
+    CREATE TABLE `gibbonSEPACustomField` (
+        `gibbonSEPACustomFieldID` int(4) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
+        `name` varchar(50) NOT NULL,
+        `active` enum('Y','N') NOT NULL DEFAULT 'Y',
+        `description` varchar(255) NOT NULL,
+        `type` enum('varchar','text','date','select','checkboxes','radio','yesno','editor','number','image','file') NOT NULL,
+        `options` text NOT NULL COMMENT 'Field length for varchar, rows for text, comma-separate list for select/checkbox.',
+        `required` enum('N','Y') NOT NULL DEFAULT 'N',
+        `heading` varchar(90) NOT NULL,
+        `sequenceNumber` int(4) NOT NULL,
+        PRIMARY KEY (`gibbonSEPACustomFieldID`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    "; 
+
+$moduleTables[] = "
+    INSERT INTO gibbonSEPACustomField
+        (`name`, `active`, `description`, `type`, `options`, `required`, `heading`, `sequenceNumber`)
+    VALUES
+        ('SEPA_holderAddressStreet', 'Y', 'Der Strasse des SEPA-Kontoinhabers', 'varchar', '100', 'N', 'SEPA', 1),
+        ('SEPA_holderAddressCityCountry', 'Y', 'Der Postzal Stadt, Land des SEPA-Kontoinhabers', 'varchar', '150', 'N', 'SEPA', 2),
+        ('SEPA_holderPhone', 'Y', 'Der Telefone des SEPA-Kontoinhabers', 'varchar', '15', 'N', 'SEPA', 3)
+    ;";
+
 
 // Add gibbonSettings entries
 //$gibbonSetting[] = "";
@@ -60,4 +100,3 @@ $actionRows[0] = [
 
 // Hooks
 //$hooks[] = ''; // Serialised array to create hook and set options. See Hooks documentation online.
-?>
