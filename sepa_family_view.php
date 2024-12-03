@@ -77,14 +77,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
             function ($row) use ($SepaGateway) {
                 $customFields = $SepaGateway->getCustomFields();
                 $output_text = '';
-                $jsonData = json_decode($row['fields'], true);
+                $jsonData = json_decode($row['customData'], true);
                 if (json_last_error() !== JSON_ERROR_NONE) {
                     $output_text = 'Error while reading Custome fields';
                 } else {
-                    $output_text .= "<p>SEPA Holder: " . htmlspecialchars($row['SEPA_holderName'] ?? 'N/A', ENT_QUOTES, 'UTF-8') . "</p>";
-                    $output_text .= "<p>SEPA IBAN/BIC: " . htmlspecialchars($row['SEPA_IBAN'] ?? 'N/A', ENT_QUOTES, 'UTF-8') . "/" . htmlspecialchars($row['SEPA_BIC'] ?? 'N/A', ENT_QUOTES, 'UTF-8') . "</p>";
+                    $output_text .= "<p>SEPA IBAN: " . htmlspecialchars($row['SEPA_IBAN'] ?? 'N/A', ENT_QUOTES, 'UTF-8') . "</p>";
+                    $output_text .= "<p>SEPA BIC: " . htmlspecialchars($row['SEPA_BIC'] ?? 'N/A', ENT_QUOTES, 'UTF-8') . "</p>";
                     $output_text .= "<p>Comments: " . htmlspecialchars($row['comment'] ?? 'N/A', ENT_QUOTES, 'UTF-8') . "</p>";
-
                     foreach ($customFields as $field) {
                         $value = $jsonData[$field['name']] ?? '';
                         $output_text .= "<p>" . htmlspecialchars($field['name'], ENT_QUOTES, 'UTF-8') . ": " . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</p>";
@@ -131,10 +130,12 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
     $table->addActionColumn()
         ->addParam('gibbonFamilyID')
         ->addParam('search', $criteria->getSearchText(true))
-        ->format(function ($family, $actions) {
-            $actions->addAction('edit', __('Edit'))
+        ->format(function ($row, $actions) {
+            $actions->addAction('edit', __(''))
                 ->setURL('/modules/Sepa/sepa_family_edit.php');
 
+            $actions->addAction('delete', __(''))
+                ->setURL('/modules/Sepa/sepa_family_delete.php');
 
         });
 
