@@ -22,7 +22,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 //use Gibbon\Domain\DataSet;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
-
+use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
 
@@ -31,8 +31,12 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
     $page->addError(__('You do not have access to this action.'));
 } else {
     $page->breadcrumbs->add(__('Family\'s SEPA')); // show page navigation link
+    
     $search = isset($_GET['search']) ? $_GET['search'] : '';
     $SepaGateway = $container->get(SepaGateway::class);
+    
+    $CustomFieldsGateway = $container->get(CustomFieldsGateway::class);
+    
     $criteria = $SepaGateway->newQueryCriteria(true)
         //->searchBy(['adults'], $search)
         ->fromPOST();
@@ -74,19 +78,23 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
 
     $table->addExpandableColumn('gibbonSEPA')
         ->format(
-            function ($row) use ($SepaGateway) {
-                $customFields = $SepaGateway->getCustomFields();
+            function ($row) use ($CustomFieldsGateway) {
+                $customFields = $CustomFieldsGateway->getCustomFields();
                 $output_text = '';
-                $jsonData = json_decode($row['customData'], true);
+                $output_text .= "<p>SEPA IBAN: " . htmlspecialchars($row['SEPA_IBAN'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+                $output_text .= "<p>SEPA BIC: " . htmlspecialchars($row['SEPA_BIC'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+                $output_text .= "<p>Note: " . htmlspecialchars($row['Note'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+
+                $jsonData = [];
+                if (isset($row['customData']) && trim($row['customData']) !== '') {
+                    $jsonData = json_decode($row['customData'], true);
+                }
                 if (json_last_error() !== JSON_ERROR_NONE) {
                     $output_text = 'Error while reading Custome fields';
                 } else {
-                    $output_text .= "<p>SEPA IBAN: " . htmlspecialchars($row['SEPA_IBAN'] ?? 'N/A', ENT_QUOTES, 'UTF-8') . "</p>";
-                    $output_text .= "<p>SEPA BIC: " . htmlspecialchars($row['SEPA_BIC'] ?? 'N/A', ENT_QUOTES, 'UTF-8') . "</p>";
-                    $output_text .= "<p>Comments: " . htmlspecialchars($row['comment'] ?? 'N/A', ENT_QUOTES, 'UTF-8') . "</p>";
                     foreach ($customFields as $field) {
-                        $value = $jsonData[$field['name']] ?? '';
-                        $output_text .= "<p>" . htmlspecialchars($field['name'], ENT_QUOTES, 'UTF-8') . ": " . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</p>";
+                        $value = $jsonData[$field['title']] ?? '';
+                        $output_text .= "<p>" . htmlspecialchars($field['title'], ENT_QUOTES, 'UTF-8') . ": " . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</p>";
                     }
 
                 }
@@ -100,7 +108,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
         ->addParam('search', $search)
         ->displayLabel();
 
-    $table->addColumn('SEPA_holderName', __('SEPA Holder'));
+    $table->addColumn('SEPA_ownerName', __('SEPA Owner'));
 
     $table->addColumn('adults', __('Adults'))
         ->notSortable()

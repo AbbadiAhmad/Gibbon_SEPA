@@ -37,11 +37,11 @@ $moduleTables[] = "
     CREATE TABLE `gibbonSEPA` (
         `gibbonSEPAID` INT(8) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
         `gibbonFamilyID` INT(7) UNSIGNED ZEROFILL NOT NULL,
-        `SEPA_holderName` VARCHAR(255) NOT NULL  COMMENT 'The name of the account holder',
+        `SEPA_ownerName` VARCHAR(255) NOT NULL  COMMENT 'The name of the account holder',
         `SEPA_IBAN` VARCHAR(22) DEFAULT 'NULL',
         `SEPA_BIC` VARCHAR(11) DEFAULT NULL,
         `SEPA_signedDate` date DEFAULT NULL,
-        `comment` TEXT DEFAULT NULL,
+        `note` TEXT DEFAULT NULL,
         `customData` text COMMENT 'JSON object of custom field values',
          PRIMARY KEY (`gibbonSEPAID`),
         KEY `gibbonFamilyID` (`gibbonFamilyID`)
@@ -51,7 +51,7 @@ $moduleTables[] = "
 $moduleTables[] = "
     CREATE TABLE `gibbonSEPACustomField` (
         `gibbonSEPACustomFieldID` int(4) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
-        `name` varchar(50) NOT NULL,
+        `title` varchar(50) NOT NULL,
         `active` enum('Y','N') NOT NULL DEFAULT 'Y',
         `description` varchar(255) NOT NULL,
         `type` enum('varchar','text','date','select','checkboxes','radio','yesno','editor','number','image','file') NOT NULL,
@@ -65,11 +65,11 @@ $moduleTables[] = "
 
 $moduleTables[] = "
     INSERT INTO gibbonSEPACustomField
-        (`name`, `active`, `description`, `type`, `options`, `required`, `heading`, `sequenceNumber`)
+        (`title`, `active`, `description`, `type`, `options`, `required`, `heading`, `sequenceNumber`)
     VALUES
-        ('SEPA_holderAddressStreet', 'Y', 'Der Strasse des SEPA-Kontoinhabers', 'varchar', '100', 'N', 'SEPA', 1),
-        ('SEPA_holderAddressCityCountry', 'Y', 'Der Postzal Stadt, Land des SEPA-Kontoinhabers', 'varchar', '150', 'N', 'SEPA', 2),
-        ('SEPA_holderPhone', 'Y', 'Der Telefone des SEPA-Kontoinhabers', 'varchar', '15', 'N', 'SEPA', 3)
+        ('SEPA Owner Address', 'Y', 'Der Strasse des SEPA-Kontoinhabers', 'varchar', '100', 'N', 'SEPA', 1),
+        ('SEPA Owner Zip/City/Country', 'Y', 'Der Postzal Stadt, Land des SEPA-Kontoinhabers', 'varchar', '150', 'N', 'SEPA', 2),
+        ('SEPA Owner Phone', 'Y', 'Der Telefone des SEPA-Kontoinhabers', 'varchar', '15', 'N', 'SEPA', 3)
     ;";
 
 

@@ -17,7 +17,7 @@ class SepaGateway extends QueryableGateway
 
     private static $tableName = 'gibbonSEPA'; //The name of the table you will primarily be querying
     private static $primaryKey = 'gibbonSEPAID'; //The primaryKey of said table
-    private static $searchableColumns = ['SEPA_holderName', 'SEPA_IBAN', 'customData']; // Optional: Array of Columns to be searched when using the search filter
+    private static $searchableColumns = ['SEPA_ownerName', 'SEPA_IBAN', 'customData']; // Optional: Array of Columns to be searched when using the search filter
 
     public function getSEPAList(QueryCriteria $criteria, $gibbonSEPAIDs)
     {
@@ -87,15 +87,5 @@ class SepaGateway extends QueryableGateway
 
     }
 
-    public function getCustomFields()
-    {
-        $query = $this
-            ->newSelect()
-            ->cols(['name', 'type', 'heading', 'sequenceNumber'])
-            ->from('gibbonSEPACustomField')
-            ->where("active = 'Y'")
-            ->orderBy(['heading', 'sequenceNumber']);
 
-        return $this->runSelect($query);
-    }
 }
