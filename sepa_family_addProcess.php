@@ -30,11 +30,11 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_add.php'
     header("Location: {$URL}");
 } else {
     // Proceed!
-    $sepaOwnerName = $_POST['sepaOwnerName']?? ''; // The variables you will be processing
-    $SEPAIBAN = $_POST['SEPAIBAN']?? '';
-    $SEPABIC = $_POST['SEPABIC']?? '';
-    $FamilyID = $_POST['FamilyID']?? '';
-    $note = $_POST['note']?? '';
+    $sepaOwnerName = htmlspecialchars($_POST['sepaOwnerName'] ?? '', ENT_QUOTES, 'UTF-8');
+    $SEPAIBAN = htmlspecialchars($_POST['SEPAIBAN'] ?? '', ENT_QUOTES, 'UTF-8');
+    $SEPABIC = htmlspecialchars($_POST['SEPABIC'] ?? '', ENT_QUOTES, 'UTF-8');
+    $FamilyID = htmlspecialchars($_POST['FamilyID'] ?? '', ENT_QUOTES, 'UTF-8');
+    $note = htmlspecialchars($_POST['note'] ?? '', ENT_QUOTES, 'UTF-8');
     $SEPASignedDate = !empty($_POST['SEPASignedDate']) ? Format::dateConvert($_POST['SEPASignedDate']) : null;
 
 

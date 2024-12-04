@@ -136,7 +136,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
 
     // ACTIONS
     $table->addActionColumn()
-        ->addParam('gibbonFamilyID')
+        ->addParam('gibbonSEPAID')
         ->addParam('search', $criteria->getSearchText(true))
         ->format(function ($row, $actions) {
             $actions->addAction('edit', __(''))
