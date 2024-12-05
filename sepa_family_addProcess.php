@@ -17,10 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 use Gibbon\Services\Format;
+use Gibbon\Data\Validator;
 
 include '../../gibbon.php';
 include './moduleFunctions.php';
 
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 $URL = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/sepa_family_add.php';
 $URLSuccess = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/sepa_family_view.php';
 
@@ -30,22 +32,22 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_add.php'
     header("Location: {$URL}");
 } else {
     // Proceed!
-    $sepaOwnerName = htmlspecialchars($_POST['sepaOwnerName'] ?? '', ENT_QUOTES, 'UTF-8');
-    $SEPAIBAN = htmlspecialchars($_POST['SEPAIBAN'] ?? '', ENT_QUOTES, 'UTF-8');
-    $SEPABIC = htmlspecialchars($_POST['SEPABIC'] ?? '', ENT_QUOTES, 'UTF-8');
-    $FamilyID = htmlspecialchars($_POST['FamilyID'] ?? '', ENT_QUOTES, 'UTF-8');
+    $SEPA_ownerName = htmlspecialchars($_POST['SEPA_ownerName'] ?? '', ENT_QUOTES, 'UTF-8');
+    $SEPA_IBAN = htmlspecialchars($_POST['SEPA_IBAN'] ?? '', ENT_QUOTES, 'UTF-8');
+    $SEPA_BIC = htmlspecialchars($_POST['SEPA_BIC'] ?? '', ENT_QUOTES, 'UTF-8');
+    $gibbonFamilyID = htmlspecialchars($_POST['gibbonFamilyID'] ?? '', ENT_QUOTES, 'UTF-8');
     $note = htmlspecialchars($_POST['note'] ?? '', ENT_QUOTES, 'UTF-8');
-    $SEPASignedDate = !empty($_POST['SEPASignedDate']) ? Format::dateConvert($_POST['SEPASignedDate']) : null;
+    $SEPA_signedDate = !empty($_POST['SEPA_signedDate']) ? Format::dateConvert($_POST['SEPA_signedDate']) : null;
 
 
     // Check that your required variables are present
-    if (empty($sepaOwnerName) || empty($FamilyID)) {
+    if (empty($SEPA_ownerName) || empty($gibbonFamilyID)) {
         $URL = $URL . '&return=error3';
         header("Location: {$URL}");
         exit;
     } else {
         try {
-            $data = array('gibbonFamilyID' => $FamilyID, 'SEPA_ownerName' => $sepaOwnerName, 'SEPA_IBAN' => $SEPAIBAN, 'SEPA_BIC' => $SEPABIC, 'SEPA_signedDate' => $SEPASignedDate, 'note' => $note, 'customData' => '{}');
+            $data = array('gibbonFamilyID' => $gibbonFamilyID, 'SEPA_ownerName' => $SEPA_ownerName, 'SEPA_IBAN' => $SEPA_IBAN, 'SEPA_BIC' => $SEPA_BIC, 'SEPA_signedDate' => $SEPA_signedDate, 'note' => $note, 'customData' => '{}');
             $sql = "INSERT INTO gibbonSEPA SET gibbonFamilyID=:gibbonFamilyID, SEPA_ownerName=:SEPA_ownerName, SEPA_IBAN=:SEPA_IBAN, SEPA_BIC=:SEPA_BIC, SEPA_signedDate=:SEPA_signedDate, note=:note, customData=:customData";
             $result = $connection2->prepare($sql);
             $result->execute($data);

@@ -28,17 +28,17 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
 } else {
 
    $page->breadcrumbs
-      ->add(__('Manage Family SEBA'), 'sepa_family_view.php')
-      ->add(__('Add SEBA'));
+      ->add(__('Manage Family SEPA'), 'sepa_family_view.php')
+      ->add(__('Add SEPA'));
 
    // For a form
    // Check out https:// gist.github.com/SKuipers/3a4de3a323ab9d0969951894c29940ae for a cheatsheet / guide
-   
+
    $editLink = '';
-    if (isset($_GET['editID'])) {
-        $editLink = $session->get('absoluteURL').'/index.php?q=/modules/' . $session->get('module') . '/sepa_family_edit.php&gibbonSEPAID='.$_GET['editID'];
-    }
-    $page->return->setEditLink($editLink);
+   if (isset($_GET['editID'])) {
+      $editLink = $session->get('absoluteURL') . '/index.php?q=/modules/' . $session->get('module') . '/sepa_family_edit.php&gibbonSEPAID=' . $_GET['editID'];
+   }
+   $page->return->setEditLink($editLink);
 
 
    $form = Form::create('addSEPA', $session->get('absoluteURL') . '/modules/' . $session->get('module') . '/sepa_family_addProcess.php');
@@ -50,24 +50,24 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
 
    $row = $form->addRow();
    $row->addLabel('Account owner name', __('Sepa owner name'))->description(__('The name of SEPA account owner.'));
-   $row->addTextField('sepaOwnerName')->required()->maxLength(255);
+   $row->addTextField('SEPA_ownerName')->required()->maxLength(255);
 
    $row = $form->addRow();
-   $row->addLabel('SEPA_IBAN', __('SEPA IBAN'))->description(__('IBAN of the bank account, The money will be withdrawn from this account.'));
-   $row->addTextField('SEPAIBAN')->maxLength(22);
+   $row->addLabel('SEPAIBAN', __('SEPA IBAN'))->description(__('IBAN of the bank account, The money will be withdrawn from this account.'));
+   $row->addTextField('SEPA_IBAN')->maxLength(22);
 
    $row = $form->addRow();
-   $row->addLabel('SEPA_BIC', __('SEPA_BIC'))->description(__('IBAN of the bank account.'));
-   $row->addTextField('SEPABIC')->maxLength(11);
+   $row->addLabel('SEPABIC', __('SEPA_BIC'))->description(__('IBAN of the bank account.'));
+   $row->addTextField('SEPA_BIC')->maxLength(11);
 
-   
+
    $FamiliesName = "SELECT gibbonFamily.gibbonFamilyID as value, name FROM gibbonFamily LEFT JOIN gibbonSEPA ON gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID WHERE gibbonSEPA.gibbonFamilyID is NULL";
-   $row= $form->addRow();
+   $row = $form->addRow();
    $row->addLabel('Family', __('Family'))->description('Only families without a SEPA account can be selected.');
-   $row->addSelect('FamilyID')
-       ->fromQuery($pdo, $FamiliesName)
-       ->required()
-       ->placeholder();
+   $row->addSelect('gibbonFamilyID')
+      ->fromQuery($pdo, $FamiliesName)
+      ->required()
+      ->placeholder();
 
 
 
@@ -76,8 +76,8 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
    $row->addTextArea('note')->setRow(4);
 
    $row = $form->addRow();
-   $row->addLabel('SEPASignedDate', __('Date of SEPA signniture'));
-   $row->addDate('SEPASignedDate');
+   $row->addLabel('SEPAsignedDate', __('Date of SEPA signniture'));
+   $row->addDate('SEPA_signedDate');
 
    // SUBMIT
    $row = $form->addRow();
