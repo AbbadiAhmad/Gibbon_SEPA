@@ -83,7 +83,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
                 $output_text = '';
                 $output_text .= "<p>SEPA IBAN: " . htmlspecialchars($row['SEPA_IBAN'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
                 $output_text .= "<p>SEPA BIC: " . htmlspecialchars($row['SEPA_BIC'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
-                $output_text .= "<p>Note: " . htmlspecialchars($row['Note'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+                $output_text .= "<p>Note: " . htmlspecialchars($row['note'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
 
                 $jsonData = [];
                 if (isset($row['customData']) && trim($row['customData']) !== '') {
@@ -93,7 +93,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
                     $output_text = 'Error while reading Custome fields';
                 } else {
                     foreach ($customFields as $field) {
-                        $value = $jsonData[$field['title']] ?? '';
+                        $id = $CustomFieldsGateway->getCustomeFieldPrefix() . intval($field["gibbonSEPACustomFieldID"]);
+                        $value = $jsonData[$id] ?? '';
                         $output_text .= "<p>" . htmlspecialchars($field['title'], ENT_QUOTES, 'UTF-8') . ": " . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</p>";
                     }
 

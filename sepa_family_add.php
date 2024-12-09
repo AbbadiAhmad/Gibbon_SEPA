@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Forms\Form;
+use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
 
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -42,7 +43,6 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
 
 
    $form = Form::create('addSEPA', $session->get('absoluteURL') . '/modules/' . $session->get('module') . '/sepa_family_addProcess.php');
-
    $form->addHiddenValue('address', $session->get('address'));
 
    // BASIC INFORMATION
@@ -69,8 +69,6 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
       ->required()
       ->placeholder();
 
-
-
    $row = $form->addRow();
    $row->addLabel('note', __('Note'));
    $row->addTextArea('note')->setRow(4);
@@ -79,6 +77,10 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
    $row->addLabel('SEPAsignedDate', __('Date of SEPA signniture'));
    $row->addDate('SEPA_signedDate');
 
+   // custom fields
+   $customFieldsGateway = $container->get(customFieldsGateway::class);
+   $customFieldsGateway->addCustomFieldsToForm($form, $fields = []);
+   
    // SUBMIT
    $row = $form->addRow();
    $row->addFooter();

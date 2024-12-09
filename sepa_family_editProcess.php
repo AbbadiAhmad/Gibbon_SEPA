@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 use Gibbon\Services\Format;
 use Gibbon\Data\Validator;
+use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
 include '../../gibbon.php';
 
 $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -44,6 +45,17 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
         $note = htmlspecialchars($_POST['note'] ?? '', ENT_QUOTES, 'UTF-8');
         $SEPA_signedDate = !empty($_POST['SEPA_signedDate']) ? Format::dateConvert($_POST['SEPA_signedDate']) : null;
 
+        // custom fields
+        $customFieldsGateway = $container->get(customFieldsGateway::class);
+        $customFieldsData = $customFieldsGateway->getCustomFieldInitialData();
+        foreach ($customFieldsData as $key => $value) {
+            foreach ($customFieldsData as $key => $value) {
+                if (isset($_POST[$key])) {
+                    $customFieldsData[$key] = htmlspecialchars($_POST[$key] ?? '', ENT_QUOTES, 'UTF-8');
+                }
+            }
+        }
+        $customData = json_encode($customFieldsData);
 
         // Check that your required variables are present
         if (empty($SEPA_ownerName) || empty($gibbonFamilyID)) {
@@ -52,7 +64,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
             exit;
         } else {
             try {
-                $data = array('gibbonFamilyID' => $gibbonFamilyID, 'SEPA_ownerName' => $SEPA_ownerName, 'SEPA_IBAN' => $SEPA_IBAN, 'SEPA_BIC' => $SEPA_BIC, 'SEPA_signedDate' => $SEPA_signedDate, 'note' => $note, 'customData' => '{}', 'gibbonSEPAID'=>$gibbonSEPAID);
+                $data = array('gibbonFamilyID' => $gibbonFamilyID, 'SEPA_ownerName' => $SEPA_ownerName, 'SEPA_IBAN' => $SEPA_IBAN, 'SEPA_BIC' => $SEPA_BIC, 'SEPA_signedDate' => $SEPA_signedDate, 'note' => $note, 'customData' => $customData, 'gibbonSEPAID' => $gibbonSEPAID);
                 $sql = "UPDATE gibbonSEPA SET gibbonFamilyID=:gibbonFamilyID, SEPA_ownerName=:SEPA_ownerName, SEPA_IBAN=:SEPA_IBAN, SEPA_BIC=:SEPA_BIC, SEPA_signedDate=:SEPA_signedDate, note=:note, customData=:customData WHERE gibbonSEPAID=:gibbonSEPAID";
                 $result = $connection2->prepare($sql);
                 $result->execute($data);

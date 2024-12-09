@@ -1,33 +1,16 @@
 <?php
-/*
-Gibbon, Flexible & Open School System
-Copyright (C) 2010, Ross Parker
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http:// www.gnu.org/licenses/>.
-*/
 
 // This file describes the module, including database tables
 
 // Basic variables
-$name        = 'Sepa';            // The name of the module as it appears to users. Needs to be unique to installation. Also the name of the folder that holds the unit.
+$name = 'Sepa';            // The name of the module as it appears to users. Needs to be unique to installation. Also the name of the folder that holds the unit.
 $description = 'Manage SEPA information and transaction';            // Short text description
-$entryURL    = "sepa_family_view.php";   // The landing page for the unit, used in the main menu
-$type        = "Additional";  // Do not change.
-$category    = 'Other';            // The main menu area to place the module in
-$version     = '0.1.0';            // Version number
-$author      = 'Ahmad';            // Your name
-$url         = '';            // Your URL
+$entryURL = "sepa_family_view.php";   // The landing page for the unit, used in the main menu
+$type = "Additional";  // Do not change.
+$category = 'Other';            // The main menu area to place the module in
+$version = '0.1.0';            // Version number
+$author = 'Ahmad';            // Your name
+$url = '';            // Your URL
 
 // Module tables & gibbonSettings entries
 // One array entry for every database table you need to create. Might be nice to preface the table name with the module name, to keep the db neat. 
@@ -46,7 +29,7 @@ $moduleTables[] = "
          PRIMARY KEY (`gibbonSEPAID`),
         KEY `gibbonFamilyID` (`gibbonFamilyID`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-     "; 
+     ";
 
 $moduleTables[] = "
     CREATE TABLE `gibbonSEPACustomField` (
@@ -54,14 +37,14 @@ $moduleTables[] = "
         `title` varchar(50) NOT NULL,
         `active` enum('Y','N') NOT NULL DEFAULT 'Y',
         `description` varchar(255) NOT NULL,
-        `type` enum('varchar','text','date','select','checkboxes','radio','yesno','editor','number','image','file') NOT NULL,
+        `type` enum('varchar','text','date','select','checkboxes','radio','yesno','number','file') NOT NULL,
         `options` text NOT NULL COMMENT 'Field length for varchar, rows for text, comma-separate list for select/checkbox.',
         `required` enum('N','Y') NOT NULL DEFAULT 'N',
         `heading` varchar(90) NOT NULL,
         `sequenceNumber` int(4) NOT NULL,
         PRIMARY KEY (`gibbonSEPACustomFieldID`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-    "; 
+    ";
 
 $moduleTables[] = "
     INSERT INTO gibbonSEPACustomField
@@ -69,9 +52,25 @@ $moduleTables[] = "
     VALUES
         ('SEPA Owner Address', 'Y', 'Der Strasse des SEPA-Kontoinhabers', 'varchar', '100', 'N', 'SEPA', 1),
         ('SEPA Owner Zip/City/Country', 'Y', 'Der Postzal Stadt, Land des SEPA-Kontoinhabers', 'varchar', '150', 'N', 'SEPA', 2),
-        ('SEPA Owner Phone', 'Y', 'Der Telefone des SEPA-Kontoinhabers', 'varchar', '15', 'N', 'SEPA', 3)
-    ;";
+        ('SEPA Owner Phone', 'Y', 'Der Telefone des SEPA-Kontoinhabers', 'varchar', '15', 'N', 'SEPA', 3);
+    ";
 
+$moduleTables[] = "
+CREATE TABLE `gibbonSEPAPaymentEntry` (
+        `gibbonSEPAPaymentRecordID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+        `booking_date` DATE NULL,
+        `SEPA_ownerName` varchar(100) NOT NULL,
+        `SEPA_IBAN` varchar(34) NOT NULL,
+        `SEPA_signedDate` DATE NULL,
+        `SEPA_transaction` varchar(255) NULL,
+        `payment_message` varchar(255) NULL,
+        `amount` decimal(10,2) NULL,
+        `note` text NULL,
+        `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`gibbonSEPAPaymentRecordID`),
+        UNIQUE KEY `unique_booking_sepa_owner_payment_message` (`booking_date`, `SEPA_ownerName`, `payment_message`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    ";
 
 // Add gibbonSettings entries
 //$gibbonSetting[] = "";
@@ -79,65 +78,85 @@ $moduleTables[] = "
 // Action rows 
 // One array per action
 $actionRows[] = [
-    'name'                      => 'View Family\'s SEPA', // The name of the action (appears to user in the right hand side module menu)
-    'precedence'                => '2',// If it is a grouped action, the precedence controls which is highest action in group
-    'category'                  => 'SEPA info', // Optional: subgroups for the right hand side module menu
-    'description'               => 'Show SEPA of each family', // Text description
-    'URLList'                   => 'sepa_family_view.php', // List of pages included in this action
-    'entryURL'                  => 'sepa_family_view.php', // The landing action for the page.
-    'entrySidebar'              => 'Y', // Whether or not there's a sidebar on entry to the action
-    'menuShow'                  => 'Y', // Whether or not this action shows up in menus or if it's hidden
-    'defaultPermissionAdmin'    => 'Y', // Default permission for built in role Admin
-    'defaultPermissionTeacher'  => 'N', // Default permission for built in role Teacher
-    'defaultPermissionStudent'  => 'N', // Default permission for built in role Student
-    'defaultPermissionParent'   => 'N', // Default permission for built in role Parent
-    'defaultPermissionSupport'  => 'N', // Default permission for built in role Support
-    'categoryPermissionStaff'   => 'Y', // Should this action be available to user roles in the Staff category?
+    'name' => 'View Family\'s SEPA', // The name of the action (appears to user in the right hand side module menu)
+    'precedence' => '2',// If it is a grouped action, the precedence controls which is highest action in group
+    'category' => 'SEPA info', // Optional: subgroups for the right hand side module menu
+    'description' => 'Show SEPA of each family', // Text description
+    'URLList' => 'sepa_family_view.php', // List of pages included in this action
+    'entryURL' => 'sepa_family_view.php', // The landing action for the page.
+    'entrySidebar' => 'Y', // Whether or not there's a sidebar on entry to the action
+    'menuShow' => 'Y', // Whether or not this action shows up in menus or if it's hidden
+    'defaultPermissionAdmin' => 'Y', // Default permission for built in role Admin
+    'defaultPermissionTeacher' => 'N', // Default permission for built in role Teacher
+    'defaultPermissionStudent' => 'N', // Default permission for built in role Student
+    'defaultPermissionParent' => 'N', // Default permission for built in role Parent
+    'defaultPermissionSupport' => 'N', // Default permission for built in role Support
+    'categoryPermissionStaff' => 'Y', // Should this action be available to user roles in the Staff category?
     'categoryPermissionStudent' => 'N', // Should this action be available to user roles in the Student category?
-    'categoryPermissionParent'  => 'N', // Should this action be available to user roles in the Parent category?
-    'categoryPermissionOther'   => 'N', // Should this action be available to user roles in the Other category?
+    'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
+    'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
 ];
 
 $actionRows[] = [
-    'name'                      => 'Add Family SEPA', // The name of the action (appears to user in the right hand side module menu)
-    'precedence'                => '1',// If it is a grouped action, the precedence controls which is highest action in group
-    'category'                  => 'Management', // Optional: subgroups for the right hand side module menu
-    'description'               => 'Add SEPA to a family', // Text description
-    'URLList'                   => 'sepa_family_add.php,sepa_family_edit.php,sepa_family_delete.php', // List of pages included in this action
-    'entryURL'                  => 'sepa_family_add.php', // The landing action for the page.
-    'entrySidebar'              => 'Y', // Whether or not there's a sidebar on entry to the action
-    'menuShow'                  => 'Y', // Whether or not this action shows up in menus or if it's hidden
-    'defaultPermissionAdmin'    => 'Y', // Default permission for built in role Admin
-    'defaultPermissionTeacher'  => 'N', // Default permission for built in role Teacher
-    'defaultPermissionStudent'  => 'N', // Default permission for built in role Student
-    'defaultPermissionParent'   => 'N', // Default permission for built in role Parent
-    'defaultPermissionSupport'  => 'N', // Default permission for built in role Support
-    'categoryPermissionStaff'   => 'Y', // Should this action be available to user roles in the Staff category?
+    'name' => 'Add Family SEPA', // The name of the action (appears to user in the right hand side module menu)
+    'precedence' => '1',// If it is a grouped action, the precedence controls which is highest action in group
+    'category' => 'Management', // Optional: subgroups for the right hand side module menu
+    'description' => 'Add SEPA to a family', // Text description
+    'URLList' => 'sepa_family_add.php,sepa_family_edit.php,sepa_family_delete.php', // List of pages included in this action
+    'entryURL' => 'sepa_family_add.php', // The landing action for the page.
+    'entrySidebar' => 'Y', // Whether or not there's a sidebar on entry to the action
+    'menuShow' => 'Y', // Whether or not this action shows up in menus or if it's hidden
+    'defaultPermissionAdmin' => 'Y', // Default permission for built in role Admin
+    'defaultPermissionTeacher' => 'N', // Default permission for built in role Teacher
+    'defaultPermissionStudent' => 'N', // Default permission for built in role Student
+    'defaultPermissionParent' => 'N', // Default permission for built in role Parent
+    'defaultPermissionSupport' => 'N', // Default permission for built in role Support
+    'categoryPermissionStaff' => 'Y', // Should this action be available to user roles in the Staff category?
     'categoryPermissionStudent' => 'N', // Should this action be available to user roles in the Student category?
-    'categoryPermissionParent'  => 'N', // Should this action be available to user roles in the Parent category?
-    'categoryPermissionOther'   => 'N', // Should this action be available to user roles in the Other category?
+    'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
+    'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
 ];
 
 
 $actionRows[] = [
-    'name'                      => 'Edit/delete SEPA', // The name of the action (appears to user in the right hand side module menu)
-    'precedence'                => '0',// If it is a grouped action, the precedence controls which is highest action in group
-    'category'                  => 'Management', // Optional: subgroups for the right hand side module menu
-    'description'               => 'Add SEPA to a family', // Text description
-    'URLList'                   => 'sepa_family_edit.php,sepa_family_delete.php', // List of pages included in this action
-    'entryURL'                  => 'sepa_family_edit.php', // The landing action for the page.
-    'entrySidebar'              => 'N', // Whether or not there's a sidebar on entry to the action
-    'menuShow'                  => 'N', // Whether or not this action shows up in menus or if it's hidden
-    'defaultPermissionAdmin'    => 'Y', // Default permission for built in role Admin
-    'defaultPermissionTeacher'  => 'N', // Default permission for built in role Teacher
-    'defaultPermissionStudent'  => 'N', // Default permission for built in role Student
-    'defaultPermissionParent'   => 'N', // Default permission for built in role Parent
-    'defaultPermissionSupport'  => 'N', // Default permission for built in role Support
-    'categoryPermissionStaff'   => 'Y', // Should this action be available to user roles in the Staff category?
+    'name' => 'Edit/delete SEPA', // The name of the action (appears to user in the right hand side module menu)
+    'precedence' => '0',// If it is a grouped action, the precedence controls which is highest action in group
+    'category' => 'Management', // Optional: subgroups for the right hand side module menu
+    'description' => 'Add SEPA to a family', // Text description
+    'URLList' => 'sepa_family_edit.php,sepa_family_delete.php', // List of pages included in this action
+    'entryURL' => 'sepa_family_edit.php', // The landing action for the page.
+    'entrySidebar' => 'N', // Whether or not there's a sidebar on entry to the action
+    'menuShow' => 'N', // Whether or not this action shows up in menus or if it's hidden
+    'defaultPermissionAdmin' => 'Y', // Default permission for built in role Admin
+    'defaultPermissionTeacher' => 'N', // Default permission for built in role Teacher
+    'defaultPermissionStudent' => 'N', // Default permission for built in role Student
+    'defaultPermissionParent' => 'N', // Default permission for built in role Parent
+    'defaultPermissionSupport' => 'N', // Default permission for built in role Support
+    'categoryPermissionStaff' => 'Y', // Should this action be available to user roles in the Staff category?
     'categoryPermissionStudent' => 'N', // Should this action be available to user roles in the Student category?
-    'categoryPermissionParent'  => 'N', // Should this action be available to user roles in the Parent category?
-    'categoryPermissionOther'   => 'N', // Should this action be available to user roles in the Other category?
+    'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
+    'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
 ];
 
+// Action rows
+$actionRows[] = [
+    'name' => 'Import SEPA Data',
+    'precedence' => '0',
+    'category' => 'Management',
+    'description' => 'Import SEPA data from Excel files',
+    'URLList' => 'import_sepa_data.php',
+    'entryURL' => 'import_sepa_data.php',
+    'entrySidebar' => 'Y', // Whether or not there's a sidebar on entry to the action
+    'menuShow' => 'Y', // Whether or not this action shows up in menus or if it's hidden
+    'defaultPermissionAdmin' => 'Y', // Default permission for built in role Admin
+    'defaultPermissionTeacher' => 'N', // Default permission for built in role Teacher
+    'defaultPermissionStudent' => 'N', // Default permission for built in role Student
+    'defaultPermissionParent' => 'N', // Default permission for built in role Parent
+    'defaultPermissionSupport' => 'N', // Default permission for built in role Support
+    'categoryPermissionStaff' => 'Y', // Should this action be available to user roles in the Staff category?
+    'categoryPermissionStudent' => 'N', // Should this action be available to user roles in the Student category?
+    'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
+    'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
+];
 // Hooks
 //$hooks[] = ''; // Serialised array to create hook and set options. See Hooks documentation online.
