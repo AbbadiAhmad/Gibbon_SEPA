@@ -58,14 +58,14 @@ $moduleTables[] = "
 $moduleTables[] = "
 CREATE TABLE `gibbonSEPAPaymentEntry` (
         `gibbonSEPAPaymentRecordID` int(10) unsigned NOT NULL AUTO_INCREMENT,
-        `booking_date` DATE NULL,
+        `booking_date` DATE not NULL,
         `SEPA_ownerName` varchar(100) NOT NULL,
-        `SEPA_IBAN` varchar(34) NOT NULL,
-        `SEPA_signedDate` DATE NULL,
+        `SEPA_IBAN` varchar(34) NULL,
         `SEPA_transaction` varchar(255) NULL,
         `payment_message` varchar(255) NULL,
-        `amount` decimal(10,2) NULL,
+        `amount` decimal(10,2) not NULL,
         `note` text NULL,
+        `user` varchar(255) not NULL,
         `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (`gibbonSEPAPaymentRecordID`),
         UNIQUE KEY `unique_booking_sepa_owner_payment_message` (`booking_date`, `SEPA_ownerName`, `payment_message`)
@@ -96,6 +96,28 @@ $actionRows[] = [
     'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
     'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
 ];
+
+$actionRows[] = [
+    'name' => 'View SEPA Payment', // The name of the action (appears to user in the right hand side module menu)
+    'precedence' => '2',// If it is a grouped action, the precedence controls which is highest action in group
+    'category' => 'SEPA info', // Optional: subgroups for the right hand side module menu
+    'description' => 'Show SEPA Payment records', // Text description
+    'URLList' => 'sepa_payment_view.php', // List of pages included in this action
+    'entryURL' => 'sepa_payment_view.php', // The landing action for the page.
+    'entrySidebar' => 'Y', // Whether or not there's a sidebar on entry to the action
+    'menuShow' => 'Y', // Whether or not this action shows up in menus or if it's hidden
+    'defaultPermissionAdmin' => 'Y', // Default permission for built in role Admin
+    'defaultPermissionTeacher' => 'N', // Default permission for built in role Teacher
+    'defaultPermissionStudent' => 'N', // Default permission for built in role Student
+    'defaultPermissionParent' => 'N', // Default permission for built in role Parent
+    'defaultPermissionSupport' => 'N', // Default permission for built in role Support
+    'categoryPermissionStaff' => 'Y', // Should this action be available to user roles in the Staff category?
+    'categoryPermissionStudent' => 'N', // Should this action be available to user roles in the Student category?
+    'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
+    'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
+];
+
+
 
 $actionRows[] = [
     'name' => 'Add Family SEPA', // The name of the action (appears to user in the right hand side module menu)
@@ -140,7 +162,7 @@ $actionRows[] = [
 
 // Action rows
 $actionRows[] = [
-    'name' => 'Import SEPA Data',
+    'name' => 'Import SEPA Payment',
     'precedence' => '0',
     'category' => 'Management',
     'description' => 'Import SEPA data from Excel files',

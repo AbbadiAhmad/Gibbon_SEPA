@@ -86,6 +86,16 @@ class SepaGateway extends QueryableGateway
         return $SEPAs;
 
     }
+    public function getPaymentEntries($SEPA_details)
+    {
+        //
+        $query = $this->newSelect()
+            ->cols(['gibbonSEPAPaymentEntry.*'])
+            ->from('gibbonSEPAPaymentEntry')
+            ->where("gibbonSEPAPaymentEntry.SEPA_ownerName = '{$SEPA_details['SEPA_ownerName']}' ")
+            ->orderBy(['gibbonSEPAPaymentEntry.SEPA_ownerName ASC']);
 
+            return $this->runSelect($query);
+    }
 
 }
