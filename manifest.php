@@ -117,6 +117,26 @@ $actionRows[] = [
     'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
 ];
 
+$actionRows[] = [
+    'name' => 'View SEPA Payment - my family', // The name of the action (appears to user in the right hand side module menu)
+    'precedence' => '2',// If it is a grouped action, the precedence controls which is highest action in group
+    'category' => 'SEPA info', // Optional: subgroups for the right hand side module menu
+    'description' => 'Show SEPA Payment records', // Text description
+    'URLList' => 'sepa_payment_view_per_family.php', // List of pages included in this action
+    'entryURL' => 'sepa_payment_view_per_family.php', // The landing action for the page.
+    'entrySidebar' => 'Y', // Whether or not there's a sidebar on entry to the action
+    'menuShow' => 'Y', // Whether or not this action shows up in menus or if it's hidden
+    'defaultPermissionAdmin' => 'Y', // Default permission for built in role Admin
+    'defaultPermissionTeacher' => 'Y', // Default permission for built in role Teacher
+    'defaultPermissionStudent' => 'Y', // Default permission for built in role Student
+    'defaultPermissionParent' => 'Y', // Default permission for built in role Parent
+    'defaultPermissionSupport' => 'Y', // Default permission for built in role Support
+    'categoryPermissionStaff' => 'Y', // Should this action be available to user roles in the Staff category?
+    'categoryPermissionStudent' => 'Y', // Should this action be available to user roles in the Student category?
+    'categoryPermissionParent' => 'Y', // Should this action be available to user roles in the Parent category?
+    'categoryPermissionOther' => 'Y', // Should this action be available to user roles in the Other category?
+];
+
 
 
 $actionRows[] = [

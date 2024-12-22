@@ -28,9 +28,9 @@ class SepaGateway extends QueryableGateway
             ->from($this->getTableName())
             ->cols(['*']);
 
-        if ($gibbonSEPAIDList && count($gibbonSEPAIDList) > 0) {
-            $query->where('FIND_IN_SET(gibbonSEPAID, :gibbonSEPAIDList)')
-                ->bindValue('gibbonSEPAIDList', $gibbonSEPAIDList);
+        if ($gibbonSEPAIDList) {
+            $query->where("FIND_IN_SET(gibbonSEPAID, :gibbonSEPAIDList)")
+                ->bindValue("gibbonSEPAIDList", $gibbonSEPAIDList);
         }
 
         return $this->runQuery($query, $criteria);
@@ -95,7 +95,60 @@ class SepaGateway extends QueryableGateway
             ->where("gibbonSEPAPaymentEntry.SEPA_ownerName = '{$SEPA_details['SEPA_ownerName']}' ")
             ->orderBy(['gibbonSEPAPaymentEntry.SEPA_ownerName ASC']);
 
-            return $this->runSelect($query);
+        return $this->runSelect($query);
+    }
+
+    public function getFamilySEPA($familyIDs)
+    {
+        $familyIDs_Str = is_array($familyIDs) ? implode(',', $familyIDs) : $familyIDs;
+        $query = $this
+            ->newQuery()
+            ->from($this->getTableName())
+            ->cols(['*'])
+            ->where('FIND_IN_SET(gibbonFamilyID, :familyIDs_Str)')
+            ->bindValue('familyIDs_Str', $familyIDs_Str);
+
+        return $this->runSelect($query)->fetchAll();
+
+    }
+
+    public function getfamilyPerPerson($userID)
+    {
+        $familyIDs = [];
+        // find in family's adults 
+        $query = $this
+            ->newQuery()
+            ->from("gibbonFamilyAdult")
+            ->cols(['gibbonFamilyID'])
+            ->where('gibbonPersonID = :userID ')
+            ->bindValue('userID', $userID);
+
+
+        foreach ($this->runSelect($query) as $item) {
+            $familyIDs[] = $item['gibbonFamilyID'];
+        }
+        // find in family's childs 
+        $query = $this
+            ->newQuery()
+            ->from("gibbonFamilyChild")
+            ->cols(['gibbonFamilyID'])
+            ->where('gibbonPersonID = :userID ')
+            ->bindValue('userID', $userID);
+
+        foreach ($this->runSelect($query) as $item) {
+            $familyIDs[] = $item['gibbonFamilyID'];
+        }
+
+
+        return array_unique($familyIDs);
+
+    }
+
+    public function getSEPAPerPerson($userID)
+    {
+        $familyIDs = $this->getfamilyPerPerson($userID);
+        return $this->getFamilySEPA($familyIDs);
+
     }
 
 }
