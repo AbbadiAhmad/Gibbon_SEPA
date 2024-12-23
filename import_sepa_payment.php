@@ -7,7 +7,7 @@ Copyright © 2010, Gibbon Foundation
 
 use Gibbon\Forms\Form;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use Gibbon\Services\Format;
+use Gibbon\Module\Sepa\Domain\SepaGateway;
 
 require_once __DIR__ . '/../../gibbon.php';
 
@@ -52,7 +52,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         'amount'
     ];
     $requiredField = ['booking_date', 'SEPA_ownerName', 'amount'];
-
+    $availableDataFormat = ["d.m.Y", "d/m/Y", "d-m-Y", "Y-m-d"];
 
     // STEP 1: SELECT FILE
     if ($step == 1) {
@@ -114,6 +114,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
                     ->fromArray(array_combine(range(0, count($headers) - 1), $headers))
                     ->placeholder();
             }
+            // add date formate in the paymentlist file
+            $row = $form->addRow();
+            $row->addLabel("Date format", __("Date format"));
+            $row->addSelect("dateFormat")
+                ->fromArray($availableDataFormat);
 
             $row = $form->addRow();
             $row->addFooter();
@@ -130,6 +135,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         $data = $_SESSION[$guid]['sepaImportData'] ?? null;
         $headers = $_SESSION[$guid]['sepaImportDataHeaders'] ?? [];
         $mapping = $_POST['map'] ?? null;
+        if (in_array($_POST['dateFormat'], $availableDataFormat)) {
+            $dateFormat = $_POST['dateFormat'];
+        } else {
+            echo 'Unsupported date format';
+            return;
+        }
 
         if (empty($data) || empty($mapping)) {
             $page->addError(__('Invalid data'));
@@ -159,7 +170,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
             if (!empty($error)) {
                 $errors[] = $error;
             } else {
-                $mappedRow = array_merge(['__RowNumberInExcelFile__' => $rowIndex+2], $mappedRow);
+                $mappedRow = array_merge(['__RowNumberInExcelFile__' => $rowIndex + 2], $mappedRow);
+                // convert date into mysql date format
+                if (!empty($mappedRow['booking_date']))
+                    $mappedRow['booking_date'] = DateTime::createFromFormat($dateFormat, $mappedRow['booking_date'])->format('Y-m-d');
                 $validData[] = $mappedRow;
             }
 
@@ -201,49 +215,19 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         }
 
         try {
+            $SepaGateway = $container->get(SepaGateway::class);
             $count = 0;
             $unprocessedRows = [];
             foreach ($data as $row) {
-                $row['booking_date'] = Format::dateConvert(str_replace('.', '/', $row['booking_date']));
-                $whereclause = [];
-                foreach ($requiredField as $field) {
-                    $whereclause[] = $field . ' = "' . $row[$field] . '"';
-                }
-                $sql_select = 'SELECT gibbonSEPAPaymentRecordID FROM gibbonSEPAPaymentEntry WHERE ' . implode(' AND ', $whereclause);
-                $existsRow = $connection2->prepare($sql_select);
-                $existsRow->execute();
-                if ($existsRow->rowCount() === 0) {
-                    // Insert data into database
-                    $sql = "INSERT INTO gibbonSEPAPaymentEntry (
-                        booking_date,
-                        SEPA_ownerName,
-                        SEPA_IBAN,
-                        SEPA_transaction,
-                        payment_message,
-                        amount,
-                        note,
-                        user
-                    ) VALUES (
-                        :booking_date,
-                        :SEPA_ownerName,
-                        :SEPA_IBAN,
-                        :SEPA_transaction,
-                        :payment_message,
-                        :amount,
-                        :note,
-                        :user
-                    )";
-                    $result = $connection2->prepare($sql);
-                    $result->execute([
-                        ':booking_date' => $row['booking_date'],
-                        ':SEPA_ownerName' => $row['SEPA_ownerName'],
-                        ':SEPA_IBAN' => $row['SEPA_IBAN'],
-                        ':SEPA_transaction' => $row['SEPA_transaction'],
-                        ':payment_message' => $row['payment_message'],
-                        ':amount' => $row['amount'],
-                        ':note' => $row['note'],
-                        ':user' => $_SESSION[$guid]["username"]
-                    ]);
+                // convert the amount in German format '1.120,5' into decimal '1120.5'
+                $amountStr = str_replace('.', '', $row['amount']);
+                $row['amount'] = floatval(str_replace(',', '.', $amountStr));
+
+                $whereclause = "booking_date = '" . $row['booking_date'] . "' AND amount = '" . $row['amount'] . "' AND " .
+                    "LOWER(REPLACE(SEPA_ownerName, ' ', '')) = LOWER(REPLACE('" . $row['SEPA_ownerName'] . "', ' ', ''))";
+
+                if (!$SepaGateway->paymentRecordExist($whereclause)) {
+                    $SepaGateway->insertPayment($row, $_SESSION[$guid]["username"]);
                     $count++;
                 } else {
                     $unprocessedRows[] = implode(' | ', $row);

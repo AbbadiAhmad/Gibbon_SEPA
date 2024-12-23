@@ -172,7 +172,7 @@ class SepaGateway extends QueryableGateway
     {
         $familyIDs = $this->getfamilyPerPerson($userID);
         // Insert data into database
-        $result = null;
+        $result = [];
         foreach ($familyIDs as $familyID) {
             if ($this->getFamilySEPA($familyID)) {
                 continue; // the SEPA information is already inserted
@@ -189,11 +189,10 @@ class SepaGateway extends QueryableGateway
                     'note' => $sepaData['note'],
                 ]);
 
-            $result = $this->runInsert($query);
-            return $result;
+            $result[] = $this->runInsert($query);
+
         }
-
-
+        return $result;
     }
 
     public function getUnlinkedPayments($criteria)
@@ -209,4 +208,34 @@ class SepaGateway extends QueryableGateway
         return $unlinkedPayments;
     }
 
+    public function paymentRecordExist($whereClause)
+    {
+        $query = $this
+            ->newSelect()
+            ->cols(['gibbonSEPAPaymentEntry.gibbonSEPAPaymentRecordID'])
+            ->from('gibbonSEPAPaymentEntry')
+            ->where($whereClause);
+        $result = count($this->runSelect($query)->fetchAll()) > 0;
+        return $result;
+    }
+
+    public function insertPayment($paymentData, $user)
+    {
+        $query = $this
+            ->newInsert()
+            ->into('gibbonSEPAPaymentEntry')
+            ->cols([
+                'booking_date' => $paymentData['booking_date'],
+                'SEPA_ownerName' => $paymentData['SEPA_ownerName'],
+                'SEPA_IBAN' => $paymentData['SEPA_IBAN'],
+                'SEPA_transaction' => $paymentData['SEPA_transaction'],
+                'payment_message' => $paymentData['payment_message'],
+                'amount' => $paymentData['amount'],
+                'note' => $paymentData['note'],
+                'user' => $user
+            ]);
+
+        $this->runInsert($query);
+
+    }
 }

@@ -51,7 +51,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         'note'
     ];
     $requiredField = ['SEPA_ownerName'];
-
+    $availableDataFormat = ["d.m.Y", "d/m/Y", "d-m-Y", "Y-m-d"];
 
     // STEP 1: SELECT FILE
     if ($step == 1) {
@@ -113,6 +113,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                     ->fromArray(array_combine(range(0, count($headers) - 1), $headers))
                     ->placeholder();
             }
+            // add date formate in the paymentlist file
+            $row = $form->addRow();
+            $row->addLabel("Date format", __("Date format"));
+            $row->addSelect("dateFormat")
+                ->fromArray($availableDataFormat);
 
             $row = $form->addRow();
             $row->addFooter();
@@ -129,6 +134,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         $data = $_SESSION[$guid]['sepaImportData'] ?? null;
         $headers = $_SESSION[$guid]['sepaImportDataHeaders'] ?? [];
         $mapping = $_POST['map'] ?? null;
+        if (in_array($_POST['dateFormat'], $availableDataFormat)) {
+            $dateFormat = $_POST['dateFormat'];
+        } else {
+            echo 'Unsupported date format';
+            return;
+        }
 
         if (empty($data) || empty($mapping)) {
             $page->addError(__('Invalid data'));
@@ -159,6 +170,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                 $errors[] = $error;
             } else {
                 $mappedRow = array_merge(['__RowNumberInExcelFile__' => $rowIndex + 2], $mappedRow);
+                // convert date into mysql date format
+                if (!empty($mappedRow['SEPA_signedDate']))
+                    $mappedRow['SEPA_signedDate'] = DateTime::createFromFormat($dateFormat, $mappedRow['SEPA_signedDate'])->format('Y-m-d');
+
                 $validData[] = $mappedRow;
             }
 
@@ -205,7 +220,6 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             $unprocessedRows = [];
             $whereclause = '';
             foreach ($data as $row) {
-                $row['SEPA_signedDate'] = Format::dateConvert(str_replace('.', '/', $row['SEPA_signedDate']));
                 // check the names without spaces and in lower cases
                 $whereclause = "LOWER(REPLACE(CONCAT(preferredName, surname), ' ', '')) = LOWER(REPLACE('" . $row['SEPA_ownerName'] . "', ' ', ''))";
                 $userID = $SepaGateway->getUserID($whereclause);
