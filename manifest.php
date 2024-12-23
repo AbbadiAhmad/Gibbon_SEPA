@@ -44,9 +44,7 @@ $moduleTables[] = "
         `sequenceNumber` int(4) NOT NULL,
         PRIMARY KEY (`gibbonSEPACustomFieldID`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-    ";
-
-$moduleTables[] = "
+    
     INSERT INTO gibbonSEPACustomField
         (`title`, `active`, `description`, `type`, `options`, `required`, `heading`, `sequenceNumber`)
     VALUES
@@ -106,7 +104,7 @@ $actionRows[] = [
     'URLList' => 'sepa_unlinked_payment_view.php', // List of pages included in this action
     'entryURL' => 'sepa_unlinked_payment_view.php', // The landing action for the page.
     'entrySidebar' => 'Y', // Whether or not there's a sidebar on entry to the action
-    'menuShow' => 'N', // Whether or not this action shows up in menus or if it's hidden
+    'menuShow' => 'Y', // Whether or not this action shows up in menus or if it's hidden
     'defaultPermissionAdmin' => 'Y', // Default permission for built in role Admin
     'defaultPermissionTeacher' => 'N', // Default permission for built in role Teacher
     'defaultPermissionStudent' => 'N', // Default permission for built in role Student
@@ -120,7 +118,7 @@ $actionRows[] = [
 
 $actionRows[] = [
     'name' => 'View SEPA Payment - my family', // The name of the action (appears to user in the right hand side module menu)
-    'precedence' => '2',// If it is a grouped action, the precedence controls which is highest action in group
+    'precedence' => '4',// If it is a grouped action, the precedence controls which is highest action in group
     'category' => 'Payment', // Optional: subgroups for the right hand side module menu
     'description' => 'Show SEPA Payment records', // Text description
     'URLList' => 'sepa_payment_view_per_family.php', // List of pages included in this action
@@ -140,7 +138,7 @@ $actionRows[] = [
 
 $actionRows[] = [
     'name' => 'Import SEPA Payment',
-    'precedence' => '0',
+    'precedence' => '5',
     'category' => 'Payment',
     'description' => 'Import SEPA data from Excel files',
     'URLList' => 'import_sepa_payment.php',
@@ -160,7 +158,7 @@ $actionRows[] = [
 
 $actionRows[] = [
     'name' => 'View Family\'s SEPA', // The name of the action (appears to user in the right hand side module menu)
-    'precedence' => '2',// If it is a grouped action, the precedence controls which is highest action in group
+    'precedence' => '0',// If it is a grouped action, the precedence controls which is highest action in group
     'category' => 'SEPA', // Optional: subgroups for the right hand side module menu
     'description' => 'Show SEPA of each family', // Text description
     'URLList' => 'sepa_family_view.php', // List of pages included in this action
@@ -201,7 +199,7 @@ $actionRows[] = [
 
 $actionRows[] = [
     'name' => 'Edit/delete SEPA', // The name of the action (appears to user in the right hand side module menu)
-    'precedence' => '0',// If it is a grouped action, the precedence controls which is highest action in group
+    'precedence' => '3',// If it is a grouped action, the precedence controls which is highest action in group
     'category' => 'Management', // Optional: subgroups for the right hand side module menu
     'description' => 'Add SEPA to a family', // Text description
     'URLList' => 'sepa_family_edit.php,sepa_family_delete.php', // List of pages included in this action
@@ -222,7 +220,7 @@ $actionRows[] = [
 // Action rows
 $actionRows[] = [
     'name' => 'Import SEPA data',
-    'precedence' => '0',
+    'precedence' => '4',
     'category' => 'Management',
     'description' => 'Import SEPA data from Excel files',
     'URLList' => 'import_sepa_data.php',
