@@ -8,11 +8,10 @@ Copyright © 2010, Gibbon Foundation
 use Gibbon\Forms\Form;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Gibbon\Services\Format;
-use Gibbon\Module\Sepa\Domain\SepaGateway;
 
 require_once __DIR__ . '/../../gibbon.php';
 
-if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php") == false) {
+if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.php") == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
@@ -20,7 +19,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
     $step = isset($_GET['step']) ? min(max(1, $_GET['step']), 4) : 1;
 
     $page->breadcrumbs
-        ->add(__('Import SEPA Data'), 'import_sepa_data.php')
+        ->add(__('Import SEPA Payments'), 'import_sepa_payment.php')
         ->add(__('Step {number}', ['number' => $step]));
 
     $steps = [
@@ -44,13 +43,15 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
     // field data
     $fields = [
+        'booking_date',
         'SEPA_ownerName',
         'SEPA_IBAN',
-        'SEPA_BIC',
-        'SEPA_signedDate',
-        'note'
+        'SEPA_transaction',
+        'payment_message',
+        'note',
+        'amount'
     ];
-    $requiredField = ['SEPA_ownerName'];
+    $requiredField = ['booking_date', 'SEPA_ownerName', 'amount'];
 
 
     // STEP 1: SELECT FILE
@@ -158,7 +159,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             if (!empty($error)) {
                 $errors[] = $error;
             } else {
-                $mappedRow = array_merge(['__RowNumberInExcelFile__' => $rowIndex + 2], $mappedRow);
+                $mappedRow = array_merge(['__RowNumberInExcelFile__' => $rowIndex+2], $mappedRow);
                 $validData[] = $mappedRow;
             }
 
@@ -200,18 +201,49 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         }
 
         try {
-            $SepaGateway = $container->get(SepaGateway::class);
             $count = 0;
             $unprocessedRows = [];
-            $whereclause = '';
             foreach ($data as $row) {
-                $row['SEPA_signedDate'] = Format::dateConvert(str_replace('.', '/', $row['SEPA_signedDate']));
-                // check the names without spaces and in lower cases
-                $whereclause = "LOWER(REPLACE(CONCAT(preferredName, surname), ' ', '')) = LOWER(REPLACE('" . $row['SEPA_ownerName'] . "', ' ', ''))";
-                $userID = $SepaGateway->getUserID($whereclause);
-
-                // if only one person found
-                if (count($userID) === 1 && $SepaGateway->insertSEPAByUserName($userID[0], $row)) {
+                $row['booking_date'] = Format::dateConvert(str_replace('.', '/', $row['booking_date']));
+                $whereclause = [];
+                foreach ($requiredField as $field) {
+                    $whereclause[] = $field . ' = "' . $row[$field] . '"';
+                }
+                $sql_select = 'SELECT gibbonSEPAPaymentRecordID FROM gibbonSEPAPaymentEntry WHERE ' . implode(' AND ', $whereclause);
+                $existsRow = $connection2->prepare($sql_select);
+                $existsRow->execute();
+                if ($existsRow->rowCount() === 0) {
+                    // Insert data into database
+                    $sql = "INSERT INTO gibbonSEPAPaymentEntry (
+                        booking_date,
+                        SEPA_ownerName,
+                        SEPA_IBAN,
+                        SEPA_transaction,
+                        payment_message,
+                        amount,
+                        note,
+                        user
+                    ) VALUES (
+                        :booking_date,
+                        :SEPA_ownerName,
+                        :SEPA_IBAN,
+                        :SEPA_transaction,
+                        :payment_message,
+                        :amount,
+                        :note,
+                        :user
+                    )";
+                    $result = $connection2->prepare($sql);
+                    $result->execute([
+                        ':booking_date' => $row['booking_date'],
+                        ':SEPA_ownerName' => $row['SEPA_ownerName'],
+                        ':SEPA_IBAN' => $row['SEPA_IBAN'],
+                        ':SEPA_transaction' => $row['SEPA_transaction'],
+                        ':payment_message' => $row['payment_message'],
+                        ':amount' => $row['amount'],
+                        ':note' => $row['note'],
+                        ':user' => $_SESSION[$guid]["username"]
+                    ]);
                     $count++;
                 } else {
                     $unprocessedRows[] = implode(' | ', $row);
@@ -222,7 +254,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             echo sprintf(__('Successfully imported %d records'), $count);
             echo "</div>";
             echo "<div class='error'>";
-            echo sprintf(__('%d records are already exists or the can not find a user with a similar name to SEPA owner.'), count($unprocessedRows));
+            echo sprintf(__('%d records are already exists'), count($unprocessedRows));
             echo "<ul><li>" . implode("</li><li>", $unprocessedRows) . "</li></ul>";
             echo "</div>";
 

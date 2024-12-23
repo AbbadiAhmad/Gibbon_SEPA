@@ -151,4 +151,49 @@ class SepaGateway extends QueryableGateway
 
     }
 
+    public function getUserID($whereclause)
+    {
+        // muliple ID can be when similar names
+        $userIDs = [];
+        $query = $this
+            ->newQuery()
+            ->from("gibbonPerson")
+            ->cols(['gibbonPersonID'])
+            ->where($whereclause);
+        
+        foreach ($this->runSelect($query) as $item) {
+            $userIDs[] = $item['gibbonPersonID'];
+        }
+        return $userIDs;
+
+    }
+
+    public function insertSEPAByUserName($userID, $sepaData)
+    {
+        $familyIDs = $this->getfamilyPerPerson($userID);
+        // Insert data into database
+        $result = null;
+        foreach ($familyIDs as $familyID) {
+            if ($this->getFamilySEPA($familyID)){
+                continue; // the SEPA information is already inserted
+            }
+            $query = $this
+                ->newInsert()
+                ->into('gibbonSEPA')
+                ->cols([
+                    'gibbonFamilyID' => $familyID,
+                    'SEPA_ownerName' => $sepaData['SEPA_ownerName'],
+                    'SEPA_IBAN' => $sepaData['SEPA_IBAN'],
+                    'SEPA_BIC' => $sepaData['SEPA_BIC'],
+                    'SEPA_signedDate' => $sepaData['SEPA_signedDate'],
+                    'note' => $sepaData['note'],
+                ]);
+
+            $result = $this->runInsert($query);
+            return $result;
+        }
+
+
+    }
+
 }
