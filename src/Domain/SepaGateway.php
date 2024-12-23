@@ -26,7 +26,8 @@ class SepaGateway extends QueryableGateway
         $query = $this
             ->newQuery()
             ->from($this->getTableName())
-            ->cols(['*']);
+            ->cols(['*'])
+            ->orderBy(['SEPA_ownerName']);
 
         if ($gibbonSEPAIDList) {
             $query->where("FIND_IN_SET(gibbonSEPAID, :gibbonSEPAIDList)")

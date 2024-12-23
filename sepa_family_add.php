@@ -61,7 +61,7 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
    $row->addTextField('SEPA_BIC')->maxLength(11);
 
 
-   $FamiliesName = "SELECT gibbonFamily.gibbonFamilyID as value, name FROM gibbonFamily LEFT JOIN gibbonSEPA ON gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID WHERE gibbonSEPA.gibbonFamilyID is NULL";
+   $FamiliesName = "SELECT gibbonFamily.gibbonFamilyID as value, name FROM gibbonFamily LEFT JOIN gibbonSEPA ON gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID WHERE gibbonSEPA.gibbonFamilyID is NULL order by name";
    $row = $form->addRow();
    $row->addLabel('Family', __('Family'))->description('Only families without a SEPA account can be selected.');
    $row->addSelect('gibbonFamilyID')
