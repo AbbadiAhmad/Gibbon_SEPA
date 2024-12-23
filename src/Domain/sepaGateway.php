@@ -160,7 +160,7 @@ class SepaGateway extends QueryableGateway
             ->from("gibbonPerson")
             ->cols(['gibbonPersonID'])
             ->where($whereclause);
-        
+
         foreach ($this->runSelect($query) as $item) {
             $userIDs[] = $item['gibbonPersonID'];
         }
@@ -174,7 +174,7 @@ class SepaGateway extends QueryableGateway
         // Insert data into database
         $result = null;
         foreach ($familyIDs as $familyID) {
-            if ($this->getFamilySEPA($familyID)){
+            if ($this->getFamilySEPA($familyID)) {
                 continue; // the SEPA information is already inserted
             }
             $query = $this
@@ -194,6 +194,19 @@ class SepaGateway extends QueryableGateway
         }
 
 
+    }
+
+    public function getUnlinkedPayments($criteria)
+    {
+        $query = $this
+            ->newSelect()
+            ->cols(['gibbonSEPAPaymentEntry.*'])
+            ->from('gibbonSEPAPaymentEntry')
+            ->where("gibbonSEPAPaymentEntry.SEPA_ownerName NOT IN (SELECT SEPA_ownerName FROM gibbonSEPA)")
+            ->orderBy(['gibbonSEPAPaymentEntry.SEPA_ownerName ASC']);
+
+        $unlinkedPayments = $this->runQuery($query, $criteria);
+        return $unlinkedPayments;
     }
 
 }
