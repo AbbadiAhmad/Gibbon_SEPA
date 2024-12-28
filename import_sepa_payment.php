@@ -135,21 +135,20 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
     // STEP 3: DRY RUN
     else if ($step == 3) {
         $data = $_SESSION[$guid]['sepaImportData'] ?? null;
+        $headers = $_SESSION[$guid]['sepaImportDataHeaders'] ?? [];
+        $mapping = $_POST['map'] ?? null;
+
         if (empty($data) || empty($mapping)) {
             $page->addError(__('Invalid data'));
             return;
         }
-
-        $headers = $_SESSION[$guid]['sepaImportDataHeaders'] ?? [];
-        $mapping = $_POST['map'] ?? null;
+ 
         if (in_array($_POST['dateFormat'], $availableDataFormat)) {
             $dateFormat = $_POST['dateFormat'];
         } else {
             echo 'Unsupported date format';
             return;
         }
-
-
 
         // Perform dry run validation
         $processedData = [];
