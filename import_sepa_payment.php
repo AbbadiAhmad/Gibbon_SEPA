@@ -8,6 +8,7 @@ Copyright © 2010, Gibbon Foundation
 use Gibbon\Forms\Form;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Tables\DataTable;
 
 require_once __DIR__ . '/../../gibbon.php';
 
@@ -16,7 +17,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
     $page->addError(__('You do not have access to this action.'));
 } else {
 
-    $step = isset($_GET['step']) ? min(max(1, $_GET['step']), 4) : 1;
+    $step = isset($_GET['step']) ? min(max(1, $_GET['step']), 5) : 1;
 
     $page->breadcrumbs
         ->add(__('Import SEPA Payments'), 'import_sepa_payment.php')
@@ -27,6 +28,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         2 => __('Confirm Data'),
         3 => __('Dry Run'),
         4 => __('Live Run'),
+        5 => __('Final step'),
     ];
     $StepLink = $session->get('absoluteURL') . '/index.php?q=' . $_SESSION[$guid]['address'] . '&step=';
 
@@ -133,6 +135,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
     // STEP 3: DRY RUN
     else if ($step == 3) {
         $data = $_SESSION[$guid]['sepaImportData'] ?? null;
+        if (empty($data) || empty($mapping)) {
+            $page->addError(__('Invalid data'));
+            return;
+        }
+
         $headers = $_SESSION[$guid]['sepaImportDataHeaders'] ?? [];
         $mapping = $_POST['map'] ?? null;
         if (in_array($_POST['dateFormat'], $availableDataFormat)) {
@@ -142,59 +149,93 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
             return;
         }
 
-        if (empty($data) || empty($mapping)) {
-            $page->addError(__('Invalid data'));
-            return;
-        }
+
 
         // Perform dry run validation
-        $errors = [];
-        $validData = [];
+        $processedData = [];
+        $validDataCount = 0;
 
         foreach ($data as $rowIndex => $row) {
-            if ($rowIndex === 0)
-                continue; // Skip header row
 
             $mappedRow = [];
-            $error = [];
+            $errorMessage = '';
             foreach ($mapping as $field => $colIndex) {
                 $mappedRow[$field] = isset($headers[$colIndex]) ? $row[$headers[$colIndex]] : '';
-
                 // Validate required fields
                 if (empty($mappedRow[$field]) && in_array($field, $requiredField)) {
-
-                    $error = 'Row (' . $rowIndex + 2 . '): ' . implode(' ', $row);
-                    break;
+                    $errorMessage = 'Step3. missing required field: ' . $field;
+                    //break;
                 }
             }
-            if (!empty($error)) {
-                $errors[] = $error;
-            } else {
-                $mappedRow = array_merge(['__RowNumberInExcelFile__' => $rowIndex + 2], $mappedRow);
-                // convert date into mysql date format
-                if (!empty($mappedRow['booking_date']))
-                    $mappedRow['booking_date'] = DateTime::createFromFormat($dateFormat, $mappedRow['booking_date'])->format('Y-m-d');
-                $validData[] = $mappedRow;
-            }
+            $mappedRow['__RowCanBeImported__'] = true;
+            $mappedRow['__RowStatusInImportProcess__'] = 'Step3. In process';
+            // record the row number in excel
+            $mappedRow['__RowNumberInExcelFile__'] = $rowIndex + 2;
 
+            if ($errorMessage) {
+                $mappedRow['__RowCanBeImported__'] = false;
+                $mappedRow['__RowStatusInImportProcess__'] = $errorMessage;
+
+            } else {
+                try {
+                    $SepaGateway = $container->get(SepaGateway::class);
+
+                    // covert date to mysql format
+                    $mappedRow['booking_date'] = DateTime::createFromFormat($dateFormat, $mappedRow['booking_date'])->format('Y-m-d');
+
+                    // convert to mysql decimal format 
+                    // update on the server the decimal numbers are read correctly (no need for conversion)
+                    // $amountStr = str_replace('.', '', $mappedRow['amount']);
+                    // $mappedRow['amount'] = floatval(str_replace(',', '.', $amountStr));
+
+                    // search of already exist
+
+                    if ($SepaGateway->paymentRecordExist($mappedRow)) {
+                        $mappedRow['__RowStatusInImportProcess__'] = 'Step3. Already record, will not be imported.';
+                        $mappedRow['__RowCanBeImported__'] = false;
+
+                    } else {
+                        $mappedRow['__RowStatusInImportProcess__'] = 'Step3. ValidData';
+                        $mappedRow['__RowCanBeImported__'] = true;
+
+                        $validDataCount++;
+                    }
+
+                } catch (Exception $e) {
+                    $mappedRow['__RowStatusInImportProcess__'] = 'Step3. Error: ' . $e->getMessage();
+                    $mappedRow['__RowCanBeImported__'] = false;
+                }
+            }
+            $processedData[] = $mappedRow;
         }
 
         // Display validation results
-        if (!empty($errors)) {
-            echo "<div class='error'>";
-            echo "<h3>" . __('Validation Errors') . "</h3>";
-            echo "Missing one or more data of [ " . implode(', ', $requiredField) . " ] ";
-            echo "<ul><li>" . implode("</li><li>", $errors) . "</li></ul>";
-            echo "</div>";
-        }
-        if (!empty($validData)) {
+        if (!empty($validDataCount)) {
             echo "<div class='success'>";
-            echo __(count($validData) . ' Rows are ready for import.');
+            echo __($validDataCount . ' Rows are ready for import.');
             echo "</div>";
         }
+        $criteria = $SepaGateway->newQueryCriteria(true);
+        $table = DataTable::create('PaymentEntries');
+        $table->addColumn('__RowNumberInExcelFile__', __('Row No.'));
+        $table->addColumn('booking_date', __('Date'));
+        $table->addColumn('SEPA_ownerName', __('SEPA Owner Name'));
+        $table->addColumn('amount', __('Amount'));
+        $table->addColumn('__RowStatusInImportProcess__', __('Process Message'));
+
+        $table->modifyRows(function ($values, $row) {
+            if (!$values['__RowCanBeImported__'])
+                $row->addClass('warning');
+            else
+                $row->addClass('success');
+            return $row;
+        });
+
+        echo $table->render($processedData);
+
 
         // Store valid data for final step
-        $_SESSION[$guid]['sepaValidData'] = $validData;
+        $_SESSION[$guid]['sepaProcessedData'] = $processedData;
 
         $form = Form::create('importStep3', $StepLink . '4');
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
@@ -207,48 +248,84 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
     }
     // STEP 4: LIVE RUN
     else if ($step == 4) {
-        $data = $_SESSION[$guid]['sepaValidData'] ?? null;
+        $data = $_SESSION[$guid]['sepaProcessedData'] ?? null;
 
         if (empty($data)) {
             $page->addError(__('Invalid data'));
             return;
         }
 
-        try {
-            $SepaGateway = $container->get(SepaGateway::class);
-            $count = 0;
-            $unprocessedRows = [];
-            foreach ($data as $row) {
-                // convert the amount in German format '1.120,5' into decimal '1120.5'
-                $amountStr = str_replace('.', '', $row['amount']);
-                $row['amount'] = floatval(str_replace(',', '.', $amountStr));
+        $SepaGateway = $container->get(SepaGateway::class);
+        $count = 0;
+        $unprocessedRows = [];
+        foreach ($data as $index => $row) {
+            if ($row['__RowCanBeImported__']) {
+                try {
+                    $result = $SepaGateway->insertPayment($row, $_SESSION[$guid]["username"]);
+                    if (!$result) {
+                        $data[$index]['__RowCanBeImported__'] = false;
+                        $data[$index]['__RowStatusInImportProcess__'] = 'Step4. Error: Can not insert this record';
+                        $unprocessedRows[] = $data[$index];
 
-                $whereclause = "booking_date = '" . $row['booking_date'] . "' AND amount = '" . $row['amount'] . "' AND " .
-                    "LOWER(REPLACE(SEPA_ownerName, ' ', '')) = LOWER(REPLACE('" . $row['SEPA_ownerName'] . "', ' ', ''))";
-
-                if (!$SepaGateway->paymentRecordExist($whereclause)) {
-                    $SepaGateway->insertPayment($row, $_SESSION[$guid]["username"]);
-                    $count++;
-                } else {
-                    $unprocessedRows[] = implode(' | ', $row);
+                    } else {
+                        $data[$index]['__RowStatusInImportProcess__'] = 'Step4. Success';
+                        $count++;
+                    }
+                } catch (Exception $e) {
+                    $data[$index]['__RowCanBeImported__'] = false;
+                    $data[$index]['__RowStatusInImportProcess__'] = 'Step4. Error: ' . $e->getMessage();
+                    $unprocessedRows[] = $data[$index];
                 }
             }
 
-            echo "<div class='success'>";
-            echo sprintf(__('Successfully imported %d records'), $count);
-            echo "</div>";
-            echo "<div class='error'>";
-            echo sprintf(__('%d records are already exists'), count($unprocessedRows));
-            echo "<ul><li>" . implode("</li><li>", $unprocessedRows) . "</li></ul>";
-            echo "</div>";
+        }
 
-            // Clear session data
+        $criteria = $SepaGateway->newQueryCriteria(true);
+        $table = DataTable::create('PaymentEntries');
+        $table->addHeaderAction('export', __('Export'))
+            ->setIcon('download')
+            ->setURL('/modules/Sepa/import_sepa_payment_export.php')
+            ->directLink()
+            ->displayLabel()
+        ;
+
+        $table->addColumn('__RowNumberInExcelFile__', __('Row No.'));
+        $table->addColumn('booking_date', __('Date'));
+        $table->addColumn('SEPA_ownerName', __('SEPA Owner Name'));
+        $table->addColumn('amount', __('Amount'));
+        $table->addColumn('__RowStatusInImportProcess__', __('Process Message'));
+
+        $table->modifyRows(function ($values, $row) {
+            if (!$values['__RowCanBeImported__'])
+                $row->addClass('warning');
+            else
+                $row->addClass('success');
+            return $row;
+        });
+
+        echo $table->render($unprocessedRows);
+        $_SESSION[$guid]['sepaProcessedData'] = $data;
+        //generateExcel($data);
+
+        $form = Form::create('importStep4', $StepLink . '5');
+        $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+        $row = $form->addRow();
+        $row->addFooter();
+        $row->addSubmit(__('Final Step'));
+
+        echo $form->getOutput();
+
+
+
+    } else if ($step == 5) {
+        // Clear session data
+        if (isset($_SESSION[$guid]['sepaProcessedData'])) {
+            echo __('The process finished successfully');
             unset($_SESSION[$guid]['sepaImportData']);
-            unset($_SESSION[$guid]['sepaValidData']);
+            unset($_SESSION[$guid]['sepaProcessedData']);
             unset($_SESSION[$guid]['sepaImportDataHeaders']);
-
-        } catch (Exception $e) {
-            $page->addError($e->getMessage());
+        } else {
+            echo __(__('No Data to process'));
         }
     }
 }

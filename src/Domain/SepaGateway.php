@@ -209,13 +209,19 @@ class SepaGateway extends QueryableGateway
         return $unlinkedPayments;
     }
 
-    public function paymentRecordExist($whereClause)
+    public function paymentRecordExist($record)
     {
         $query = $this
             ->newSelect()
             ->cols(['gibbonSEPAPaymentEntry.gibbonSEPAPaymentRecordID'])
             ->from('gibbonSEPAPaymentEntry')
-            ->where($whereClause);
+            ->where("booking_date = :booking_date")
+            ->where("amount = :amount")
+            ->where("LOWER(REPLACE(SEPA_ownerName, ' ', '')) = LOWER(REPLACE( :SEPA_ownerName , ' ', ''))")
+            ->bindValue('booking_date', $record['booking_date'])
+            ->bindValue('amount', $record['amount'])
+            ->bindValue('SEPA_ownerName', $record['SEPA_ownerName']);
+
         $result = count($this->runSelect($query)->fetchAll()) > 0;
         return $result;
     }
@@ -236,7 +242,7 @@ class SepaGateway extends QueryableGateway
                 'user' => $user
             ]);
 
-        $this->runInsert($query);
+        return $this->runInsert($query);
 
     }
 }

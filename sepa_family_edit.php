@@ -81,7 +81,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
             $row->addTextArea('note')->setRow(4);
 
             $row = $form->addRow();
-            $row->addLabel('SEPAsignedDate', __('Date of SEPA signniture'));
+            $row->addLabel('SEPAsignedDate', __('Date of SEPA signature'));
             $row->addDate('SEPA_signedDate');
 
             $customFieldsGateway = $container->get(customFieldsGateway::class);
