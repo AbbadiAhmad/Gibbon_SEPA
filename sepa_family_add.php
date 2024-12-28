@@ -41,6 +41,10 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
    }
    $page->return->setEditLink($editLink);
 
+   $add_SEPA_by_owner ='';
+   if (isset($_GET['SEPA_ownerName'])) {
+      $add_SEPA_by_owner = trim($_GET['SEPA_ownerName']);
+   }
 
    $form = Form::create('addSEPA', $session->get('absoluteURL') . '/modules/' . $session->get('module') . '/sepa_family_addProcess.php');
    $form->addHiddenValue('address', $session->get('address'));
@@ -50,7 +54,11 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
 
    $row = $form->addRow();
    $row->addLabel('Account owner name', __('Sepa owner name'))->description(__('The name of SEPA account owner.'));
-   $row->addTextField('SEPA_ownerName')->required()->maxLength(255);
+   $textField = $row->addTextField('SEPA_ownerName')->required()->maxLength(255);
+   if ($add_SEPA_by_owner){
+      $textField->setValue($add_SEPA_by_owner);
+      $textField->readOnly();
+   }
 
    $row = $form->addRow();
    $row->addLabel('SEPAIBAN', __('SEPA IBAN'))->description(__('IBAN of the bank account, The money will be withdrawn from this account.'));

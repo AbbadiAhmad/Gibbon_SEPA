@@ -46,6 +46,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
     $table->addColumn('booking_date', __('Date'));
     $table->addColumn('amount', __('Amount'));
     $table->addColumn('payment_message', __('Message'));
+    
+    $table->addActionColumn()
+        ->addParam('SEPA_ownerName')
+        ->format(function ($row, $actions) {
+            $actions->addAction('Add', __(''))
+                ->setURL('/modules/Sepa/sepa_family_add.php');
+        });
 
     echo $table->render($unlinkedPayments);
 }
