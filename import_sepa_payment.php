@@ -183,9 +183,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
                     $mappedRow['booking_date'] = DateTime::createFromFormat($dateFormat, $mappedRow['booking_date'])->format('Y-m-d');
 
                     // convert to mysql decimal format 
+                    
                     // update on the server the decimal numbers are read correctly (no need for conversion)
                     // $amountStr = str_replace('.', '', $mappedRow['amount']);
                     // $mappedRow['amount'] = floatval(str_replace(',', '.', $amountStr));
+                    // remove thousand separator
+                    $mappedRow['amount'] = floatval(str_replace(',', '',  $mappedRow['amount']));
+
 
                     // search of already exist
 
@@ -279,14 +283,16 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
 
         }
 
+        echo "<div class=success> (". $count. __(") Rows inserted sucessfully.")."</div>";
+        echo "Download the the excel export for more details.";
+
         $criteria = $SepaGateway->newQueryCriteria(true);
         $table = DataTable::create('PaymentEntries');
         $table->addHeaderAction('export', __('Export'))
             ->setIcon('download')
             ->setURL('/modules/Sepa/import_sepa_payment_export.php')
             ->directLink()
-            ->displayLabel()
-        ;
+            ->displayLabel();
 
         $table->addColumn('__RowNumberInExcelFile__', __('Row No.'));
         $table->addColumn('booking_date', __('Date'));
@@ -303,8 +309,9 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         });
 
         echo $table->render($unprocessedRows);
+
         $_SESSION[$guid]['sepaProcessedData'] = $data;
-        //generateExcel($data);
+        
 
         $form = Form::create('importStep4', $StepLink . '5');
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
