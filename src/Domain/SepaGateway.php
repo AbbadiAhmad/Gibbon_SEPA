@@ -93,8 +93,9 @@ class SepaGateway extends QueryableGateway
         $query = $this->newSelect()
             ->cols(['gibbonSEPAPaymentEntry.*'])
             ->from('gibbonSEPAPaymentEntry')
-            ->where("gibbonSEPAPaymentEntry.SEPA_ownerName = '{$SEPA_details['SEPA_ownerName']}' ")
-            ->orderBy(['gibbonSEPAPaymentEntry.SEPA_ownerName ASC']);
+            ->where("LOWER(REPLACE(gibbonSEPAPaymentEntry.SEPA_ownerName, ' ', '')) = LOWER(REPLACE( :SEPA_ownerName , ' ', '')) ")
+            ->orderBy(['gibbonSEPAPaymentEntry.SEPA_ownerName ASC'])
+            ->bindValue('SEPA_ownerName', $SEPA_details['SEPA_ownerName']);
 
         return $this->runSelect($query);
     }
@@ -202,7 +203,7 @@ class SepaGateway extends QueryableGateway
             ->newSelect()
             ->cols(['gibbonSEPAPaymentEntry.*'])
             ->from('gibbonSEPAPaymentEntry')
-            ->where("gibbonSEPAPaymentEntry.SEPA_ownerName NOT IN (SELECT SEPA_ownerName FROM gibbonSEPA)")
+            ->where("LOWER(REPLACE(gibbonSEPAPaymentEntry.SEPA_ownerName, ' ', '')) NOT IN (SELECT LOWER(REPLACE(SEPA_ownerName, ' ', '')) FROM gibbonSEPA)")
             ->orderBy(['gibbonSEPAPaymentEntry.SEPA_ownerName ASC']);
 
         $unlinkedPayments = $this->runQuery($query, $criteria);
