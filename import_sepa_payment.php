@@ -10,6 +10,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Tables\DataTable;
 
+require_once __DIR__ . '/moduleFunctions.php';
 require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.php") == false) {
@@ -55,6 +56,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
     ];
     $requiredField = ['booking_date', 'SEPA_ownerName', 'amount'];
     $availableDataFormat = ["d.m.Y", "d/m/Y", "d-m-Y", "Y-m-d"];
+    $DecSepFormat = [',', '.'];
 
     // STEP 1: SELECT FILE
     if ($step == 1) {
@@ -121,6 +123,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
             $row->addLabel("Date format", __("Date format"));
             $row->addSelect("dateFormat")
                 ->fromArray($availableDataFormat);
+            
+            // add decimal separator
+            $row = $form->addRow();
+            $row->addLabel("decimalSeparator", __("Decimal Separator"));
+            $row->addSelect("decimalSeparator")
+                ->fromArray($DecSepFormat);
 
             $row = $form->addRow();
             $row->addFooter();
@@ -147,6 +155,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
             $dateFormat = $_POST['dateFormat'];
         } else {
             echo 'Unsupported date format';
+            return;
+        }
+        
+        if (in_array($_POST['decimalSeparator'], $DecSepFormat)) {
+            $decimalSeparator = $_POST['decimalSeparator'];
+        } else {
+            echo 'Unsupported decimal Separator format';
             return;
         }
 
@@ -183,14 +198,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
                     $mappedRow['booking_date'] = DateTime::createFromFormat($dateFormat, $mappedRow['booking_date'])->format('Y-m-d');
 
                     // convert to mysql decimal format 
+                    $mappedRow['amount'] = convertToFloat($mappedRow['amount'], $decimalSeparator);
                     
-                    // update on the server the decimal numbers are read correctly (no need for conversion)
-                    // $amountStr = str_replace('.', '', $mappedRow['amount']);
-                    // $mappedRow['amount'] = floatval(str_replace(',', '.', $amountStr));
-                    // remove thousand separator
-                    $mappedRow['amount'] = floatval(str_replace(',', '',  $mappedRow['amount']));
-
-
                     // search of already exist
 
                     if ($SepaGateway->paymentRecordExist($mappedRow)) {

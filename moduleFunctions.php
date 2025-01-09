@@ -17,3 +17,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+function convertToFloat($strNumber, $decimalSep)
+{
+    if ($decimalSep == ','){
+        // replace thousand separator by ''
+        $strNumber = str_replace('.', '', $strNumber);
+        // replace decimal separator by .
+        $strNumber = str_replace(',', '.', $strNumber);
+    }else{
+        // remove thousand separator
+    $strNumber = floatval(str_replace(',', '', $strNumber));
+    }
+    return $strNumber;
+}
