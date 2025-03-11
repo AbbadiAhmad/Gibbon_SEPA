@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_view.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '0.1.0';            // Version number
+$version = '1.0.0';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -48,9 +48,10 @@ $moduleTables[] = "
     INSERT INTO gibbonSEPACustomField
         (`title`, `active`, `description`, `type`, `options`, `required`, `heading`, `sequenceNumber`)
     VALUES
-        ('SEPA Owner Address', 'Y', 'Der Strasse des SEPA-Kontoinhabers', 'varchar', '100', 'N', 'SEPA', 1),
-        ('SEPA Owner Zip/City/Country', 'Y', 'Der Postzal Stadt, Land des SEPA-Kontoinhabers', 'varchar', '150', 'N', 'SEPA', 2),
-        ('SEPA Owner Phone', 'Y', 'Der Telefone des SEPA-Kontoinhabers', 'varchar', '15', 'N', 'SEPA', 3);
+        ('SEPA Archive ID', 'Y', 'SEPA ID in the paper form', 'varchar', '15', 'N', 'SEPA', 1);
+        ('SEPA Owner Address', 'Y', 'Der Strasse des SEPA-Kontoinhabers', 'varchar', '100', 'N', 'SEPA', 2),
+        ('SEPA Owner Zip/City/Country', 'Y', 'Der Postzal Stadt, Land des SEPA-Kontoinhabers', 'varchar', '150', 'N', 'SEPA', 3),
+        ('SEPA Owner Phone', 'Y', 'Der Telefone des SEPA-Kontoinhabers', 'varchar', '15', 'N', 'SEPA', 4);
     ";
 
 $moduleTables[] = "
@@ -63,7 +64,8 @@ CREATE TABLE `gibbonSEPAPaymentEntry` (
         `payment_message` varchar(255) NULL,
         `amount` decimal(10,2) not NULL,
         `note` text NULL,
-        `user` varchar(255) not NULL,
+        `academicYear` INT UNSIGNED DEFAULT NULL,
+        `gibbonUser` varchar(255) not NULL,
         `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (`gibbonSEPAPaymentRecordID`),
         UNIQUE KEY `unique_booking_sepa_owner_payment_message` (`booking_date`, `SEPA_ownerName`, `payment_message`)

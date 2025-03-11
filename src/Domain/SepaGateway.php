@@ -254,6 +254,7 @@ class SepaGateway extends QueryableGateway
                 'payment_message' => $paymentData['payment_message'],
                 'amount' => $paymentData['amount'],
                 'note' => $paymentData['note'],
+                'academicYear' => $paymentData['academicYear'],
                 'gibbonUser' => $user
             ]);
 
