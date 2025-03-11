@@ -4,3 +4,9 @@ CHANGELOG
 v0.0.00
 -------
 creating the initial module
+
+v0.1.00
+-------
+enable the searching
+
+

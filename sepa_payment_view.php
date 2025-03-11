@@ -36,25 +36,26 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
     $SepaGateway = $container->get(SepaGateway::class);
 
     $criteria = $SepaGateway->newQueryCriteria(true)
+        ->searchBy(['SEPA_ownerName', 'customData'], $search)
         ->fromPOST();
 
-    // echo '<h2>';
-    // echo __('Search');
-    // echo '</h2>';
+    echo '<h2>';
+    echo __('Search');
+    echo '</h2>';
 
-    // $form = Form::create('filter', $session->get('absoluteURL') . '/index.php', 'get');
-    // $form->setClass('noIntBorder w-full');
+    $form = Form::create('filter', $session->get('absoluteURL') . '/index.php', 'get');
+    $form->setClass('noIntBorder w-full');
 
-    // $form->addHiddenValue('q', '/modules/' . $session->get('module') . '/sepa_payment_view.php');
+    $form->addHiddenValue('q', '/modules/' . $session->get('module') . '/sepa_payment_view.php');
 
-    // $row = $form->addRow();
-    // $row->addLabel('search', __('Search For'))->description(__('Search text'));
-    // $row->addTextField('search')->setValue($criteria->getSearchText());
+    $row = $form->addRow();
+    $row->addLabel('search', __('Search For'))->description(__('Search text'));
+    $row->addTextField('search')->setValue($criteria->getSearchText());
 
-    // $row = $form->addRow();
-    // $row->addSearchSubmit($session, __('Clear Search'));
+    $row = $form->addRow();
+    $row->addSearchSubmit($session, __('Clear Search'));
 
-    // echo $form->getOutput();
+    echo $form->getOutput();
 
     echo '<h2>';
     echo __('View Payment Entries');

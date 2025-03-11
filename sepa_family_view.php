@@ -38,7 +38,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
     $CustomFieldsGateway = $container->get(CustomFieldsGateway::class);
     
     $criteria = $SepaGateway->newQueryCriteria(true)
-        //->searchBy(['adults'], $search)
+        ->searchBy(['SEPA_ownerName', 'customData'], $search)
         ->fromPOST();
 
 
@@ -56,7 +56,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
     $form->addHiddenValue('q', '/modules/' . $session->get('module') . '/sepa_family_view.php');
 
     $row = $form->addRow();
-    $row->addLabel('search', __('Search For'))->description(__('Search text'));
+    $row->addLabel('search', __('Search For'))->description(__('Search by SEPA owner or the custom fields'));
     $row->addTextField('search')->setValue($criteria->getSearchText());
 
     $row = $form->addRow();
