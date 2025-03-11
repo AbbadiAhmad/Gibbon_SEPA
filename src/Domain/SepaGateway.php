@@ -100,6 +100,19 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query);
     }
 
+    public function getFamiliesWithoutBankDetails()
+    {
+        // "SELECT gibbonFamily.gibbonFamilyID as value, name FROM gibbonFamily LEFT JOIN gibbonSEPA ON gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID WHERE gibbonSEPA.gibbonFamilyID is NULL order by name";
+        $query = $this->newSelect()
+            ->cols(['gibbonFamily.gibbonFamilyID as value', 'gibbonFamily.name'])
+            ->from('gibbonFamily')
+            ->leftJoin('gibbonSEPA', 'gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID')
+            ->where("gibbonSEPA.gibbonFamilyID is NULL")
+            ->orderBy(['gibbonFamily.name']);
+
+        return $this->runSelect($query);
+    }
+
     public function getFamilySEPA($familyIDs)
     {
         $familyIDs_Str = is_array($familyIDs) ? implode(',', $familyIDs) : $familyIDs;
@@ -153,10 +166,11 @@ class SepaGateway extends QueryableGateway
 
     }
 
-    public function getUserID($whereclause)
+    public function getUserID($personFullName)
     {
         // muliple ID can be when similar names
         $userIDs = [];
+        $whereclause = "LOWER(REPLACE(CONCAT(preferredName, surname), ' ', '')) = LOWER(REPLACE('" . $personFullName . "', ' ', ''))";
         $query = $this
             ->newQuery()
             ->from("gibbonPerson")
@@ -240,7 +254,7 @@ class SepaGateway extends QueryableGateway
                 'payment_message' => $paymentData['payment_message'],
                 'amount' => $paymentData['amount'],
                 'note' => $paymentData['note'],
-                'user' => $user
+                'gibbonUser' => $user
             ]);
 
         return $this->runInsert($query);

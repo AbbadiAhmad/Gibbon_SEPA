@@ -7,6 +7,8 @@ creating the initial module
 
 v0.1.00
 -------
-enable the searching
+Enable the searching in Families and payments views.
+Move the data handling into SEPAGateway. 
+
 
 

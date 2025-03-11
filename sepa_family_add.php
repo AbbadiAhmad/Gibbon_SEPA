@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
+use Gibbon\Module\Sepa\Domain\SepaGateway;
 
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -70,12 +71,19 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
 
 
    $FamiliesName = "SELECT gibbonFamily.gibbonFamilyID as value, name FROM gibbonFamily LEFT JOIN gibbonSEPA ON gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID WHERE gibbonSEPA.gibbonFamilyID is NULL order by name";
+   //getFamiliesWithoutBankDetails
+   $SepaGateway = $container->get(SepaGateway::class);
+   $criteria = $SepaGateway->newQueryCriteria(true)->fromPOST();
+    // QUERY to get query data
+    $Families = $SepaGateway->getFamiliesWithoutBankDetails($criteria);
+
    $row = $form->addRow();
    $row->addLabel('Family', __('Family'))->description('Only families without a SEPA account can be selected.');
    $row->addSelect('gibbonFamilyID')
-      ->fromQuery($pdo, $FamiliesName)
+      ->fromResults($Families)
       ->required()
       ->placeholder();
+   
 
    $row = $form->addRow();
    $row->addLabel('note', __('Note'));

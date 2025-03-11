@@ -218,11 +218,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             $SepaGateway = $container->get(SepaGateway::class);
             $count = 0;
             $unprocessedRows = [];
-            $whereclause = '';
             foreach ($data as $row) {
                 // check the names without spaces and in lower cases
-                $whereclause = "LOWER(REPLACE(CONCAT(preferredName, surname), ' ', '')) = LOWER(REPLACE('" . $row['SEPA_ownerName'] . "', ' ', ''))";
-                $userID = $SepaGateway->getUserID($whereclause);
+                
+                $userID = $SepaGateway->getUserID($row['SEPA_ownerName']);
 
                 // if only one person found
                 if (count($userID) === 1 && $SepaGateway->insertSEPAByUserName($userID[0], $row)) {
