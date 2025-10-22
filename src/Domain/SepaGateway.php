@@ -100,6 +100,19 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query);
     }
 
+    public function getSEPAForPaymentEntry($payment_details)
+    {
+        //
+        $query = $this->newSelect()
+            ->cols(['gibbonSEPA.*'])
+            ->from('gibbonSEPA')
+            ->where("LOWER(REPLACE(gibbonSEPA.SEPA_ownerName, ' ', '')) = LOWER(REPLACE( :SEPA_ownerName , ' ', '')) ")
+            ->orderBy(['gibbonSEPA.SEPA_ownerName ASC'])
+            ->bindValue('SEPA_ownerName', $payment_details['SEPA_ownerName']);
+
+        return $this->runSelect($query)->fetchAll();
+    }
+
     public function getFamiliesWithoutBankDetails()
     {
         // "SELECT gibbonFamily.gibbonFamilyID as value, name FROM gibbonFamily LEFT JOIN gibbonSEPA ON gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID WHERE gibbonSEPA.gibbonFamilyID is NULL order by name";
@@ -255,6 +268,7 @@ class SepaGateway extends QueryableGateway
                 'amount' => $paymentData['amount'],
                 'note' => $paymentData['note'],
                 'academicYear' => $paymentData['academicYear'],
+                'gibbonSEPAID' => $paymentData['gibbonSEPAID'],
                 'gibbonUser' => $user
             ]);
 

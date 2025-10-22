@@ -65,6 +65,7 @@ CREATE TABLE `gibbonSEPAPaymentEntry` (
         `amount` decimal(10,2) not NULL,
         `note` text NULL,
         `academicYear` INT UNSIGNED DEFAULT NULL,
+        `gibbonSEPAID` INT UNSIGNED DEFAULT NULL COMMENT 'Link the payment to the SEPA record if one SEPA is matched',
         `gibbonUser` varchar(255) not NULL,
         `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (`gibbonSEPAPaymentRecordID`),

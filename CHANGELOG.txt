@@ -12,5 +12,4 @@ Move the data handling into SEPAGateway.
 Add SEPA Archive ID as defaults field when installing the SEPA module. (to match the paper versions with Gibbon forms.)
 Add academicYear to Payments.
 Change the column name from user into gibbonUser in gibbonSEPAPaymentEntry table (not to use sql keyword).
-
-
+Add familyID to payment_entry when import the payments from xls file.

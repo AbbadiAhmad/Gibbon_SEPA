@@ -182,6 +182,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         foreach ($data as $rowIndex => $row) {
 
             $mappedRow = [];
+            $mappedRow['gibbonSEPAID'] = null;
             $errorMessage = '';
             foreach ($mapping as $field => $colIndex) {
                 $mappedRow[$field] = isset($headers[$colIndex]) ? $row[$headers[$colIndex]] : '';
@@ -220,7 +221,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
                     } else {
                         $mappedRow['__RowStatusInImportProcess__'] = 'Step3. ValidData';
                         $mappedRow['__RowCanBeImported__'] = true;
-
+                        // try to match the entry with a family
+                        $result = $SepaGateway->getSEPAForPaymentEntry($mappedRow);
+                        if ($result && count($result)==1) {
+                            $mappedRow['gibbonSEPAID'] = $result[0]['gibbonSEPAID'];
+                        }
+                        
                         $validDataCount++;
                     }
 
