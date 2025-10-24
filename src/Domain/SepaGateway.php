@@ -90,7 +90,6 @@ class SepaGateway extends QueryableGateway
     public function getSEPAData1($criteria, $gibbonSEPAIDs = NULL)
     {
 
-        
         $gibbonSEPAIDList = is_array($gibbonSEPAIDs) ? implode(',', $gibbonSEPAIDs) : $gibbonSEPAIDs;
 
         $query = $this
@@ -410,5 +409,68 @@ class SepaGateway extends QueryableGateway
             ->orderBy(['academicYear DESC']);
 
         return $this->runSelect($query)->fetchAll(\PDO::FETCH_KEY_PAIR);
+    }
+
+    public function getChildEnrollmentDetails($schoolYearID , $criteria)
+    {
+        $query = $this
+            ->newSelect()
+            ->cols([
+                'gibbonPerson.gibbonPersonID as childID',
+                'gibbonPerson.preferredName',
+                'gibbonFamilyChild.gibbonFamilyID',
+                'gibbonCourseClass.gibbonCourseClassID',
+                'gibbonCourseClass.nameShort as shortName',
+                'gibbonCourseClassPerson.dateEnrolled',
+                'gibbonCourseClassPerson.dateUnenrolled',
+                'GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay) as startDate',
+                'LAST_DAY(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay)) as lastDate',
+                'TIMESTAMPDIFF(MONTH, GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), LAST_DAY(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay))) as monthsEnrolled',
+                'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee',
+                'COALESCE(gibbonSepaCoursesFees.fees, 0) * TIMESTAMPDIFF(MONTH, GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), LAST_DAY(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay))) as total'
+            ])
+            ->from('gibbonPerson')
+            ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonPersonID = gibbonPerson.gibbonPersonID')
+            ->innerJoin('gibbonCourseClassPerson', 'gibbonCourseClassPerson.gibbonPersonID = gibbonPerson.gibbonPersonID')
+            ->innerJoin('gibbonCourseClass', 'gibbonCourseClass.gibbonCourseClassID = gibbonCourseClassPerson.gibbonCourseClassID')
+            ->innerJoin('gibbonCourse', 'gibbonCourse.gibbonCourseID = gibbonCourseClass.gibbonCourseID')
+            ->innerJoin('gibbonSchoolYear', 'gibbonSchoolYear.gibbonSchoolYearID = gibbonCourse.gibbonSchoolYearID')
+            ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
+            ->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
+            ->bindValue('schoolYearID', $schoolYearID)
+            ->orderBy(['gibbonPerson.gibbonPersonID']);
+
+        $res = $this->runQuery($query, $criteria);
+        return $res;
+
+    }
+
+    public function getFamilyTotals($schoolYearID, $criteria)
+    {
+        $query = $this
+            ->newSelect()
+            ->cols([
+                'gibbonFamilyChild.gibbonFamilyID',
+                'gibbonFamily.name as familyName',
+                'gibbonSEPA.payer as sepaName',
+                'SUM(COALESCE(gibbonSepaCoursesFees.fees, 0) * TIMESTAMPDIFF(MONTH, GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), LAST_DAY(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay)))) as totalDept',
+                'SUM(COALESCE(gibbonSEPAPaymentEntry.amount, 0)) as payments'
+            ])
+            ->from('gibbonPerson')
+            ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonPersonID = gibbonPerson.gibbonPersonID')
+            ->innerJoin('gibbonFamily', 'gibbonFamilyChild.gibbonFamilyID = gibbonFamily.gibbonFamilyID')
+            ->innerJoin('gibbonCourseClassPerson', 'gibbonCourseClassPerson.gibbonPersonID = gibbonPerson.gibbonPersonID')
+            ->innerJoin('gibbonCourseClass', 'gibbonCourseClass.gibbonCourseClassID = gibbonCourseClassPerson.gibbonCourseClassID')
+            ->innerJoin('gibbonCourse', 'gibbonCourse.gibbonCourseID = gibbonCourseClass.gibbonCourseID')
+            ->innerJoin('gibbonSchoolYear', 'gibbonSchoolYear.gibbonSchoolYearID = gibbonCourse.gibbonSchoolYearID')
+            ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
+            ->leftJoin('gibbonSEPA', 'gibbonFamilyChild.gibbonFamilyID = gibbonSEPA.gibbonFamilyID')
+            ->leftJoin('gibbonSEPAPaymentEntry', 'gibbonSEPA.gibbonSEPAID = gibbonSEPAPaymentEntry.gibbonSEPAID AND gibbonSEPAPaymentEntry.academicYear = gibbonSchoolYear.name')
+            ->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
+            ->bindValue('schoolYearID', $schoolYearID)
+            ->groupBy(['gibbonFamilyChild.gibbonFamilyID', 'gibbonFamily.name', 'gibbonSEPA.payer'])
+            ->orderBy(['gibbonFamilyChild.gibbonFamilyID']);
+
+        return $this->runQuery($query, $criteria);
     }
 }

@@ -36,13 +36,11 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
     $page->breadcrumbs->add(__('SEPA Payment Entries')); // show page navigation link
 
     $SepaGateway = $container->get(SepaGateway::class);
-
-    // add search form
-    $search = isset($_GET['search']) ? $_GET['search'] : '';
     $criteria = $SepaGateway->newQueryCriteria(true)
         ->searchBy(['payer', 'customData'], $search)
         ->fromPOST();
-
+    // add search form
+    $search = isset($_GET['search']) ? $_GET['search'] : '';
     echo '<h2>';
     echo __('Search');
     echo '</h2>';
@@ -86,18 +84,18 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
                 $output_text .= '</tr>';
                 foreach ($paymentEntries as $paymentEntry) {
                     $output_text .= '<tr>';
-                    $output_text .= "<td width=100>". htmlspecialchars($paymentEntry['booking_date'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
+                    $output_text .= "<td width=100>" . htmlspecialchars($paymentEntry['booking_date'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
                     $output_text .= "<td width=100>" . htmlspecialchars($paymentEntry['amount'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
                     $output_text .= "<td >" . htmlspecialchars($paymentEntry['transaction_message'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
                     $output_text .= '</tr>';
-                    
+
                     $Sum += $paymentEntry['amount'];
                 }
                 $output_text .= '<tr>';
-                    $output_text .= "<td></td>";
-                    $output_text .= "<th>= $Sum €</th>";
-                    $output_text .= "<td ></td>";
-                    $output_text .= '</tr>';
+                $output_text .= "<td></td>";
+                $output_text .= "<th>= $Sum €</th>";
+                $output_text .= "<td ></td>";
+                $output_text .= '</tr>';
                 $output_text .= '</table>';
 
                 return $output_text;

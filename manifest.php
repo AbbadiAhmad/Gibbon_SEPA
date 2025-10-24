@@ -79,12 +79,12 @@ $moduleTables[] = "
     `gibbonSepaCoursesCostID` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `gibbonCourseID` int(8) unsigned NOT NULL,
     `fees` decimal(12,2) NOT NULL DEFAULT '0.00',
-    `gibbonPersonIDCreator` int(10) unsigned NOT NULL,
-    `gibbonPersonIDUpdate` int(10) unsigned DEFAULT NULL,
+    `gibbonPersonIDCreator` varchar(100) NULL,
+    `gibbonPersonIDUpdate` varchar(100) NULL,
     `timestampCreated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `timestampUpdate` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`gibbonSepaCoursesCostID`),
-    KEY `gibbonCourseID` (`gibbonCourseID`),
+    UNIQUE KEY `gibbonCourseID` (`gibbonCourseID`),
     KEY `gibbonPersonIDCreator` (`gibbonPersonIDCreator`),
     KEY `gibbonPersonIDUpdate` (`gibbonPersonIDUpdate`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -298,6 +298,87 @@ $actionRows[] = [
     'categoryPermissionStudent' => 'N', // Should this action be available to user roles in the Student category?
     'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
     'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
+];
+
+// Action rows
+$actionRows[] = [
+    'name' => 'Update Courses Fee',
+    'precedence' => '10',
+    'category' => 'Courses',
+    'description' => 'Courses Fee',
+    'URLList' => 'sepa_courses_fee_view.php',
+    'entryURL' => 'sepa_courses_fee_view.php',
+    'entrySidebar' => 'Y', // Whether or not there's a sidebar on entry to the action
+    'menuShow' => 'Y', // Whether or not this action shows up in menus or if it's hidden
+    'defaultPermissionAdmin' => 'Y', // Default permission for built in role Admin
+    'defaultPermissionTeacher' => 'N', // Default permission for built in role Teacher
+    'defaultPermissionStudent' => 'N', // Default permission for built in role Student
+    'defaultPermissionParent' => 'N', // Default permission for built in role Parent
+    'defaultPermissionSupport' => 'N', // Default permission for built in role Support
+    'categoryPermissionStaff' => 'N', // Should this action be available to user roles in the Staff category?
+    'categoryPermissionStudent' => 'N', // Should this action be available to user roles in the Student category?
+    'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
+    'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
+];
+
+$actionRows[] = [
+    'name' => 'Family Finance Summay',
+    'precedence' => '11',
+    'category' => 'Reports',
+    'description' => 'View family totals including dept and payments',
+    'URLList' => 'sepa_family_totals.php',
+    'entryURL' => 'sepa_family_totals.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Child Enrollment Details',
+    'precedence' => '12',
+    'category' => 'Reports',
+    'description' => 'View child enrollment details and fees',
+    'URLList' => 'sepa_child_enrollment_details.php',
+    'entryURL' => 'sepa_child_enrollment_details.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Payment Summary',
+    'precedence' => '13',
+    'category' => 'Reports',
+    'description' => 'View payment summary',
+    'URLList' => 'sepa_payment_summary.php',
+    'entryURL' => 'sepa_payment_summary.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
 ];
 
 
