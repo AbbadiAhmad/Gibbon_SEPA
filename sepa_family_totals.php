@@ -55,5 +55,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
     $table->addColumn('totalDept', __('Total Dept'));
     $table->addColumn('payments', __('Payments'));
 
+    $table->addActionColumn()
+        ->addParam('schoolYearID', $schoolYearID)
+        ->format(function ($row, $actions) {
+            $actions->addAction('view', __('View Details'))
+                ->setURL('/modules/Sepa/sepa_family_details.php')
+                ->addParam('gibbonFamilyID', $row['gibbonFamilyID']);
+        });
+
     echo $table->render($familyTotals);
 }

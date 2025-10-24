@@ -41,10 +41,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
     $result = $SepaGateway->insertPayment($paymentData, $_SESSION[$guid]["username"]);
 
     if ($result) {
-        $page->addSuccess(__('Payment entry added successfully.'));
         header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_manage.php");
     } else {
-        $page->addError(__('Failed to add payment entry.'));
         header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_add.php");
     }
 }
