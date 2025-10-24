@@ -22,6 +22,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 // use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
+use Gibbon\Data\Validator;
+$_GET = $container->get(Validator::class)->sanitize($_GET);
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -49,7 +52,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_pe
     
     $table = DataTable::createDetails('PaymentEntries');
 
-    $table->addColumn('SEPA_ownerName', __('SEPA Owner'))->width('50');
+    $table->addColumn('payer', __('SEPA Owner'))->width('50');
     $table->addColumn('Payments', __('Payments'))->width('600')
         ->format(
             function ($row) use ($SepaGateway) {
@@ -64,7 +67,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_pe
                     $output_text .= '<tr>';
                     $output_text .= "<td width=100>". htmlspecialchars($paymentEntry['booking_date'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
                     $output_text .= "<td width=100>" . htmlspecialchars($paymentEntry['amount'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
-                    $output_text .= "<td >" . htmlspecialchars($paymentEntry['payment_message'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
+                    $output_text .= "<td >" . htmlspecialchars($paymentEntry['transaction_message'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
                     $output_text .= '</tr>';
                     
                     $Sum += $paymentEntry['amount'];

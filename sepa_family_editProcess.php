@@ -38,9 +38,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
     } else {
 
         // Proceed!
-        $SEPA_ownerName = htmlspecialchars($_POST['SEPA_ownerName'] ?? '', ENT_QUOTES, 'UTF-8');
-        $SEPA_IBAN = htmlspecialchars($_POST['SEPA_IBAN'] ?? '', ENT_QUOTES, 'UTF-8');
-        $SEPA_BIC = htmlspecialchars($_POST['SEPA_BIC'] ?? '', ENT_QUOTES, 'UTF-8');
+        $payer = htmlspecialchars($_POST['payer'] ?? '', ENT_QUOTES, 'UTF-8');
+        $IBAN = htmlspecialchars($_POST['IBAN'] ?? '', ENT_QUOTES, 'UTF-8');
+        $BIC = htmlspecialchars($_POST['BIC'] ?? '', ENT_QUOTES, 'UTF-8');
         $gibbonFamilyID = htmlspecialchars($_POST['gibbonFamilyID'] ?? '', ENT_QUOTES, 'UTF-8');
         $note = htmlspecialchars($_POST['note'] ?? '', ENT_QUOTES, 'UTF-8');
         $SEPA_signedDate = !empty($_POST['SEPA_signedDate']) ? Format::dateConvert($_POST['SEPA_signedDate']) : null;
@@ -58,14 +58,14 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
         $customData = json_encode($customFieldsData);
 
         // Check that your required variables are present
-        if (empty($SEPA_ownerName) || empty($gibbonFamilyID)) {
+        if (empty($payer) || empty($gibbonFamilyID)) {
             $URL = $URL . '&return=error3';
             header("Location: {$URL}");
             exit;
         } else {
             try {
-                $data = array('gibbonFamilyID' => $gibbonFamilyID, 'SEPA_ownerName' => $SEPA_ownerName, 'SEPA_IBAN' => $SEPA_IBAN, 'SEPA_BIC' => $SEPA_BIC, 'SEPA_signedDate' => $SEPA_signedDate, 'note' => $note, 'customData' => $customData, 'gibbonSEPAID' => $gibbonSEPAID);
-                $sql = "UPDATE gibbonSEPA SET gibbonFamilyID=:gibbonFamilyID, SEPA_ownerName=:SEPA_ownerName, SEPA_IBAN=:SEPA_IBAN, SEPA_BIC=:SEPA_BIC, SEPA_signedDate=:SEPA_signedDate, note=:note, customData=:customData WHERE gibbonSEPAID=:gibbonSEPAID";
+                $data = array('gibbonFamilyID' => $gibbonFamilyID, 'payer' => $payer, 'IBAN' => $IBAN, 'BIC' => $BIC, 'SEPA_signedDate' => $SEPA_signedDate, 'note' => $note, 'customData' => $customData, 'gibbonSEPAID' => $gibbonSEPAID);
+                $sql = "UPDATE gibbonSEPA SET gibbonFamilyID=:gibbonFamilyID, payer=:payer, IBAN=:IBAN, BIC=:BIC, SEPA_signedDate=:SEPA_signedDate, note=:note, customData=:customData WHERE gibbonSEPAID=:gibbonSEPAID";
                 $result = $connection2->prepare($sql);
                 $result->execute($data);
             } catch (PDOException $e) {

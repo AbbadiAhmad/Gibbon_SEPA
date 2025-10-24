@@ -20,6 +20,9 @@ use Gibbon\Services\Format;
 use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Data\Validator;
+$_GET = $container->get(Validator::class)->sanitize($_GET);
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -42,13 +45,14 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
 
     $table = DataTable::createPaginated('UnlinkedPaymentEntries', $criteria);
 
-    $table->addColumn('SEPA_ownerName', __('SEPA owner'));
+    $table->addColumn('payer', __('SEPA owner'));
     $table->addColumn('booking_date', __('Date'));
     $table->addColumn('amount', __('Amount'));
-    $table->addColumn('payment_message', __('Message'));
+    $table->addColumn('transaction_message', __('Message'));
     
     $table->addActionColumn()
-        ->addParam('SEPA_ownerName')
+        ->addParam('payer')
+        ->addParam('IBAN')
         ->format(function ($row, $actions) {
             $actions->addAction('Add', __(''))
                 ->setURL('/modules/Sepa/sepa_family_add.php');

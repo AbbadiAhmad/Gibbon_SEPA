@@ -20,6 +20,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Data\Validator;
+
 
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -28,7 +30,7 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
    // Access denied
    $page->addError(__('You do not have access to this action.'));
 } else {
-
+   $_GET = $container->get(Validator::class)->sanitize($_GET);
    $page->breadcrumbs
       ->add(__('Manage Family SEPA'), 'sepa_family_view.php')
       ->add(__('Add SEPA'));
@@ -43,8 +45,13 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
    $page->return->setEditLink($editLink);
 
    $add_SEPA_by_owner ='';
-   if (isset($_GET['SEPA_ownerName'])) {
-      $add_SEPA_by_owner = trim($_GET['SEPA_ownerName']);
+   if (isset($_GET['payer'])) {
+      $add_SEPA_by_owner = trim($_GET['payer']);
+   }
+   
+   $IBAN ='';
+   if (isset($_GET['IBAN'])) {
+      $IBAN = preg_replace('/[^A-Za-z0-9]/', '', $_GET['IBAN']);
    }
 
    $form = Form::create('addSEPA', $session->get('absoluteURL') . '/modules/' . $session->get('module') . '/sepa_family_addProcess.php');
@@ -55,7 +62,7 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
 
    $row = $form->addRow();
    $row->addLabel('Account owner name', __('Sepa owner name'))->description(__('The name of SEPA account owner.'));
-   $textField = $row->addTextField('SEPA_ownerName')->required()->maxLength(255);
+   $textField = $row->addTextField('payer')->required()->maxLength(255);
    if ($add_SEPA_by_owner){
       $textField->setValue($add_SEPA_by_owner);
       $textField->readOnly();
@@ -63,11 +70,14 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
 
    $row = $form->addRow();
    $row->addLabel('SEPAIBAN', __('SEPA IBAN'))->description(__('IBAN of the bank account, The money will be withdrawn from this account.'));
-   $row->addTextField('SEPA_IBAN')->maxLength(22);
+   $textField = $row->addTextField('IBAN')->maxLength(22);
+   if($IBAN){
+      $textField->setValue($IBAN);
+   }
 
    $row = $form->addRow();
-   $row->addLabel('SEPABIC', __('SEPA_BIC'))->description(__('IBAN of the bank account.'));
-   $row->addTextField('SEPA_BIC')->maxLength(11);
+   $row->addLabel('SEPABIC', __('BIC'))->description(__('IBAN of the bank account.'));
+   $row->addTextField('BIC')->maxLength(11);
 
 
    $FamiliesName = "SELECT gibbonFamily.gibbonFamilyID as value, name FROM gibbonFamily LEFT JOIN gibbonSEPA ON gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID WHERE gibbonSEPA.gibbonFamilyID is NULL order by name";

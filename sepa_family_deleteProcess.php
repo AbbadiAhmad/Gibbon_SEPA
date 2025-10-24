@@ -18,6 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 include '../../gibbon.php';
+use Gibbon\Data\Validator;
+
+$_GET = $container->get(Validator::class)->sanitize($_GET);
 
 $URLDelete = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/sepa_family_view.php';
 $URL = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/sepa_family_delete.php';

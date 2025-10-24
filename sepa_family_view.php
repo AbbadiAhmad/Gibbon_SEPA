@@ -23,6 +23,9 @@ use Gibbon\Tables\DataTable;
 //use Gibbon\Domain\DataSet;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
+use Gibbon\Data\Validator;
+
+
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
 
@@ -30,6 +33,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
+    $_GET = $container->get(Validator::class)->sanitize($_GET);
+    $_POST = $container->get(Validator::class)->sanitize($_POST);
+    
     $page->breadcrumbs->add(__('Family\'s SEPA')); // show page navigation link
     
     $search = isset($_GET['search']) ? $_GET['search'] : '';
@@ -38,7 +44,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
     $CustomFieldsGateway = $container->get(CustomFieldsGateway::class);
     
     $criteria = $SepaGateway->newQueryCriteria(true)
-        ->searchBy(['SEPA_ownerName', 'customData'], $search)
+        ->searchBy(['payer', 'customData'], $search)
         ->fromPOST();
 
 
@@ -46,21 +52,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
     // For a OO datatable, see https:// gist.github.com/SKuipers/e176454a2feb555126c2147865bd0626
     // Don't forget to put header and column actions if you're using add/edit/delete pages AND include the ID/primary key as a param
 
-    echo '<h2>';
-    echo __('Search');
-    echo '</h2>';
 
-    $form = Form::create('filter', $session->get('absoluteURL') . '/index.php', 'get');
-    $form->setClass('noIntBorder w-full');
-
-    $form->addHiddenValue('q', '/modules/' . $session->get('module') . '/sepa_family_view.php');
+    $form = Form::createSearch();
 
     $row = $form->addRow();
-    $row->addLabel('search', __('Search For'))->description(__('Search by SEPA owner or the custom fields'));
-    $row->addTextField('search')->setValue($criteria->getSearchText());
+        $row->addLabel('search', __('Search For'))
+            ->description(__('payer, booking date, amount, transaction message, IBAN, transaction reference, note'));
+        $row->addTextField('search')->setValue($criteria->getSearchText());
 
-    $row = $form->addRow();
-    $row->addSearchSubmit($session, __('Clear Search'));
+    $form->addRow()->addSearchSubmit('', __('Clear Search'));
 
     echo $form->getOutput();
 
@@ -81,8 +81,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
             function ($row) use ($CustomFieldsGateway) {
                 $customFields = $CustomFieldsGateway->getCustomFields();
                 $output_text = '';
-                $output_text .= "<p>SEPA IBAN: " . htmlspecialchars($row['SEPA_IBAN'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
-                $output_text .= "<p>SEPA BIC: " . htmlspecialchars($row['SEPA_BIC'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+                $output_text .= "<p>SEPA IBAN: " . htmlspecialchars($row['IBAN'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+                $output_text .= "<p>SEPA BIC: " . htmlspecialchars($row['BIC'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
                 $output_text .= "<p>Note: " . htmlspecialchars($row['note'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
 
                 $jsonData = [];
@@ -109,7 +109,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
         ->addParam('search', $search)
         ->displayLabel();
 
-    $table->addColumn('SEPA_ownerName', __('SEPA Owner'));
+    $table->addColumn('payer', __('SEPA Owner'));
 
     $table->addColumn('adults', __('Adults'))
         ->notSortable()

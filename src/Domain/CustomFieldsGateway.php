@@ -15,7 +15,7 @@ class CustomFieldsGateway extends QueryableGateway
     use TableAware;
     private static $tableName = 'gibbonSEPACustomField'; //The name of the table you will primarily be querying
     private static $primaryKey = 'gibbonSEPACustomeFieldID'; //The primaryKey of said table
-    private static $searchableColumns = ['title', 'SEPA_IBAN', 'customData']; // Optional: Array of Columns to be searched when using the search filter
+    private static $searchableColumns = ['title', 'IBAN', 'customData']; // Optional: Array of Columns to be searched when using the search filter
 
     private static $customFieldPrefix = 'C_';
 

@@ -18,7 +18,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 use Gibbon\Forms\Form;
 use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
+use Gibbon\Data\Validator;
 
+$_GET = $container->get(Validator::class)->sanitize($_GET);
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
 
@@ -57,15 +60,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
 
             $row = $form->addRow();
             $row->addLabel('Account owner name', __('Sepa owner name'))->description(__('The name of SEPA account owner.'));
-            $row->addTextField('SEPA_ownerName')->required()->maxLength(255);
+            $row->addTextField('payer')->required()->maxLength(255);
 
             $row = $form->addRow();
             $row->addLabel('SEPAIBAN', __('SEPA IBAN'))->description(__('IBAN of the bank account, The money will be withdrawn from this account.'));
-            $row->addTextField('SEPA_IBAN')->maxLength(22);
+            $row->addTextField('IBAN')->maxLength(22);
 
             $row = $form->addRow();
-            $row->addLabel('SEPABIC', __('SEPA_BIC'))->description(__('IBAN of the bank account.'));
-            $row->addTextField('SEPA_BIC')->maxLength(11);
+            $row->addLabel('SEPABIC', __('BIC'))->description(__('IBAN of the bank account.'));
+            $row->addTextField('BIC')->maxLength(11);
 
 
             $FamiliesName = "SELECT gibbonFamily.gibbonFamilyID as value, name FROM gibbonFamily LEFT JOIN gibbonSEPA ON gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID WHERE (gibbonSEPA.gibbonFamilyID is NULL || gibbonFamily.gibbonFamilyID = {$SEPA['gibbonFamilyID']} )";

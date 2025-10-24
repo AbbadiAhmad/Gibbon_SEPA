@@ -9,12 +9,19 @@ use Gibbon\Forms\Form;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Gibbon\Services\Format;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Data\Validator;
+
+$_GET = $container->get(Validator::class)->sanitize($_GET);
+$_POST = $container->get(Validator::class)->sanitize($_POST);
+$URL = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/import_sepa_data.php';
 
 require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $URL = $URL . '&return=error0';
+    header("Location: {$URL}");
+
 } else {
 
     $step = isset($_GET['step']) ? min(max(1, $_GET['step']), 4) : 1;
@@ -44,13 +51,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
     // field data
     $fields = [
-        'SEPA_ownerName',
-        'SEPA_IBAN',
-        'SEPA_BIC',
+        'payer',
+        'IBAN',
+        'BIC',
         'SEPA_signedDate',
         'note'
     ];
-    $requiredField = ['SEPA_ownerName'];
+    $requiredField = ['payer'];
     $availableDataFormat = ["d.m.Y", "d/m/Y", "d-m-Y", "Y-m-d"];
 
     // STEP 1: SELECT FILE
@@ -221,7 +228,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             foreach ($data as $row) {
                 // check the names without spaces and in lower cases
                 
-                $userID = $SepaGateway->getUserID($row['SEPA_ownerName']);
+                $userID = $SepaGateway->getUserID($row['payer']);
 
                 // if only one person found
                 if (count($userID) === 1 && $SepaGateway->insertSEPAByUserName($userID[0], $row)) {

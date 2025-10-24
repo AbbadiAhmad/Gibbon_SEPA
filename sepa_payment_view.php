@@ -22,6 +22,9 @@ use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
+use Gibbon\Data\Validator;
+$_GET = $container->get(Validator::class)->sanitize($_GET);
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -32,11 +35,12 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
 } else {
     $page->breadcrumbs->add(__('SEPA Payment Entries')); // show page navigation link
 
-    $search = isset($_GET['search']) ? $_GET['search'] : '';
     $SepaGateway = $container->get(SepaGateway::class);
 
+    // add search form
+    $search = isset($_GET['search']) ? $_GET['search'] : '';
     $criteria = $SepaGateway->newQueryCriteria(true)
-        ->searchBy(['SEPA_ownerName', 'customData'], $search)
+        ->searchBy(['payer', 'customData'], $search)
         ->fromPOST();
 
     echo '<h2>';
@@ -69,7 +73,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
     // DATA TABLE
     $table = DataTable::createPaginated('PaymentEntries', $criteria);
 
-    $table->addColumn('SEPA_ownerName', __('SEPA Owner'));
+    $table->addColumn('payer', __('SEPA Owner'));
     $table->addColumn('Payments', __('Payments'))
         ->format(
             function ($row) use ($SepaGateway) {
@@ -84,7 +88,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
                     $output_text .= '<tr>';
                     $output_text .= "<td width=100>". htmlspecialchars($paymentEntry['booking_date'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
                     $output_text .= "<td width=100>" . htmlspecialchars($paymentEntry['amount'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
-                    $output_text .= "<td >" . htmlspecialchars($paymentEntry['payment_message'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
+                    $output_text .= "<td >" . htmlspecialchars($paymentEntry['transaction_message'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
                     $output_text .= '</tr>';
                     
                     $Sum += $paymentEntry['amount'];
