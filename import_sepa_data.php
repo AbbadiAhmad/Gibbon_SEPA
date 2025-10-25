@@ -138,6 +138,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
     }
     // STEP 3: DRY RUN
     else if ($step == 3) {
+        if (!isset($_SESSION[$guid]['sepaImportData'])) {
+            $page->addError(__('Invalid data'));
+            return;
+        }
         $data = $_SESSION[$guid]['sepaImportData'] ?? null;
         $headers = $_SESSION[$guid]['sepaImportDataHeaders'] ?? [];
         $mapping = $_POST['map'] ?? null;
@@ -215,7 +219,6 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
     // STEP 4: LIVE RUN
     else if ($step == 4) {
         $data = $_SESSION[$guid]['sepaValidData'] ?? null;
-
         if (empty($data)) {
             $page->addError(__('Invalid data'));
             return;

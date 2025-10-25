@@ -73,6 +73,6 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_add.php'
     }
     $AI = $connection2->lastInsertID();
     // Your SQL or Gateway insert query
-    $URL .= "&return=success0&editID=$AI";
+    $URLSuccess .= "&return=success0&editID=$AI";
     header("Location: {$URLSuccess}");
 }

@@ -41,7 +41,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
     $result = $SepaGateway->insertPayment($paymentData, $_SESSION[$guid]["username"]);
 
     if ($result) {
-        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_manage.php");
+        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_manage.php&return=success0");
     } else {
         header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_add.php");
     }

@@ -90,6 +90,21 @@ $moduleTables[] = "
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  ";
 
+$moduleTables[] = "
+    CREATE TABLE `gibbonSEPADiscount` (
+    `gibbonSEPADiscountID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `gibbonSEPAID` int(8) unsigned zerofill NOT NULL,
+    `discountAmount` decimal(10,2) NOT NULL CHECK (discountAmount > 0),
+    `description` text NOT NULL COMMENT 'Description for the payer',
+    `note` text NULL COMMENT 'Note for the administration',
+    `gibbonPersonID` int(10) unsigned NOT NULL,
+    `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`gibbonSEPADiscountID`),
+    KEY `gibbonSEPAID` (`gibbonSEPAID`),
+    KEY `gibbonPersonID` (`gibbonPersonID`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ ";
+
 // Add gibbonSettings entries
 //$gibbonSetting[] = "";
 
@@ -368,6 +383,26 @@ $actionRows[] = [
     'description' => 'View payment summary',
     'URLList' => 'sepa_payment_summary.php',
     'entryURL' => 'sepa_payment_summary.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Manage SEPA Discounts',
+    'precedence' => '14',
+    'category' => 'Discounts',
+    'description' => 'Manage SEPA Discounts (Add, Edit, Delete)',
+    'URLList' => 'sepa_discount_manage.php, sepa_discount_add.php, sepa_discount_edit.php, sepa_discount_delete.php',
+    'entryURL' => 'sepa_discount_manage.php',
     'entrySidebar' => 'Y',
     'menuShow' => 'Y',
     'defaultPermissionAdmin' => 'Y',

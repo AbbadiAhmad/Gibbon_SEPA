@@ -39,21 +39,22 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
     $coursesFee = $CoursesFeeGateway->queryCoursesFees($criteria, $_SESSION[$guid]["gibbonSchoolYearID"]);
     $error = false;
     foreach ($coursesFee as $course) {
-        if (!empty($_POST[$course['gibbonCourseID']])) {
-            $data = array(
-                'gibbonCourseID' => $course['gibbonCourseID'],
-                'fees' => $_POST[$course['gibbonCourseID']],
-                'gibbonSepaCoursesCostID' => $course['gibbonSepaCoursesCostID']
-            );
 
-            try {
-                $result = $CoursesFeeGateway->updateCoursesFees($data, $_SESSION[$guid]['username']);
-                if(!$result) $error = true;
-            } catch (PDOException $e) {
+        $data = array(
+            'gibbonCourseID' => $course['gibbonCourseID'],
+            'fees' => $_POST[$course['gibbonCourseID']],
+            'gibbonSepaCoursesCostID' => $course['gibbonSepaCoursesCostID']
+        );
+
+        try {
+            $result = $CoursesFeeGateway->updateCoursesFees($data, $_SESSION[$guid]['username']);
+            if (!$result)
                 $error = true;
-            }
-
+        } catch (PDOException $e) {
+            $error = true;
         }
+
+
 
     }
     if ($error) {

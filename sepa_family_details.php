@@ -54,9 +54,17 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
 
         // Fees Summary
         $feesSummary = $SepaGateway->getFamilyFeesSummary($gibbonFamilyID, $schoolYearID);
+        $totalDiscounts = $SepaGateway->getFamilyTotalDiscounts($gibbonFamilyID);
+        $totalPayments = $SepaGateway->getFamilyTotalPayments($gibbonFamilyID, $schoolYearID);
+        $totalFees = $feesSummary[0]['totalFees'] ?? 0;
+        $balance = $totalFees - $totalDiscounts - $totalPayments;
+
         if (!empty($feesSummary)) {
             echo '<h4>' . __('Fees Summary') . '</h4>';
-            echo '<p><strong>' . __('Total Fees Owed: ') . '</strong>' . htmlspecialchars($feesSummary[0]['totalFees'] ?? 0, ENT_QUOTES, 'UTF-8') . ' €</p>';
+            echo '<p><strong>' . __('Total Fees Owed: ') . '</strong>' . htmlspecialchars($totalFees, ENT_QUOTES, 'UTF-8') . ' €</p>';
+            echo '<p><strong>' . __('Total Discounts: ') . '</strong>' . htmlspecialchars($totalDiscounts, ENT_QUOTES, 'UTF-8') . ' €</p>';
+            echo '<p><strong>' . __('Total Payments: ') . '</strong>' . htmlspecialchars($totalPayments, ENT_QUOTES, 'UTF-8') . ' €</p>';
+            echo '<p><strong>' . __('Balance: ') . '</strong><span style="color: ' . ($balance < 0 ? 'red' : 'green') . ';">' . htmlspecialchars($balance, ENT_QUOTES, 'UTF-8') . ' €</span></p>';
         }
 
         // Detailed Fees
@@ -100,6 +108,19 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
         $table2->addColumn('IBAN', __('IBAN'));
         $table2->addColumn('transaction_reference', __('Transaction Reference'));
         $table2->addColumn('note', __('Note'));
+
+        // Discount Details
+        echo '<h4>' . __('Discount Details') . '</h4>';
+        $discountEntries = $SepaGateway->getFamilyDiscounts($gibbonFamilyID);
+
+        $table3 = DataTable::create('discountDetails');
+
+        $table3->addColumn('discountAmount', __('Discount Amount'));
+        $table3->addColumn('description', __('Description'));
+        $table3->addColumn('note', __('Note'));
+        $table3->addColumn('timestamp', __('Timestamp'));
+
+        echo $table3->render($discountEntries);
 
         echo $table2->render($paymentEntries);
     }

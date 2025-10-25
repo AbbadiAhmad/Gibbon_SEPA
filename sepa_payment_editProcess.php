@@ -17,7 +17,8 @@ $URLSuccess = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . 
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $URL = $URL . '&return=error0';
+    header("Location: {$URL}");
 } else {
     $_POST = $container->get(Validator::class)->sanitize($_POST);
 
@@ -39,7 +40,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
         'note' => $_POST['note'] ?? '',
         'academicYear' => $_POST['academicYear'] ?? '',
         'payment_method' => $_POST['payment_method'] ?? '',
-         'gibbonSEPAID' => $_POST['gibbonSEPAID'] ?? null,
+        'gibbonSEPAID' => $_POST['gibbonSEPAID'] ?? null,
     ];
 
     // Try to match with existing SEPA record
@@ -51,10 +52,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
     $result = $SepaGateway->updatePayment($gibbonSEPAPaymentRecordID, $paymentData);
 
     if ($result) {
-        $page->addSuccess(__('Payment entry updated successfully.'));
-        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_manage.php");
+        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_manage.php&return=success1");
     } else {
-        $page->addError(__('Failed to update payment entry.'));
         header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_edit.php&gibbonSEPAPaymentRecordID={$gibbonSEPAPaymentRecordID}");
     }
 }

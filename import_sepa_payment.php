@@ -154,15 +154,15 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
     // STEP 3: DRY RUN
     else if ($step == 3) {
         $data = $_SESSION[$guid]['sepaImportData'] ?? null;
-        $headers = $_SESSION[$guid]['sepaImportDataHeaders'] ?? [];
         $mapping = $_POST['map'] ?? null;
-        $academicYear = $_POST['academicYear'] ?? null;
-        $academicYearID = $_POST['academicYearID'] ?? null;
-
+        $headers = $_SESSION[$guid]['sepaImportDataHeaders'] ?? [];
         if (empty($data) || empty($mapping)) {
             $page->addError(__('Invalid data'));
             return;
         }
+        
+        $academicYear = $_POST['academicYear'] ?? null;
+        $academicYearID = $_POST['academicYearID'] ?? null;
  
         if (in_array($_POST['dateFormat'], $availableDataFormat)) {
             $dateFormat = $_POST['dateFormat'];
@@ -360,10 +360,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
     } else if ($step == 5) {
         // Clear session data
         if (isset($_SESSION[$guid]['sepaProcessedData'])) {
-            echo __('The process finished successfully');
             unset($_SESSION[$guid]['sepaImportData']);
             unset($_SESSION[$guid]['sepaProcessedData']);
             unset($_SESSION[$guid]['sepaImportDataHeaders']);
+            echo __('The process is finished successfully!');
         } else {
             echo __(__('No Data to process'));
         }
