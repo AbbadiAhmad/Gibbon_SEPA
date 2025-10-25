@@ -29,6 +29,7 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_delete.p
     $gibbonSEPAID = htmlspecialchars($_GET['gibbonSEPAID'] ?? '', ENT_QUOTES, 'UTF-8');
     if ($gibbonSEPAID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
+        return;
     } else {
 
         $data = array('gibbonSEPAID' => $gibbonSEPAID);
@@ -38,6 +39,7 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_delete.p
 
         if ($result->rowCount() != 1) {
             $page->addError(__('The specified record cannot be found.'));
+            return;
         } else {
             $form = DeleteForm::createForm($session->get('absoluteURL') . '/modules/' . $session->get('module') . "/sepa_family_deleteProcess.php?gibbonSEPAID=" . $gibbonSEPAID);
             echo $form->getOutput();

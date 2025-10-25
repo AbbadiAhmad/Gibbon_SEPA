@@ -23,7 +23,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_delete.
 
     if (empty($gibbonSEPADiscountID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
-        exit;
+        return;
     }
 
     $page->breadcrumbs
@@ -36,7 +36,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_delete.
 
     if (empty($discount)) {
         $page->addError(__('The specified discount cannot be found.'));
-        exit;
+        return;
     }
 
     if (isset($_GET['return'])) {

@@ -36,6 +36,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
 
     if (empty($gibbonFamilyID)) {
         $page->addError(__('Family ID is required.'));
+        return;
     } else {
         $page->breadcrumbs->add(__('Family Totals'), '/modules/Sepa/sepa_family_totals.php');
         $page->breadcrumbs->add(__('Family Details'));

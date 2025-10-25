@@ -37,6 +37,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
 
     if ($gibbonSEPAID == '') {
         $page->addError(__('You have not specified one or more required parameters.'));
+        return;
     } else {
 
         $data = array('gibbonSEPAID' => $gibbonSEPAID);

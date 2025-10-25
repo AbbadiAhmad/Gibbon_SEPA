@@ -30,7 +30,6 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_add.php
 
     if (empty($data['gibbonSEPAID']) || empty($data['discountAmount']) || empty($data['description'])) {
         $page->addError(__('You have not specified one or more required parameters.'));
-        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_discount_add.php");
         exit;
     }
 
@@ -39,6 +38,6 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_add.php
     if ($inserted) {
         header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_discount_manage.php&return=success0");
     } else {
-        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_discount_manage.php&return=error1");
+        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_discount_add.php&return=error2");
     }
 }

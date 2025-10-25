@@ -22,8 +22,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_edit.ph
 
     if (empty($gibbonSEPADiscountID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
-        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_discount_manage.php");
-        exit;
+        return;
     }
 
     $SepaDiscountGateway = $container->get(SepaDiscountGateway::class);
@@ -36,8 +35,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_edit.ph
 
     if (empty($data['discountAmount']) || empty($data['description'])) {
         $page->addError(__('You have not specified one or more required parameters.'));
-        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_discount_edit.php&gibbonSEPADiscountID={$gibbonSEPADiscountID}");
-        exit;
+        return;
     }
 
     $updated = $SepaDiscountGateway->updateDiscount($gibbonSEPADiscountID, $data);
