@@ -25,7 +25,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
     foreach ($data[0] as $colName => $value) {
         $table->addColumn($colName, $colName);
     }
-    
+
 
     echo $table->render($data);
 }

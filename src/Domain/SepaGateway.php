@@ -87,30 +87,7 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query);
     }
 
-    public function getSEPAData1($criteria, $gibbonSEPAIDs = NULL)
-    {
 
-        $gibbonSEPAIDList = is_array($gibbonSEPAIDs) ? implode(',', $gibbonSEPAIDs) : $gibbonSEPAIDs;
-
-        $query = $this
-        ->newQuery()
-            ->cols(['gibbonFamily.name as Family','gibbonSEPA.gibbonSEPAID','gibbonSEPA.payer as Owner','COALESCE(SUM(gibbonSEPAPaymentEntry.amount), 0) AS total_amount'])
-            ->from('gibbonFamily')
-            ->leftJoin('gibbonSEPA', 'gibbonFamily.gibbonFamilyID=gibbonSEPA.gibbonFamilyID')
-            ->leftJoin('gibbonSEPAPaymentEntry', 'gibbonSEPAPaymentEntry.gibbonSEPAID=gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentEntry.academicYear = 28')
-            ->groupBy(['gibbonFamily.gibbonFamilyID', 'Family'])
-            ->orderBy(['total_amount']);
-
-        $criteria->addFilterRules([
-            'search' => function ($query, $search) {
-                return $query->where('gibbonFamily.name LIKE :search OR gibbonSEPA.payer LIKE :search')
-                    ->bindValue('search', '%' . $search . '%');
-            },
-        ]);
-
-        return $this->runQuery($query, $criteria);
-
-    }
 
     public function getSEPAData($criteria, $gibbonSEPAIDs = NULL)
     {
@@ -549,20 +526,6 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query)->fetchAll();
     }
 
-    public function getFamilyTotalDiscounts($gibbonFamilyID)
-    {
-        $query = $this
-            ->newSelect()
-            ->cols(['SUM(COALESCE(gibbonSEPADiscount.discountAmount, 0)) as totalDiscounts'])
-            ->from('gibbonSEPADiscount')
-            ->innerJoin('gibbonSEPA', 'gibbonSEPADiscount.gibbonSEPAID = gibbonSEPA.gibbonSEPAID')
-            ->where('gibbonSEPA.gibbonFamilyID = :gibbonFamilyID')
-            ->bindValue('gibbonFamilyID', $gibbonFamilyID);
-
-        $result = $this->runSelect($query)->fetch();
-        return $result['totalDiscounts'] ?? 0;
-    }
-
     public function getFamilyTotalPayments($gibbonFamilyID, $schoolYearID)
     {
         $query = $this
@@ -579,17 +542,4 @@ class SepaGateway extends QueryableGateway
         return $result['totalPayments'] ?? 0;
     }
 
-    public function getFamilyDiscounts($gibbonFamilyID)
-    {
-        $query = $this
-            ->newSelect()
-            ->cols(['gibbonSEPADiscount.*'])
-            ->from('gibbonSEPADiscount')
-            ->innerJoin('gibbonSEPA', 'gibbonSEPADiscount.gibbonSEPAID = gibbonSEPA.gibbonSEPAID')
-            ->where('gibbonSEPA.gibbonFamilyID = :gibbonFamilyID')
-            ->orderBy(['gibbonSEPADiscount.timestamp DESC'])
-            ->bindValue('gibbonFamilyID', $gibbonFamilyID);
-
-        return $this->runSelect($query)->fetchAll();
-    }
 }

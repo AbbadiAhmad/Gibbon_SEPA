@@ -8,8 +8,6 @@ Copyright © 2010, Gibbon Foundation
 use Gibbon\Module\Sepa\Domain\SepaDiscountGateway;
 use Gibbon\Data\Validator;
 
-$_GET = $container->get(Validator::class)->sanitize($_GET);
-$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 require_once __DIR__ . '/moduleFunctions.php';
 require_once __DIR__ . '/../../gibbon.php';
@@ -18,6 +16,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_add.php
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
+    $_GET = $container->get(Validator::class)->sanitize($_GET);
+    $_POST = $container->get(Validator::class)->sanitize($_POST);
     $SepaDiscountGateway = $container->get(SepaDiscountGateway::class);
 
     $data = [

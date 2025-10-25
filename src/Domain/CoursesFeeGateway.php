@@ -48,49 +48,6 @@ class CoursesFeeGateway extends QueryableGateway
         return $res;
     }
 
-    /**
-     * Get all courses for a specific school year with their fees (if assigned)
-     * This is used for the bulk edit page
-     *
-     * @param int $gibbonSchoolYearID
-     * @return DataSet
-     */
-    public function selectCoursesBySchoolYear($gibbonSchoolYearID)
-    {
-        $data = ['gibbonSchoolYearID' => $gibbonSchoolYearID];
-        $query = $this
-            ->newQuery()
-            ->cols([
-                'gibbonCourse.gibbonCourseID',
-                'gibbonCourse.nameShort',
-                'gibbonCourse.name as courseName',
-                'gibbonCourse.description',
-            ])
-            ->from('gibbonCourse')
-            ->WHERE('gibbonCourse.gibbonSchoolYearID = :gibbonSchoolYearID')
-            ->orderBy(['gibbonCourse.nameShort'])
-            ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID);
-
-        return $this->runQuery($query, $criteria);
-    }
-
-    /**
-     * insert courses fee
-     * @param array $data
-     * @return bool
-     */
-    public function insertCoursesFees(array $data)
-    {
-        return $this->insert($data);
-    }
-
-    /**
-     * Update an existing courses fee record
-     *
-     * @param int $gibbonSepaCoursesCostID
-     * @param array $data
-     * @return bool
-     */
     public function updateCoursesFees($data, $user)
     {
         if (empty($data["gibbonSepaCoursesCostID"])){
@@ -102,17 +59,6 @@ class CoursesFeeGateway extends QueryableGateway
         }
         
         return $result;
-    }
-
-    /**
-     * Delete a courses fee record
-     *
-     * @param int $gibbonSepaCoursesCostID
-     * @return bool
-     */
-    public function deleteCoursesFees($gibbonSepaCoursesCostID)
-    {
-        return $this->delete($gibbonSepaCoursesCostID);
     }
 
 

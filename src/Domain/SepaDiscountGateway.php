@@ -105,4 +105,32 @@ class SepaDiscountGateway extends QueryableGateway
 
         return $this->runSelect($query)->fetch();
     }
+
+    public function getFamilyTotalDiscounts($gibbonFamilyID)
+    {
+        $query = $this
+            ->newSelect()
+            ->cols(['SUM(COALESCE(gibbonSEPADiscount.discountAmount, 0)) as totalDiscounts'])
+            ->from($this->getTableName())
+            ->innerJoin('gibbonSEPA', 'gibbonSEPADiscount.gibbonSEPAID = gibbonSEPA.gibbonSEPAID')
+            ->where('gibbonSEPA.gibbonFamilyID = :gibbonFamilyID')
+            ->bindValue('gibbonFamilyID', $gibbonFamilyID);
+
+        $result = $this->runSelect($query)->fetch();
+        return $result['totalDiscounts'] ?? 0;
+    }
+
+    public function getFamilyDiscounts($gibbonFamilyID)
+    {
+        $query = $this
+            ->newSelect()
+            ->cols(['gibbonSEPADiscount.*'])
+            ->from($this->getTableName())
+            ->innerJoin('gibbonSEPA', 'gibbonSEPADiscount.gibbonSEPAID = gibbonSEPA.gibbonSEPAID')
+            ->where('gibbonSEPA.gibbonFamilyID = :gibbonFamilyID')
+            ->orderBy(['gibbonSEPADiscount.timestamp DESC'])
+            ->bindValue('gibbonFamilyID', $gibbonFamilyID);
+
+        return $this->runSelect($query)->fetchAll();
+    }
 }

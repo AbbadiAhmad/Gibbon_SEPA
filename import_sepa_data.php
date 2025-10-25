@@ -230,7 +230,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             $unprocessedRows = [];
             foreach ($data as $row) {
                 // check the names without spaces and in lower cases
-                
+
                 $userID = $SepaGateway->getUserID($row['payer']);
 
                 // if only one person found

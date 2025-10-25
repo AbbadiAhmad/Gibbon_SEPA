@@ -5,7 +5,7 @@
 // Basic variables
 $name = 'Sepa';            // The name of the module as it appears to users. Needs to be unique to installation. Also the name of the folder that holds the unit.
 $description = 'Manage SEPA information and transaction';            // Short text description
-$entryURL = "sepa_family_view.php";   // The landing page for the unit, used in the main menu
+$entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
 $version = '1.1.1';            // Version number
@@ -132,25 +132,7 @@ $actionRows[] = [
     'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
 ];
 
-$actionRows[] = [
-    'name' => 'View Financial Summary', // The name of the action (appears to user in the right hand side module menu)
-    'precedence' => '2',// If it is a grouped action, the precedence controls which is highest action in group
-    'category' => 'Payments', // Optional: subgroups for the right hand side module menu
-    'description' => 'Show Family Payments and dept', // Text description
-    'URLList' => 'sepa_payment_summary.php', // List of pages included in this action
-    'entryURL' => 'sepa_payment_summary.php', // The landing action for the page.
-    'entrySidebar' => 'Y', // Whether or not there's a sidebar on entry to the action
-    'menuShow' => 'Y', // Whether or not this action shows up in menus or if it's hidden
-    'defaultPermissionAdmin' => 'Y', // Default permission for built in role Admin
-    'defaultPermissionTeacher' => 'N', // Default permission for built in role Teacher
-    'defaultPermissionStudent' => 'N', // Default permission for built in role Student
-    'defaultPermissionParent' => 'N', // Default permission for built in role Parent
-    'defaultPermissionSupport' => 'N', // Default permission for built in role Support
-    'categoryPermissionStaff' => 'Y', // Should this action be available to user roles in the Staff category?
-    'categoryPermissionStudent' => 'N', // Should this action be available to user roles in the Student category?
-    'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
-    'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
-];
+
 
 
 $actionRows[] = [
@@ -337,7 +319,7 @@ $actionRows[] = [
 ];
 
 $actionRows[] = [
-    'name' => 'Family Finance Summay',
+    'name' => 'Family Balance',
     'precedence' => '11',
     'category' => 'Reports',
     'description' => 'View family totals including dept and payments',
@@ -363,26 +345,6 @@ $actionRows[] = [
     'description' => 'View child enrollment details and fees',
     'URLList' => 'sepa_child_enrollment_details.php',
     'entryURL' => 'sepa_child_enrollment_details.php',
-    'entrySidebar' => 'Y',
-    'menuShow' => 'Y',
-    'defaultPermissionAdmin' => 'Y',
-    'defaultPermissionTeacher' => 'N',
-    'defaultPermissionStudent' => 'N',
-    'defaultPermissionParent' => 'N',
-    'defaultPermissionSupport' => 'N',
-    'categoryPermissionStaff' => 'Y',
-    'categoryPermissionStudent' => 'N',
-    'categoryPermissionParent' => 'N',
-    'categoryPermissionOther' => 'N',
-];
-
-$actionRows[] = [
-    'name' => 'Payment Summary',
-    'precedence' => '13',
-    'category' => 'Reports',
-    'description' => 'View payment summary',
-    'URLList' => 'sepa_payment_summary.php',
-    'entryURL' => 'sepa_payment_summary.php',
     'entrySidebar' => 'Y',
     'menuShow' => 'Y',
     'defaultPermissionAdmin' => 'Y',
