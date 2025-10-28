@@ -9,8 +9,6 @@ use Gibbon\Forms\Form;
 use Gibbon\Module\Sepa\Domain\SepaDiscountGateway;
 use Gibbon\Data\Validator;
 
-$_GET = $container->get(Validator::class)->sanitize($_GET);
-$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 require_once __DIR__ . '/moduleFunctions.php';
 require_once __DIR__ . '/../../gibbon.php';
@@ -19,6 +17,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_edit.ph
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
+
+
+    $_GET = $container->get(Validator::class)->sanitize($_GET);
+    $_POST = $container->get(Validator::class)->sanitize($_POST);
+
     $gibbonSEPADiscountID = $_GET['gibbonSEPADiscountID'] ?? '';
 
     if (empty($gibbonSEPADiscountID)) {
@@ -27,7 +30,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_edit.ph
     }
 
     $page->breadcrumbs
-        ->add(__('Manage SEPA Discounts'), '/modules/Sepa/sepa_discount_manage.php')
+        ->add(__('Manage SEPA Discounts'), '/sepa_discount_manage.php')
         ->add(__('Edit Discount'));
 
     $SepaDiscountGateway = $container->get(SepaDiscountGateway::class);
@@ -45,24 +48,24 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_edit.ph
     $form->addHiddenValue('gibbonSEPADiscountID', $gibbonSEPADiscountID);
 
     $row = $form->addRow();
-        $row->addLabel('gibbonSEPAID', __('SEPA ID'));
-        $row->addNumber('gibbonSEPAID')->required()->maxLength(8)->setValue($discount['gibbonSEPAID']);
+    $row->addLabel('gibbonSEPAID', __('SEPA ID'));
+    $row->addNumber('gibbonSEPAID')->required()->maxLength(8)->setValue($discount['gibbonSEPAID']);
 
     $row = $form->addRow();
-        $row->addLabel('discountAmount', __('Discount Amount'));
-        $row->addNumber('discountAmount')->required()->decimalPlaces(2)->minimum(0.01)->setValue($discount['discountAmount']);
+    $row->addLabel('discountAmount', __('Discount Amount'));
+    $row->addNumber('discountAmount')->required()->decimalPlaces(2)->minimum(0.01)->setValue($discount['discountAmount']);
 
     $row = $form->addRow();
-        $row->addLabel('description', __('Description'));
-        $row->addTextArea('description')->required()->setRows(3)->setValue($discount['description']);
+    $row->addLabel('description', __('Description'));
+    $row->addTextArea('description')->required()->setRows(3)->setValue($discount['description']);
 
     $row = $form->addRow();
-        $row->addLabel('note', __('Note'));
-        $row->addTextArea('note')->setRows(3)->setValue($discount['note']);
+    $row->addLabel('note', __('Note'));
+    $row->addTextArea('note')->setRows(3)->setValue($discount['note']);
 
     $row = $form->addRow();
-        $row->addFooter();
-        $row->addSubmit();
+    $row->addFooter();
+    $row->addSubmit();
 
     echo $form->getOutput();
 }

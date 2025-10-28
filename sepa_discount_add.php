@@ -7,7 +7,10 @@ Copyright © 2010, Gibbon Foundation
 
 use Gibbon\Forms\Form;
 use Gibbon\Module\Sepa\Domain\SepaDiscountGateway;
+use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Data\Validator;
+use Gibbon\Domain\QueryCriteria;
+
 
 require_once __DIR__ . '/moduleFunctions.php';
 require_once __DIR__ . '/../../gibbon.php';
@@ -19,10 +22,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_add.php
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
     $page->breadcrumbs
-        ->add(__('Manage SEPA Discounts'), '/modules/Sepa/sepa_discount_manage.php')
+        ->add(__('Manage SEPA Discounts'), '/sepa_discount_manage.php')
         ->add(__('Add Discount'));
 
     $SepaDiscountGateway = $container->get(SepaDiscountGateway::class);
+    $SepaGateway = $container->get(SepaGateway::class);
+    $criteria = $container->get(QueryCriteria::class);
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -31,12 +36,17 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_add.php
     $page->return->setEditLink($editLink);
 
     $form = Form::create('discount', $session->get('absoluteURL') . '/modules/Sepa/sepa_discount_addProcess.php');
-
     $form->addHiddenValue('address', $session->get('address'));
 
+    $gibbonSEPAID = $_GET['gibbonSEPAID'] ?? null;
+    $sepaList = $SepaGateway->getSEPAList($criteria, null);
     $row = $form->addRow();
-    $row->addLabel('gibbonSEPAID', __('SEPA ID'));
-    $row->addNumber('gibbonSEPAID')->required()->maxLength(8);
+    $row->addLabel('gibbonSEPAID', __('SEPA Account'));
+    $sepaOptions = array_column($sepaList->toArray(), 'payer', 'gibbonSEPAID');
+    $select = $row->addSelect('gibbonSEPAID')->fromArray($sepaOptions)->placeholder(__(''))->required();
+    if ($gibbonSEPAID && array_key_exists($gibbonSEPAID, $sepaOptions)) {
+        $select->selected($gibbonSEPAID)->disabled();
+    }
 
     $row = $form->addRow();
     $row->addLabel('discountAmount', __('Discount Amount'));

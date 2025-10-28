@@ -9,8 +9,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Data\Validator;
-$_GET = $container->get(Validator::class)->sanitize($_GET);
-$_POST = $container->get(Validator::class)->sanitize($_POST);
+
 
 require_once __DIR__ . '/moduleFunctions.php';
 require_once __DIR__ . '/../../gibbon.php';
@@ -19,6 +18,9 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
+    $_GET = $container->get(Validator::class)->sanitize($_GET);
+    $_POST = $container->get(Validator::class)->sanitize($_POST);
+    
     $page->breadcrumbs
         ->add(__('Manage SEPA Payment Entries'), 'sepa_payment_manage.php')
         ->add(__('Add Payment Entry'));
@@ -29,7 +31,6 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
     $sepaList = $SepaGateway->getSEPAList($criteria, null);
 
     $gibbonSEPAID = $_GET['gibbonSEPAID'] ?? null;
-
     $form = Form::create('paymentAdd', $session->get('absoluteURL') . '/modules/Sepa/sepa_payment_addProcess.php');
 
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
@@ -59,7 +60,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
     $row->addLabel('amount', __('Amount'));
     $row->addNumber('amount')->required()->decimalPlaces(2)->minimum(0);
 
-     $row = $form->addRow();
+    $row = $form->addRow();
     $row->addLabel('payer', __('Payer'));
     $row->addTextField('payer')->required()->maxLength(100);
 

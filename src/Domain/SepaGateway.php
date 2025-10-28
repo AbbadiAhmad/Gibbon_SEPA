@@ -430,6 +430,7 @@ class SepaGateway extends QueryableGateway
                 'gibbonFamilyChild.gibbonFamilyID',
                 'gibbonFamily.name as familyName',
                 'gibbonSEPA.payer as sepaName',
+                'gibbonSEPA.gibbonSEPAID as gibbonSEPAID',
                 'SUM(COALESCE(gibbonSepaCoursesFees.fees, 0) * TIMESTAMPDIFF(MONTH, GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), LAST_DAY(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay)))) as totalDept',
                 'SUM(COALESCE(gibbonSEPAPaymentEntry.amount, 0)) as payments'
             ])
