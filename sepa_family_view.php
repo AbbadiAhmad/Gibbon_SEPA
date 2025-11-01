@@ -45,6 +45,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
     
     $criteria = $SepaGateway->newQueryCriteria(true)
         ->searchBy(['payer', 'customData'], $search)
+        ->sortBy(['payer'])
         ->fromPOST();
 
 

@@ -20,17 +20,21 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
 } else {
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
-    
+    $gibbonSEPAID = $_GET['gibbonSEPAID'] ?? null;
+    $lockFamily = $_GET['lockFamily'] ?? false;
+
     $page->breadcrumbs
         ->add(__('Manage SEPA Payment Entries'), 'sepa_payment_manage.php')
         ->add(__('Add Payment Entry'));
 
     $SepaGateway = $container->get(SepaGateway::class);
 
-    $criteria = $container->get(QueryCriteria::class);
+    $criteria = $SepaGateway->newQueryCriteria(false)
+        ->sortBy(['payer'])
+    ;
     $sepaList = $SepaGateway->getSEPAList($criteria, null);
 
-    $gibbonSEPAID = $_GET['gibbonSEPAID'] ?? null;
+
     $form = Form::create('paymentAdd', $session->get('absoluteURL') . '/modules/Sepa/sepa_payment_addProcess.php');
 
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
@@ -49,7 +53,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
     $sepaOptions = array_column($sepaList->toArray(), 'payer', 'gibbonSEPAID');
     $select = $row->addSelect('gibbonSEPAID')->fromArray($sepaOptions)->placeholder(__(''))->required();
     if ($gibbonSEPAID && array_key_exists($gibbonSEPAID, $sepaOptions)) {
-        $select->selected($gibbonSEPAID)->disabled();
+        $select->selected($gibbonSEPAID);
+        if ($lockFamily) {
+            $select->disabled();
+            $form->addHiddenValue('gibbonSEPAID', $gibbonSEPAID);
+        }
     }
 
     $row = $form->addRow();

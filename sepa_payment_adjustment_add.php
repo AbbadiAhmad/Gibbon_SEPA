@@ -6,10 +6,9 @@ Copyright © 2010, Gibbon Foundation
 */
 
 use Gibbon\Forms\Form;
-use Gibbon\Module\Sepa\Domain\SepaDiscountGateway;
+use Gibbon\Module\Sepa\Domain\SepaPaymentAdjustmentGateway;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Data\Validator;
-use Gibbon\Domain\QueryCriteria;
 
 
 require_once __DIR__ . '/moduleFunctions.php';
@@ -21,13 +20,15 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_add.php
 } else {
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
+    $family_details = $_GET['family_details'] ?? '';
+    
     $page->breadcrumbs
-        ->add(__('Manage SEPA Discounts'), '/sepa_discount_manage.php')
+        ->add(__('Payment adjustment'), '/sepa_discount_manage.php')
         ->add(__('Add Discount'));
 
-    $SepaDiscountGateway = $container->get(SepaDiscountGateway::class);
+    $SepaDiscountGateway = $container->get(SepaPaymentAdjustmentGateway::class);
     $SepaGateway = $container->get(SepaGateway::class);
-    $criteria = $container->get(QueryCriteria::class);
+    $criteria = $SepaGateway->newQueryCriteria(false)->sortBy(['payer']);
 
     $editLink = '';
     if (isset($_GET['editID'])) {
@@ -37,15 +38,19 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_add.php
 
     $form = Form::create('discount', $session->get('absoluteURL') . '/modules/Sepa/sepa_discount_addProcess.php');
     $form->addHiddenValue('address', $session->get('address'));
-
+    $form->addHiddenValue('family_details', $family_details);
+    
+    // SEPA Id=> Names
     $gibbonSEPAID = $_GET['gibbonSEPAID'] ?? null;
     $sepaList = $SepaGateway->getSEPAList($criteria, null);
-    $row = $form->addRow();
-    $row->addLabel('gibbonSEPAID', __('SEPA Account'));
     $sepaOptions = array_column($sepaList->toArray(), 'payer', 'gibbonSEPAID');
+
+    $row = $form->addRow();
+    $row->addLabel('gibbonSEPAID_l', __('SEPA Account'));
     $select = $row->addSelect('gibbonSEPAID')->fromArray($sepaOptions)->placeholder(__(''))->required();
     if ($gibbonSEPAID && array_key_exists($gibbonSEPAID, $sepaOptions)) {
         $select->selected($gibbonSEPAID)->disabled();
+        $form->addHiddenValue('gibbonSEPAID', $gibbonSEPAID);
     }
 
     $row = $form->addRow();

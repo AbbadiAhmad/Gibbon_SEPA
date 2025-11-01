@@ -6,7 +6,7 @@ Copyright © 2010, Gibbon Foundation
 */
 
 use Gibbon\Forms\Form;
-use Gibbon\Module\Sepa\Domain\SepaDiscountGateway;
+use Gibbon\Module\Sepa\Domain\SepaPaymentAdjustmentGateway;
 use Gibbon\Data\Validator;
 
 $_GET = $container->get(Validator::class)->sanitize($_GET);
@@ -20,6 +20,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_delete.
     $page->addError(__('You do not have access to this action.'));
 } else {
     $gibbonSEPADiscountID = $_GET['gibbonSEPADiscountID'] ?? '';
+    $family_details = $_GET['family_details'] ?? '';
+    
 
     if (empty($gibbonSEPADiscountID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -27,10 +29,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_delete.
     }
 
     $page->breadcrumbs
-        ->add(__('Manage SEPA Discounts'), '/modules/Sepa/sepa_discount_manage.php')
-        ->add(__('Delete Discount'));
+        ->add(__('Payment Adjustment'), '/sepa_payment_adjustment_manage.php')
+        ->add(__('Delete Ajustment'));
 
-    $SepaDiscountGateway = $container->get(SepaDiscountGateway::class);
+    $SepaDiscountGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
     $discount = $SepaDiscountGateway->getDiscountByID($gibbonSEPADiscountID);
 
@@ -39,14 +41,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_delete.
         return;
     }
 
-    if (isset($_GET['return'])) {
-        returnProcess($guid, $_GET['return'], null, null);
-    }
 
     $form = Form::create('delete', $session->get('absoluteURL') . '/modules/Sepa/sepa_discount_deleteProcess.php');
 
     $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('gibbonSEPADiscountID', $gibbonSEPADiscountID);
+    $form->addHiddenValue('family_details', $family_details);
 
     $row = $form->addRow();
         $row->addLabel('delete', __('Are you sure you want to delete this discount?'));

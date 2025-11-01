@@ -25,13 +25,13 @@ class SummaryGateway extends QueryableGateway
         $gibbonSEPAIDList = is_array($gibbonSEPAIDs) ? implode(',', $gibbonSEPAIDs) : $gibbonSEPAIDs;
 
         $query = $this
-        ->newQuery()
-            ->cols(['gibbonFamily.name as Family','gibbonSEPA.gibbonSEPAID','gibbonSEPA.payer as Owner','COALESCE(SUM(gibbonSEPAPaymentEntry.amount), 0) AS total_amount'])
+            ->newQuery()
+            ->cols(['gibbonFamily.name as Family', 'gibbonSEPA.gibbonSEPAID', 'gibbonSEPA.payer as Owner', 'COALESCE(SUM(gibbonSEPAPaymentEntry.amount), 0) AS total_amount'])
             ->from('gibbonFamily')
             ->leftJoin('gibbonSEPA', 'gibbonFamily.gibbonFamilyID=gibbonSEPA.gibbonFamilyID')
             ->leftJoin('gibbonSEPAPaymentEntry', 'gibbonSEPAPaymentEntry.gibbonSEPAID=gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentEntry.academicYear = 28')
             ->groupBy(['gibbonFamily.gibbonFamilyID', 'Family'])
-            ->orderBy(['total_amount']);
+        ;
 
         $criteria->addFilterRules([
             'search' => function ($query, $search) {

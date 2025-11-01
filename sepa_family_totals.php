@@ -61,12 +61,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
             $actions->addAction('view', __('View Details'))
                 ->setURL('/modules/Sepa/sepa_family_details.php')
                 ->addParam('gibbonFamilyID', $row['gibbonFamilyID']);
-            $actions->addAction('add_payment', __('Add Payment'))
-                ->setURL('/modules/Sepa/sepa_payment_add.php')
-                ->addParam('gibbonSEPAID', $row['gibbonSEPAID']);
-            $actions->addAction('add_discount', __('Add Discount'))
-                ->setURL('/modules/Sepa/sepa_discount_add.php')
-                ->addParam('gibbonSEPAID', $row['gibbonSEPAID']);
+            ;
         });
 
     echo $table->render($familyTotals);

@@ -6,8 +6,9 @@ Copyright © 2010, Gibbon Foundation
 */
 
 use Gibbon\Forms\Form;
-use Gibbon\Module\Sepa\Domain\SepaDiscountGateway;
+use Gibbon\Module\Sepa\Domain\SepaPaymentAdjustmentGateway;
 use Gibbon\Data\Validator;
+use Gibbon\Module\Sepa\Domain\SepaGateway;
 
 
 require_once __DIR__ . '/moduleFunctions.php';
@@ -23,6 +24,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_edit.ph
     $_POST = $container->get(Validator::class)->sanitize($_POST);
 
     $gibbonSEPADiscountID = $_GET['gibbonSEPADiscountID'] ?? '';
+    $family_details = $_GET['family_details'] ?? '';
+
 
     if (empty($gibbonSEPADiscountID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
@@ -30,10 +33,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_edit.ph
     }
 
     $page->breadcrumbs
-        ->add(__('Manage SEPA Discounts'), '/sepa_discount_manage.php')
-        ->add(__('Edit Discount'));
+        ->add(__('Payment Adjustment'), '/sepa_payment_adjustment_manage.php')
+        ->add(__('Edit Payment Adjustment'));
 
-    $SepaDiscountGateway = $container->get(SepaDiscountGateway::class);
+    $SepaDiscountGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
     $discount = $SepaDiscountGateway->getDiscountByID($gibbonSEPADiscountID);
 
@@ -46,10 +49,23 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_edit.ph
 
     $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('gibbonSEPADiscountID', $gibbonSEPADiscountID);
+    $form->addHiddenValue('family_details', $family_details);
 
+
+    $SepaGateway = $container->get(SepaGateway::class);
+    $criteria = $SepaGateway->newQueryCriteria(false)->sortBy(['payer']);
+    $gibbonSEPAID = $discount['gibbonSEPAID'] ?? null;
+
+    $sepaList = $SepaGateway->getSEPAList($criteria, null);
     $row = $form->addRow();
-    $row->addLabel('gibbonSEPAID', __('SEPA ID'));
-    $row->addNumber('gibbonSEPAID')->required()->maxLength(8)->setValue($discount['gibbonSEPAID']);
+    $row->addLabel('gibbonSEPAID', __('SEPA Account'));
+    $sepaOptions = array_column($sepaList->toArray(), 'payer', 'gibbonSEPAID');
+    $select = $row->addSelect('gibbonSEPAID')->fromArray($sepaOptions)->placeholder(__(''))->required();
+    if ($gibbonSEPAID && array_key_exists($gibbonSEPAID, $sepaOptions)) {
+        $select->selected($gibbonSEPAID)->disabled();
+        $form->addHiddenValue('gibbonSEPAID', $gibbonSEPAID);
+    }
+
 
     $row = $form->addRow();
     $row->addLabel('discountAmount', __('Discount Amount'));

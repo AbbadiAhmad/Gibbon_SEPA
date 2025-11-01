@@ -5,11 +5,9 @@ Founded by Ross Parker at ICHK Secondary. Built by Ross Parker, Sandra Kuipers a
 Copyright © 2010, Gibbon Foundation
 */
 
-use Gibbon\Module\Sepa\Domain\SepaDiscountGateway;
+use Gibbon\Module\Sepa\Domain\SepaPaymentAdjustmentGateway;
 use Gibbon\Data\Validator;
 
-$_GET = $container->get(Validator::class)->sanitize($_GET);
-$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 require_once __DIR__ . '/moduleFunctions.php';
 require_once __DIR__ . '/../../gibbon.php';
@@ -18,14 +16,17 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_edit.ph
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
+    $_GET = $container->get(Validator::class)->sanitize($_GET);
+    $_POST = $container->get(Validator::class)->sanitize($_POST);
     $gibbonSEPADiscountID = $_POST['gibbonSEPADiscountID'] ?? '';
+    $family_details = $_POST['family_details'] ?? '';
 
     if (empty($gibbonSEPADiscountID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
     }
 
-    $SepaDiscountGateway = $container->get(SepaDiscountGateway::class);
+    $SepaDiscountGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
     $data = [
         'discountAmount' => $_POST['discountAmount'] ?? '',
@@ -41,10 +42,15 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_edit.ph
     $updated = $SepaDiscountGateway->updateDiscount($gibbonSEPADiscountID, $data);
 
     if ($updated) {
-        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_discount_manage.php");
+        if (!empty($family_details)) {
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_family_details.php&gibbonFamilyID={$family_details}&return=success0");
+        } else {
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_discount_manage.php&return=success1");
+        }
+        
     } else {
         header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_discount_manage.php");
     }
 
-    
+
 }

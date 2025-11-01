@@ -43,6 +43,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
     $SepaGateway = $container->get(SepaGateway::class);
     $criteria = $SepaGateway->newQueryCriteria(true)
         ->searchBy(['childID', 'preferredName', 'gibbonFamilyID', 'className'], $search)
+        ->sortBy(['gibbonFamilyID','childID'])
         ->fromPOST();
 
     $form = Form::createSearch();

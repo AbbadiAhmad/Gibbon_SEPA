@@ -20,6 +20,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
     $page->addError(__('You do not have access to this action.'));
 } else {
     $gibbonSEPAPaymentRecordID = $_GET['gibbonSEPAPaymentRecordID'] ?? '';
+    $LockFamily = $_GET['LockFamily'] ?? false;
     if (empty($gibbonSEPAPaymentRecordID)) {
         $page->addError(__('Invalid payment entry.'));
         return;
@@ -31,10 +32,9 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
 
     $SepaGateway = $container->get(SepaGateway::class);
     $payment = $SepaGateway->getPaymentByID($gibbonSEPAPaymentRecordID);
-    $criteria = $container->get(QueryCriteria::class);
+    $criteria = $SepaGateway->newQueryCriteria(false)->sortBy(['payer']);
 
     $sepaList = $SepaGateway->getSEPAList($criteria, null);
-
 
     if (!$payment) {
         $page->addError(__('Payment entry not found.'));
@@ -53,18 +53,24 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
     $row = $form->addRow();
     $row->addLabel('academicYear', __('Academic Year'));
     $row->addSelect('academicYear')->fromArray([$_SESSION[$guid]["gibbonSchoolYearID"] => $_SESSION[$guid]["gibbonSchoolYearName"]])->selected($_SESSION[$guid]["gibbonSchoolYearID"])->disabled();
+    $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearID"]);
 
     $row = $form->addRow();
     $row->addLabel('gibbonSEPAID', __('SEPA Account'));
-    
+
     $sepaOptions = array_column($sepaList->toArray(), 'payer', 'gibbonSEPAID');
     $sepaOptions = array_combine(
-    array_map(fn($k) => (string)(int)$k, array_keys($sepaOptions)),
-    $sepaOptions);
+        array_map(fn($k) => (string) (int) $k, array_keys($sepaOptions)),
+        $sepaOptions
+    );
 
     $select = $row->addSelect('gibbonSEPAID')->fromArray($sepaOptions)->placeholder(__(''));
     if ($payment['gibbonSEPAID'] && array_key_exists($payment['gibbonSEPAID'], $sepaOptions)) {
-        $select->selected($payment['gibbonSEPAID'])->disabled();
+        $select->selected($payment['gibbonSEPAID']);
+        if ($LockFamily) {
+            $select->disabled();
+            $form->addHiddenValue('gibbonSEPAID', $payment['gibbonSEPAID']);
+        }
     }
 
     $row = $form->addRow();

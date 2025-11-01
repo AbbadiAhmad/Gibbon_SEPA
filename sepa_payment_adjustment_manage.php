@@ -7,7 +7,7 @@ Copyright © 2010, Gibbon Foundation
 
 use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
-use Gibbon\Module\Sepa\Domain\SepaDiscountGateway;
+use Gibbon\Module\Sepa\Domain\SepaPaymentAdjustmentGateway;
 use Gibbon\Data\Validator;
 
 $_GET = $container->get(Validator::class)->sanitize($_GET);
@@ -16,14 +16,14 @@ $_POST = $container->get(Validator::class)->sanitize($_POST);
 require_once __DIR__ . '/moduleFunctions.php';
 require_once __DIR__ . '/../../gibbon.php';
 
-if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_manage.php") == false) {
+if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustment_manage.php") == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
     $page->breadcrumbs
-        ->add(__('Manage SEPA Discounts'));
+        ->add(__('Payment Adjustment'));
 
-    $SepaDiscountGateway = $container->get(SepaDiscountGateway::class);
+    $SepaDiscountGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
     $search = $_GET['search'] ?? '';
 
@@ -44,11 +44,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_manage.
 
     echo $form->getOutput();
 
-    $discounts = $SepaDiscountGateway->getAllDiscounts($criteria);
+    $adjustment = $SepaDiscountGateway->getAllAdjustment($criteria);
 
     // DATA TABLE
-    $table = DataTable::createPaginated('discounts', $criteria);
-    $table->setTitle(__('Manage SEPA Discounts'));
+    $table = DataTable::createPaginated('adjustment', $criteria);
+    $table->setTitle(__('Payment Adjustment'));
 
     $table->addHeaderAction('add', __('Add'))
         ->setURL('/modules/Sepa/sepa_discount_add.php')
@@ -82,5 +82,5 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_manage.
                 ->setURL('/modules/Sepa/sepa_discount_delete.php');
         });
 
-    echo $table->render($discounts);
+    echo $table->render($adjustment);
 }

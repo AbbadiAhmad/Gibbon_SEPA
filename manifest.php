@@ -91,15 +91,15 @@ $moduleTables[] = "
  ";
 
 $moduleTables[] = "
-    CREATE TABLE `gibbonSEPADiscount` (
-    `gibbonSEPADiscountID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    CREATE TABLE `gibbonSEPAPaymentAdjustment` (
+    `gibbonSEPAPaymentAdjustmentID` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `gibbonSEPAID` int(8) unsigned zerofill NOT NULL,
-    `discountAmount` decimal(10,2) NOT NULL CHECK (discountAmount > 0),
+    `amount` decimal(10,2) NOT NULL,
     `description` text NOT NULL COMMENT 'Description for the payer',
     `note` text NULL COMMENT 'Note for the administration',
     `gibbonPersonID` int(10) unsigned NOT NULL,
     `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`gibbonSEPADiscountID`),
+    PRIMARY KEY (`gibbonSEPAPaymentAdjustmentID`),
     KEY `gibbonSEPAID` (`gibbonSEPAID`),
     KEY `gibbonPersonID` (`gibbonPersonID`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -109,28 +109,6 @@ $moduleTables[] = "
 //$gibbonSetting[] = "";
 
 
-// Action rows 
-// One array per action
-
-$actionRows[] = [
-    'name' => 'View family Payment', // The name of the action (appears to user in the right hand side module menu)
-    'precedence' => '1',// If it is a grouped action, the precedence controls which is highest action in group
-    'category' => 'Payments', // Optional: subgroups for the right hand side module menu
-    'description' => 'Show family Payment records', // Text description
-    'URLList' => 'sepa_payment_view.php, sepa_unlinked_payment_view.php', // List of pages included in this action
-    'entryURL' => 'sepa_payment_view.php', // The landing action for the page.
-    'entrySidebar' => 'Y', // Whether or not there's a sidebar on entry to the action
-    'menuShow' => 'Y', // Whether or not this action shows up in menus or if it's hidden
-    'defaultPermissionAdmin' => 'Y', // Default permission for built in role Admin
-    'defaultPermissionTeacher' => 'N', // Default permission for built in role Teacher
-    'defaultPermissionStudent' => 'N', // Default permission for built in role Student
-    'defaultPermissionParent' => 'N', // Default permission for built in role Parent
-    'defaultPermissionSupport' => 'N', // Default permission for built in role Support
-    'categoryPermissionStaff' => 'Y', // Should this action be available to user roles in the Staff category?
-    'categoryPermissionStudent' => 'N', // Should this action be available to user roles in the Student category?
-    'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
-    'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
-];
 
 
 
@@ -359,12 +337,12 @@ $actionRows[] = [
 ];
 
 $actionRows[] = [
-    'name' => 'Manage SEPA Discounts',
+    'name' => 'Manage SEPA Payment Adjustments',
     'precedence' => '14',
-    'category' => 'Discounts',
-    'description' => 'Manage SEPA Discounts (Add, Edit, Delete)',
-    'URLList' => 'sepa_discount_manage.php, sepa_discount_add.php, sepa_discount_edit.php, sepa_discount_delete.php',
-    'entryURL' => 'sepa_discount_manage.php',
+    'category' => 'Adjustments',
+    'description' => 'Manage SEPA Payment Adjustments (Add, Edit, Delete)',
+    'URLList' => 'sepa_payment_adjustment_manage.php, sepa_payment_adjustment_add.php, sepa_payment_adjustment_edit.php, sepa_payment_adjustment_delete.php',
+    'entryURL' => 'sepa_payment_adjustment_manage.php',
     'entrySidebar' => 'Y',
     'menuShow' => 'Y',
     'defaultPermissionAdmin' => 'Y',

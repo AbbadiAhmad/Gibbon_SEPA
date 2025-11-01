@@ -6,20 +6,20 @@ use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
 
 /**
- * SEPA Discount Gateway
+ * SEPA Payment Adjustment Gateway
  *
  * @version v0
  * @since   v0
  */
-class SepaDiscountGateway extends QueryableGateway
+class SepaPaymentAdjustmentGateway extends QueryableGateway
 {
     use TableAware;
 
-    private static $tableName = 'gibbonSEPADiscount';
-    private static $primaryKey = 'gibbonSEPADiscountID';
+    private static $tableName = 'gibbonSEPAPaymentAdjustment';
+    private static $primaryKey = 'gibbonSEPAPaymentAdjustmentID';
     private static $searchableColumns = ['description', 'note'];
 
-    public function getDiscountsBySEPA($gibbonSEPAID, QueryCriteria $criteria = null)
+    /* public function getAdjustmentsBySEPA($gibbonSEPAID, QueryCriteria $criteria = null)
     {
         $query = $this
             ->newSelect()
@@ -27,7 +27,7 @@ class SepaDiscountGateway extends QueryableGateway
             ->from($this->getTableName())
             ->where('gibbonSEPAID = :gibbonSEPAID')
             ->bindValue('gibbonSEPAID', $gibbonSEPAID)
-            ->orderBy(['timestamp DESC']);
+            ;
 
         if ($criteria) {
             return $this->runQuery($query, $criteria);
@@ -35,14 +35,14 @@ class SepaDiscountGateway extends QueryableGateway
 
         return $this->runSelect($query);
     }
-
-    public function getAllDiscounts(QueryCriteria $criteria = null)
+ */
+    public function getAllAdjustments(QueryCriteria $criteria = null)
     {
         $query = $this
             ->newSelect()
             ->cols(['*'])
             ->from($this->getTableName())
-            ->orderBy(['timestamp DESC']);
+        ;
 
         if ($criteria) {
             return $this->runQuery($query, $criteria);
@@ -51,14 +51,14 @@ class SepaDiscountGateway extends QueryableGateway
         return $this->runSelect($query);
     }
 
-    public function insertDiscount($data)
+    public function insertAdjustment($data)
     {
         $query = $this
             ->newInsert()
             ->into($this->getTableName())
             ->cols([
                 'gibbonSEPAID' => $data['gibbonSEPAID'],
-                'discountAmount' => $data['discountAmount'],
+                'amount' => $data['amount'],
                 'description' => $data['description'],
                 'note' => $data['note'],
                 'gibbonPersonID' => $data['gibbonPersonID']
@@ -67,69 +67,67 @@ class SepaDiscountGateway extends QueryableGateway
         return $this->runInsert($query);
     }
 
-    public function updateDiscount($gibbonSEPADiscountID, $data)
+    public function updateAdjustment($gibbonSEPAPaymentAdjustmentID, $data)
     {
         $query = $this
             ->newUpdate()
             ->table($this->getTableName())
             ->cols([
-                'discountAmount' => $data['discountAmount'],
+                'amount' => $data['amount'],
                 'description' => $data['description'],
                 'note' => $data['note']
             ])
-            ->where('gibbonSEPADiscountID = :gibbonSEPADiscountID')
-            ->bindValue('gibbonSEPADiscountID', $gibbonSEPADiscountID);
+            ->where('gibbonSEPAPaymentAdjustmentID = :gibbonSEPAPaymentAdjustmentID')
+            ->bindValue('gibbonSEPAPaymentAdjustmentID', $gibbonSEPAPaymentAdjustmentID);
 
         return $this->runUpdate($query);
     }
 
-    public function deleteDiscount($gibbonSEPADiscountID)
+    public function deleteAdjustment($gibbonSEPAPaymentAdjustmentID)
     {
         $query = $this
             ->newDelete()
             ->from($this->getTableName())
-            ->where('gibbonSEPADiscountID = :gibbonSEPADiscountID')
-            ->bindValue('gibbonSEPADiscountID', $gibbonSEPADiscountID);
+            ->where('gibbonSEPAPaymentAdjustmentID = :gibbonSEPAPaymentAdjustmentID')
+            ->bindValue('gibbonSEPAPaymentAdjustmentID', $gibbonSEPAPaymentAdjustmentID);
 
         return $this->runDelete($query);
     }
 
-    public function getDiscountByID($gibbonSEPADiscountID)
+    public function getAdjustmentByID($gibbonSEPAPaymentAdjustmentID)
     {
         $query = $this
             ->newSelect()
             ->cols(['*'])
             ->from($this->getTableName())
-            ->where('gibbonSEPADiscountID = :gibbonSEPADiscountID')
-            ->bindValue('gibbonSEPADiscountID', $gibbonSEPADiscountID);
+            ->where('gibbonSEPAPaymentAdjustmentID = :gibbonSEPAPaymentAdjustmentID')
+            ->bindValue('gibbonSEPAPaymentAdjustmentID', $gibbonSEPAPaymentAdjustmentID);
 
         return $this->runSelect($query)->fetch();
     }
 
-    public function getFamilyTotalDiscounts($gibbonFamilyID)
+    public function getFamilyTotalAdjustments($gibbonFamilyID)
     {
         $query = $this
             ->newSelect()
-            ->cols(['SUM(COALESCE(gibbonSEPADiscount.discountAmount, 0)) as totalDiscounts'])
+            ->cols(['SUM(COALESCE(gibbonSEPAPaymentAdjustment.amount, 0)) as totalAdjustments'])
             ->from($this->getTableName())
-            ->innerJoin('gibbonSEPA', 'gibbonSEPADiscount.gibbonSEPAID = gibbonSEPA.gibbonSEPAID')
+            ->innerJoin('gibbonSEPA', 'gibbonSEPAPaymentAdjustment.gibbonSEPAID = gibbonSEPA.gibbonSEPAID')
             ->where('gibbonSEPA.gibbonFamilyID = :gibbonFamilyID')
             ->bindValue('gibbonFamilyID', $gibbonFamilyID);
 
         $result = $this->runSelect($query)->fetch();
-        return $result['totalDiscounts'] ?? 0;
+        return $result['totalAdjustments'] ?? 0;
     }
 
-    public function getFamilyDiscounts($gibbonFamilyID)
+    public function getFamilyAdjustments($gibbonSEPAID)
     {
         $query = $this
             ->newSelect()
-            ->cols(['gibbonSEPADiscount.*'])
+            ->cols(['*'])
             ->from($this->getTableName())
-            ->innerJoin('gibbonSEPA', 'gibbonSEPADiscount.gibbonSEPAID = gibbonSEPA.gibbonSEPAID')
-            ->where('gibbonSEPA.gibbonFamilyID = :gibbonFamilyID')
-            ->orderBy(['gibbonSEPADiscount.timestamp DESC'])
-            ->bindValue('gibbonFamilyID', $gibbonFamilyID);
+            ->where('gibbonSEPAID = :gibbonSEPAID')
+            ->bindValue('gibbonSEPAID', $gibbonSEPAID);
 
         return $this->runSelect($query)->fetchAll();
     }
