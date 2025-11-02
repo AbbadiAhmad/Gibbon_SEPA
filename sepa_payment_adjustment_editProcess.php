@@ -32,14 +32,16 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
         'amount' => $_POST['amount'] ?? '',
         'description' => $_POST['description'] ?? '',
         'note' => $_POST['note'] ?? '',
-    ];
+        'academicYear' => $_POST['academicYear'] ?? '',
+        'gibbonSEPAID' => $_POST['gibbonSEPAID'] ?? ''   
+     ];
 
     if (empty($data['amount']) || empty($data['description'])) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
     }
 
-    $updated = $adjustmentGateway->updateAdjustment($gibbonSEPAPaymentAdjustmentID, $data);
+    $updated = $adjustmentGateway->updateAdjustment($gibbonSEPAPaymentAdjustmentID, $data, $_SESSION[$guid]["username"]);
 
     if ($updated) {
         if (!empty($family_details)) {

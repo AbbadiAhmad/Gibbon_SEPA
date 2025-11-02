@@ -89,8 +89,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.p
     $table->addColumn('note', __('Note'))
         ->sortable(['note']);
 
-    // $table->addColumn('gibbonUser', __('Entry User'))
-    //     ->sortable(['gibbonUser']);
+    $table->addColumn('gibbonUser', __('Entry User'))
+        ->sortable(['gibbonUser']);
 
     // $table->addColumn('timestamp', __('Entry Timestamp'))
     //     ->sortable(['timestamp']);

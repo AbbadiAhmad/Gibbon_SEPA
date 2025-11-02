@@ -39,7 +39,7 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
     public function getAllAdjustment(QueryCriteria $criteria = null)
     {
         $query = $this
-            ->newSelect()
+            ->newQuery()
             ->cols(['*'])
             ->from($this->getTableName())
         ;
@@ -51,7 +51,7 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
         return $this->runSelect($query);
     }
 
-    public function insertAdjustment($data)
+    public function insertAdjustment($data, $username)
     {
         $query = $this
             ->newInsert()
@@ -61,13 +61,14 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
                 'amount' => $data['amount'],
                 'description' => $data['description'],
                 'note' => $data['note'],
-                'gibbonPersonID' => $data['gibbonPersonID']
+                'academicYear' => $data['academicYear'],
+                'gibbonPersonID' => $username
             ]);
 
         return $this->runInsert($query);
     }
 
-    public function updateAdjustment($gibbonSEPAPaymentAdjustmentID, $data)
+    public function updateAdjustment($gibbonSEPAPaymentAdjustmentID, $data, $username)
     {
         $query = $this
             ->newUpdate()
@@ -75,7 +76,9 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
             ->cols([
                 'amount' => $data['amount'],
                 'description' => $data['description'],
-                'note' => $data['note']
+                'note' => $data['note'],
+                'academicYear' => $data['academicYear'],
+                'gibbonPersonID'=> $username
             ])
             ->where('gibbonSEPAPaymentAdjustmentID = :gibbonSEPAPaymentAdjustmentID')
             ->bindValue('gibbonSEPAPaymentAdjustmentID', $gibbonSEPAPaymentAdjustmentID);
@@ -106,7 +109,7 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
         return $this->runSelect($query)->fetch();
     }
 
-    public function getFamilyTotalAdjustments($gibbonFamilyID)
+    public function getFamilyTotalAdjustments($gibbonFamilyID, $schoolYearID)
     {
         $query = $this
             ->newSelect()
@@ -115,12 +118,17 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
             ->innerJoin('gibbonSEPA', 'gibbonSEPAPaymentAdjustment.gibbonSEPAID = gibbonSEPA.gibbonSEPAID')
             ->where('gibbonSEPA.gibbonFamilyID = :gibbonFamilyID')
             ->bindValue('gibbonFamilyID', $gibbonFamilyID);
+        if (!empty($schoolYearID)) {
+            $query->where('academicYear = :schoolYearID')
+                ->bindValue('schoolYearID', $schoolYearID);
+        }
+
 
         $result = $this->runSelect($query)->fetch();
         return $result['totalAdjustments'] ?? 0;
     }
 
-    public function getFamilyAdjustments($gibbonSEPAID)
+    public function getFamilyAdjustments($gibbonSEPAID, $schoolYearID)
     {
         $query = $this
             ->newSelect()
@@ -128,6 +136,10 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
             ->from($this->getTableName())
             ->where('gibbonSEPAID = :gibbonSEPAID')
             ->bindValue('gibbonSEPAID', $gibbonSEPAID);
+        if (!empty($schoolYearID)) {
+            $query->where('academicYear = :schoolYearID')
+                ->bindValue('schoolYearID', $schoolYearID);
+        }
 
         return $this->runSelect($query)->fetchAll();
     }

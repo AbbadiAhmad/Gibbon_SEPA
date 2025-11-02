@@ -56,6 +56,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $criteria = $SepaGateway->newQueryCriteria(false)->sortBy(['payer']);
     $gibbonSEPAID = $payment_adjustment['gibbonSEPAID'] ?? null;
 
+    $row = $form->addRow();
+    $row->addLabel('academicYear', __('Academic Year'));
+    $row->addSelect('academicYear')->fromArray([$_SESSION[$guid]["gibbonSchoolYearID"] => $_SESSION[$guid]["gibbonSchoolYearName"]])->selected($_SESSION[$guid]["gibbonSchoolYearID"])->disabled();
+    $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearID"]);
+
     $sepaList = $SepaGateway->getSEPAList($criteria, null);
     $row = $form->addRow();
     $row->addLabel('gibbonSEPAID', __('SEPA Account'));

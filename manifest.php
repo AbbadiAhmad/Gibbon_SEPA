@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '1.1.1';            // Version number
+$version = '2.0.0';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -96,12 +96,12 @@ $moduleTables[] = "
     `gibbonSEPAID` int(8) unsigned zerofill NOT NULL,
     `amount` decimal(10,2) NOT NULL,
     `description` text NOT NULL COMMENT 'Description for the payer',
+    `academicYear` INT UNSIGNED DEFAULT NULL,
     `note` text NULL COMMENT 'Note for the administration',
-    `gibbonPersonID` int(10) unsigned NOT NULL,
+    `gibbonPersonID` varchar(255) not NULL,
     `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`gibbonSEPAPaymentAdjustmentID`),
-    KEY `gibbonSEPAID` (`gibbonSEPAID`),
-    KEY `gibbonPersonID` (`gibbonPersonID`)
+    KEY `gibbonSEPAID` (`gibbonSEPAID`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  ";
 

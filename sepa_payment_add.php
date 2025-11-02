@@ -50,6 +50,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
     $row->addLabel('academicYear', __('Academic Year'));
     $row->addSelect('academicYear')->fromArray([$_SESSION[$guid]["gibbonSchoolYearID"] => $_SESSION[$guid]["gibbonSchoolYearName"]])->selected($_SESSION[$guid]["gibbonSchoolYearID"])->disabled();
     $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearID"]);
+    
     $form->addHiddenValue('family_details', $family_details);
 
     $row = $form->addRow();

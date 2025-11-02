@@ -42,13 +42,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         $page->breadcrumbs->add(__('Family Details'));
 
         $SepaGateway = $container->get(SepaGateway::class);
+        $FamilySEPA = $SepaGateway->getFamilySEPA($gibbonFamilyID);
+        $familyInfo = $SepaGateway->getFamilyInfo($gibbonFamilyID);
+
 
         echo '<h2>';
         echo __('Family Details');
         echo '</h2>';
 
         // Get family info
-        $familyInfo = $SepaGateway->getFamilyInfo($gibbonFamilyID);
         if (!empty($familyInfo)) {
             echo '<h3>' . __('Family: ') . htmlspecialchars($familyInfo[0]['name'] ?? '', ENT_QUOTES, 'UTF-8') . '</h3>';
         }
@@ -56,7 +58,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         // Fees Summary
         $feesSummary = $SepaGateway->getFamilyFeesSummary($gibbonFamilyID, $schoolYearID);
         $SepaPaymentAdjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
-        $totalAdjustments = $SepaPaymentAdjustmentGateway->getFamilyTotalAdjustments($gibbonFamilyID);
+        $totalAdjustments = $SepaPaymentAdjustmentGateway->getFamilyTotalAdjustments($gibbonFamilyID, $schoolYearID);
         $totalPayments = $SepaGateway->getFamilyTotalPayments($gibbonFamilyID, $schoolYearID);
         $totalFees = $feesSummary[0]['totalFees'] ?? 0;
         $balance = $totalPayments + $totalAdjustments - $totalFees;
@@ -64,14 +66,11 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         if (!empty($feesSummary)) {
             echo '<h4>' . __('Fees Summary') . '</h4>';
             echo '<p><strong>' . __('Total Fees Owed: ') . '</strong>' . htmlspecialchars($totalFees, ENT_QUOTES, 'UTF-8') . ' €</p>';
-            if (!empty($totalAdjustments)) {
-                echo '<p><strong>' . __('Total Adjustments: ') . '</strong>' . htmlspecialchars($totalAdjustments, ENT_QUOTES, 'UTF-8') . ' €</p>';
-            }
+            echo '<p><strong>' . __('Total Adjustments: ') . '</strong>' . htmlspecialchars($totalAdjustments, ENT_QUOTES, 'UTF-8') . ' €</p>';
             echo '<p><strong>' . __('Total Payments: ') . '</strong>' . htmlspecialchars($totalPayments, ENT_QUOTES, 'UTF-8') . ' €</p>';
             echo '<p><strong> <span style="color: ' . ($balance < 0 ? 'red' : 'green') . ';"> ' . __('Balance: ') . htmlspecialchars($balance, ENT_QUOTES, 'UTF-8') . ' €</strong></span></p>';
         }
 
-        $FamilySEPA = $SepaGateway->getFamilySEPA($gibbonFamilyID);
         if (empty($FamilySEPA)) {
             echo '<hr><span style="color: red;">' . __('SEPA informaiton is not available for this family.') . '</span><hr></p>';
 
@@ -84,16 +83,17 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         $detailedFees = $SepaGateway->getFamilyDetailedFees($gibbonFamilyID, $schoolYearID);
         $table = DataTable::create('feesDetails');
 
+        $table->addColumn('totalCost', __('Total Cost'));
+        $table->addColumn('monthsEnrolled', __('Months Enrolled'));
+        $table->addColumn('courseFee', __('Fee'));
         $table->addColumn('childName', __('Child Name'));
         $table->addColumn('courseName', __('Course'));
-        $table->addColumn('courseFee', __('Fee'));
-        $table->addColumn('monthsEnrolled', __('Months Enrolled'));
-        $table->addColumn('totalCost', __('Total Cost'));
+
         echo $table->render($detailedFees);
 
         // Adjustment Details
         if (!empty($FamilySEPA)) {
-            $adjustmentEntries = $SepaPaymentAdjustmentGateway->getFamilyAdjustments($FamilySEPA[0]["gibbonSEPAID"]);
+            $adjustmentEntries = $SepaPaymentAdjustmentGateway->getFamilyAdjustments($FamilySEPA[0]["gibbonSEPAID"], $schoolYearID );
             echo '<h4>' . __('Adjustment Details') . '</h4>';
             $table3 = DataTable::create('adjustmentDetails');
 
@@ -138,9 +138,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
                 ->addParam('family_details', $gibbonFamilyID)
                 ->displayLabel();
 
+            $table2->addColumn('amount', __('Amount'));
             $table2->addColumn('booking_date', __('Booking Date'));
             $table2->addColumn('payer', __('Payer'));
-            $table2->addColumn('amount', __('Amount'));
             $table2->addColumn('transaction_message', __('Transaction Message'));
             $table2->addColumn('IBAN', __('IBAN'));
             $table2->addColumn('transaction_reference', __('Transaction Reference'));

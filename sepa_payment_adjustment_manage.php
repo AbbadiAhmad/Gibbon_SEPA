@@ -36,9 +36,9 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $form = Form::createSearch();
 
     $row = $form->addRow();
-        $row->addLabel('search', __('Search For'))
-            ->description(__('description, note'));
-        $row->addTextField('search')->setValue($criteria->getSearchText());
+    $row->addLabel('search', __('Search For'))
+        ->description(__('description, note'));
+    $row->addTextField('search')->setValue($criteria->getSearchText());
 
     $form->addRow()->addSearchSubmit('', __('Clear Search'));
 
@@ -69,6 +69,9 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
 
     $table->addColumn('gibbonPersonID', __('Person ID'))
         ->sortable(['gibbonPersonID']);
+
+    $table->addColumn('academicYear', __('academicYearID'))
+        ->sortable(['academicYear']);
 
     $table->addColumn('timestamp', __('Timestamp'))
         ->sortable(['timestamp']);

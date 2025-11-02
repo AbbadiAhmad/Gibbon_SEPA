@@ -21,7 +21,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
     $family_details = $_GET['family_details'] ?? '';
-    
+
     $page->breadcrumbs
         ->add(__('Payment adjustment'), '/sepa_payment_adjustment_manage.php')
         ->add(__('Add payment_adjustment'));
@@ -39,7 +39,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $form = Form::create('payment_adjustment', $session->get('absoluteURL') . '/modules/Sepa/sepa_payment_adjustment_addProcess.php');
     $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('family_details', $family_details);
-    
+
+    $row = $form->addRow();
+    $row->addLabel('academicYear', __('Academic Year'));
+    $row->addSelect('academicYear')->fromArray([$_SESSION[$guid]["gibbonSchoolYearID"] => $_SESSION[$guid]["gibbonSchoolYearName"]])->selected($_SESSION[$guid]["gibbonSchoolYearID"])->disabled();
+    $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearID"]);
+
     // SEPA Id=> Names
     $gibbonSEPAID = $_GET['gibbonSEPAID'] ?? null;
     $sepaList = $SepaGateway->getSEPAList($criteria, null);
@@ -64,8 +69,6 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $row = $form->addRow();
     $row->addLabel('note', __('Note'));
     $row->addTextArea('note')->setRows(3);
-
-    $form->addHiddenValue('gibbonPersonID', $session->get('gibbonPersonID'));
 
     $row = $form->addRow();
     $row->addFooter();

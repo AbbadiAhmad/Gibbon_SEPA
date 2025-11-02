@@ -26,7 +26,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
         'amount' => $_POST['amount'] ?? '',
         'description' => $_POST['description'] ?? '',
         'note' => $_POST['note'] ?? '',
-        'gibbonPersonID' => $_POST['gibbonPersonID'] ?? '',
+        'academicYear' => $_POST['academicYear'] ?? ''
     ];
 
     if (empty($data['gibbonSEPAID'])) {
@@ -37,7 +37,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
         return;
     }
 
-    $inserted = $adjustmentGateway->insertAdjustment($data);
+    $inserted = $adjustmentGateway->insertAdjustment($data, $_SESSION[$guid]["username"]);
 
     if ($inserted) {
         if (!empty($family_details)) {
