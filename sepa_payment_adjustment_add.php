@@ -14,7 +14,7 @@ use Gibbon\Data\Validator;
 require_once __DIR__ . '/moduleFunctions.php';
 require_once __DIR__ . '/../../gibbon.php';
 
-if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_add.php") == false) {
+if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustment_add.php") == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
@@ -23,20 +23,20 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_add.php
     $family_details = $_GET['family_details'] ?? '';
     
     $page->breadcrumbs
-        ->add(__('Payment adjustment'), '/sepa_discount_manage.php')
-        ->add(__('Add Discount'));
+        ->add(__('Payment adjustment'), '/sepa_payment_adjustment_manage.php')
+        ->add(__('Add payment_adjustment'));
 
-    $SepaDiscountGateway = $container->get(SepaPaymentAdjustmentGateway::class);
+    $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
     $SepaGateway = $container->get(SepaGateway::class);
     $criteria = $SepaGateway->newQueryCriteria(false)->sortBy(['payer']);
 
     $editLink = '';
     if (isset($_GET['editID'])) {
-        $editLink = $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_discount_edit.php&gibbonSEPADiscountID=' . $_GET['editID'];
+        $editLink = $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_payment_adjustment_edit.php&gibbonSEPAPaymentAdjustmentID=' . $_GET['editID'];
     }
     $page->return->setEditLink($editLink);
 
-    $form = Form::create('discount', $session->get('absoluteURL') . '/modules/Sepa/sepa_discount_addProcess.php');
+    $form = Form::create('payment_adjustment', $session->get('absoluteURL') . '/modules/Sepa/sepa_payment_adjustment_addProcess.php');
     $form->addHiddenValue('address', $session->get('address'));
     $form->addHiddenValue('family_details', $family_details);
     
@@ -54,8 +54,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_add.php
     }
 
     $row = $form->addRow();
-    $row->addLabel('discountAmount', __('Discount Amount'));
-    $row->addNumber('discountAmount')->required()->decimalPlaces(2)->minimum(0.01);
+    $row->addLabel('amount', __('Amount'));
+    $row->addNumber('amount')->required()->decimalPlaces(2)->minimum(0.01);
 
     $row = $form->addRow();
     $row->addLabel('description', __('Description'));

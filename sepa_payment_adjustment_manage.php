@@ -23,12 +23,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $page->breadcrumbs
         ->add(__('Payment Adjustment'));
 
-    $SepaDiscountGateway = $container->get(SepaPaymentAdjustmentGateway::class);
+    $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
     $search = $_GET['search'] ?? '';
 
     // CRITERIA
-    $criteria = $SepaDiscountGateway->newQueryCriteria(true)
+    $criteria = $adjustmentGateway->newQueryCriteria(true)
         ->searchBy(['description', 'note'], $search)
         ->sortBy(['timestamp'])
         ->fromPOST();
@@ -44,22 +44,22 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
 
     echo $form->getOutput();
 
-    $adjustment = $SepaDiscountGateway->getAllAdjustment($criteria);
+    $adjustment = $adjustmentGateway->getAllAdjustment($criteria);
 
     // DATA TABLE
     $table = DataTable::createPaginated('adjustment', $criteria);
     $table->setTitle(__('Payment Adjustment'));
 
     $table->addHeaderAction('add', __('Add'))
-        ->setURL('/modules/Sepa/sepa_discount_add.php')
+        ->setURL('/modules/Sepa/sepa_payment_adjustment_add.php')
         ->addParam('search', $search)
         ->displayLabel();
 
     $table->addColumn('gibbonSEPAID', __('SEPA ID'))
         ->sortable(['gibbonSEPAID']);
 
-    $table->addColumn('discountAmount', __('Discount Amount'))
-        ->sortable(['discountAmount']);
+    $table->addColumn('amount', __('PaymentAdjustment Amount'))
+        ->sortable(['amount']);
 
     $table->addColumn('description', __('Description'))
         ->sortable(['description']);
@@ -74,12 +74,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
         ->sortable(['timestamp']);
 
     $table->addActionColumn()
-        ->addParam('gibbonSEPADiscountID')
+        ->addParam('gibbonSEPAPaymentAdjustmentID')
         ->format(function ($values, $actions) {
             $actions->addAction('edit', __('Edit'))
-                ->setURL('/modules/Sepa/sepa_discount_edit.php');
+                ->setURL('/modules/Sepa/sepa_payment_adjustment_edit.php');
             $actions->addAction('delete', __('Delete'))
-                ->setURL('/modules/Sepa/sepa_discount_delete.php');
+                ->setURL('/modules/Sepa/sepa_payment_adjustment_delete.php');
         });
 
     echo $table->render($adjustment);

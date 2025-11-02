@@ -20,8 +20,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
 } else {
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
+
     $gibbonSEPAID = $_GET['gibbonSEPAID'] ?? null;
     $lockFamily = $_GET['lockFamily'] ?? false;
+    $family_details = $_GET['family_details'] ?? '';
+
 
     $page->breadcrumbs
         ->add(__('Manage SEPA Payment Entries'), 'sepa_payment_manage.php')
@@ -47,6 +50,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
     $row->addLabel('academicYear', __('Academic Year'));
     $row->addSelect('academicYear')->fromArray([$_SESSION[$guid]["gibbonSchoolYearID"] => $_SESSION[$guid]["gibbonSchoolYearName"]])->selected($_SESSION[$guid]["gibbonSchoolYearID"])->disabled();
     $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearID"]);
+    $form->addHiddenValue('family_details', $family_details);
 
     $row = $form->addRow();
     $row->addLabel('gibbonSEPAID', __('SEPA Account'));

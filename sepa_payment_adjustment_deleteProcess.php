@@ -11,7 +11,7 @@ use Gibbon\Data\Validator;
 require_once __DIR__ . '/moduleFunctions.php';
 require_once __DIR__ . '/../../gibbon.php';
 
-if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_delete.php") == false) {
+if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustment_delete.php") == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
@@ -19,26 +19,26 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_discount_delete.
     $_POST = $container->get(Validator::class)->sanitize($_POST);
     $family_details = $_POST['family_details'] ?? '';
 
-    $gibbonSEPADiscountID = $_POST['gibbonSEPADiscountID'] ?? '';
+    $gibbonSEPAPaymentAdjustmentID = $_POST['gibbonSEPAPaymentAdjustmentID'] ?? '';
 
-    if (empty($gibbonSEPADiscountID)) {
+    if (empty($gibbonSEPAPaymentAdjustmentID)) {
         $page->addError(__('You have not specified one or more required parameters.'));
         return;
     }
 
-    $SepaDiscountGateway = $container->get(SepaPaymentAdjustmentGateway::class);
+    $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
-    $deleted = $SepaDiscountGateway->deleteDiscount($gibbonSEPADiscountID);
+    $deleted = $adjustmentGateway->deletePaymentAdjustment($gibbonSEPAPaymentAdjustmentID);
 
     if ($deleted) {
         if (!empty($family_details)) {
             header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_family_details.php&gibbonFamilyID={$family_details}&return=success0");
         } else {
-            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_discount_manage.php&return=success1");
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_adjustment_manage.php&return=success1");
         }
 
     } else {
-        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_discount_manage.php&return=error2");
+        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_adjustment_manage.php&return=error2");
     }
 
 

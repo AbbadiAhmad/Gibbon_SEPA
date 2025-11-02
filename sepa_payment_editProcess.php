@@ -20,9 +20,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
     $URL = $URL . '&return=error0';
     header("Location: {$URL}");
 } else {
+
     $_POST = $container->get(Validator::class)->sanitize($_POST);
 
     $gibbonSEPAPaymentRecordID = $_POST['gibbonSEPAPaymentRecordID'] ?? '';
+    $family_details = $_POST['family_details'] ?? '';
+
+
     if (empty($gibbonSEPAPaymentRecordID)) {
         $page->addError(__('Invalid payment entry.'));
         return;
@@ -52,7 +56,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
     $result = $SepaGateway->updatePayment($gibbonSEPAPaymentRecordID, $paymentData);
 
     if ($result) {
-        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_manage.php&return=success1");
+        if (!empty($family_details)) {
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_family_details.php&gibbonFamilyID={$family_details}&return=success0");
+        } else {
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_manage.php&return=success1");
+        }
+
     } else {
         header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_edit.php&gibbonSEPAPaymentRecordID={$gibbonSEPAPaymentRecordID}");
     }

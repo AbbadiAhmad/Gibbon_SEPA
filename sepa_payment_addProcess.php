@@ -18,7 +18,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
 
     $_POST = $container->get(Validator::class)->sanitize($_POST);
     $SepaGateway = $container->get(SepaGateway::class);
-
+    
+    $family_details = $_POST['family_details'] ?? '';
     $paymentData = [
         'booking_date' => $_POST['booking_date'] ?? '',
         'payer' => $_POST['payer'] ?? '',
@@ -41,7 +42,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
     $result = $SepaGateway->insertPayment($paymentData, $_SESSION[$guid]["username"]);
 
     if ($result) {
-        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_manage.php&return=success0");
+        if (!empty($family_details)) {
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_family_details.php&gibbonFamilyID={$family_details}&return=success0");
+        } else {
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_manage.php&return=success0");
+        }
+        
     } else {
         header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_add.php");
     }

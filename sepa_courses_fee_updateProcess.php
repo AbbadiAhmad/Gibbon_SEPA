@@ -27,7 +27,7 @@ $_POST = $container->get(Validator::class)->sanitize($_POST);
 
 $URL = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/sepa_courses_fee_view.php';
 
-if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.php')) {
+if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_courses_fee_view.php')) {
     // Access denied
     $URL = $URL . '&return=error0';
     header("Location: {$URL}");

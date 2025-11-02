@@ -25,7 +25,7 @@ use Gibbon\Data\Validator;
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
 
-if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.php')) {
+if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.php')) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {

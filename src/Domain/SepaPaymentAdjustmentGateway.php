@@ -36,7 +36,7 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
         return $this->runSelect($query);
     }
  */
-    public function getAllAdjustments(QueryCriteria $criteria = null)
+    public function getAllAdjustment(QueryCriteria $criteria = null)
     {
         $query = $this
             ->newSelect()

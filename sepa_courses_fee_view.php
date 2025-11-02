@@ -24,7 +24,7 @@ use Gibbon\Module\Sepa\Domain\CoursesFeeGateway;
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
 
-if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.php')) {
+if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_courses_fee_view.php')) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
 } else {
@@ -54,7 +54,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view.ph
     foreach ($coursesFee as $course) {
         $row = $form->addRow();
         $row->addLabel($course['nameShort'], $course['nameShort']);
-        $textField = $row->addTextField($course['gibbonCourseID'])->setValue($course['Fees'])->maxLength(4);
+        $textField = $row->addTextField($course['gibbonCourseID'])->setValue($course['Fees'])->maxLength(5);
     }
     $row = $form->addRow();
     $row->addFooter();
