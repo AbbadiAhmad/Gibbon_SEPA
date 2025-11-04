@@ -49,6 +49,8 @@ It allows importing payment data, applying adjustments, calculating fees based o
 This module is **open source and free to use**.  
 It is designed to support schools in providing transparent and fair fee accounting.
 
+[License: GPL v3](https://www.gnu.org/licenses/gpl-3.0)
+
 ---
 
 ## Support & Donations
@@ -74,7 +76,8 @@ We welcome:
 ## Acknowledgements
 
 Thank you to the **GibbonEdu** community for enabling open, accessible, and learner-focused educational tools.
-[GibbonEdu.org](https://gibbonedu.org/)
+
+[GibbonEdu.org website](https://gibbonedu.org/) 
 
 [GibbonEdu github](https://github.com/GibbonEdu/core)
 
