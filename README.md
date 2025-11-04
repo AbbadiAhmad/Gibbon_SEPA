@@ -75,4 +75,7 @@ We welcome:
 
 Thank you to the **GibbonEdu** community for enabling open, accessible, and learner-focused educational tools.
 [GibbonEdu.org](https://gibbonedu.org/)
+
+[GibbonEdu github](https://github.com/GibbonEdu/core)
+
 ---
