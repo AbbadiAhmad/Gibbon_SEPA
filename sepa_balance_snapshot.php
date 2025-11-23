@@ -76,13 +76,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
     echo $form->getOutput();
 
-
-    // Button to create new snapshot
+    // Buttons for actions
+    echo '<div class="linkTop">';
     if ($selectedSnapshot == 'current') {
-        echo '<div class="linkTop">';
-        echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot_create.php&schoolYearID=' . $schoolYearID . '&search=' . urlencode($search) . '">' . __('Create Snapshot') . '</a>';
-        echo '</div>';
+        echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot_create.php&schoolYearID=' . $schoolYearID . '&search=' . urlencode($search) . '">' . __('Create Snapshot') . '</a> | ';
     }
+    echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/modules/Sepa/sepa_balance_snapshot_export.php?schoolYearID=' . $schoolYearID . '&snapshotDate=' . urlencode($selectedSnapshot) . '">' . __('Export to Excel') . '</a>';
+    echo '</div>';
 
     echo '<h3>';
     if ($selectedSnapshot == 'current') {
