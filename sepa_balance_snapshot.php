@@ -76,8 +76,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     $row->addTextField('search')->setValue($search);
 
     $row = $form->addRow();
-    $row->addSubmit(__('Apply'));
-    $row->addSubmit(__('Clear'))->prepend('&nbsp;');
+    $row->addSearchSubmit($session, __('Clear Filters'));
 
     echo $form->getOutput();
 
