@@ -583,6 +583,8 @@ class SepaGateway extends QueryableGateway
         $query = $this->getEnrollmentFeesBaseQuery($schoolYearID, $gibbonFamilyID)
             ->cols([
                 'gibbonFamilyChild.gibbonFamilyID',
+                'gibbonPerson.gibbonPersonID',
+                'gibbonCourse.gibbonCourseID',
                 'gibbonPerson.preferredName as childName',
                 'gibbonCourse.name as courseName',
                 'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee',

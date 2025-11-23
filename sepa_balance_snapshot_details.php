@@ -240,8 +240,18 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         foreach ($currentFees as $currentFee) {
             $found = false;
             foreach ($previousFees as $previousFee) {
-                if ($currentFee['gibbonPersonID'] == $previousFee['gibbonPersonID'] &&
-                    $currentFee['gibbonCourseID'] == $previousFee['gibbonCourseID']) {
+                // Match by ID if available, otherwise fall back to name matching
+                $isMatch = false;
+                if (isset($currentFee['gibbonPersonID']) && isset($previousFee['gibbonPersonID']) &&
+                    isset($currentFee['gibbonCourseID']) && isset($previousFee['gibbonCourseID'])) {
+                    $isMatch = ($currentFee['gibbonPersonID'] == $previousFee['gibbonPersonID'] &&
+                                $currentFee['gibbonCourseID'] == $previousFee['gibbonCourseID']);
+                } else {
+                    $isMatch = ($currentFee['childName'] == $previousFee['childName'] &&
+                                $currentFee['courseName'] == $previousFee['courseName']);
+                }
+
+                if ($isMatch) {
                     $found = true;
                     if ($currentFee['totalCost'] != $previousFee['totalCost'] ||
                         $currentFee['monthsEnrolled'] != $previousFee['monthsEnrolled']) {
@@ -272,8 +282,18 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         foreach ($previousFees as $previousFee) {
             $found = false;
             foreach ($currentFees as $currentFee) {
-                if ($currentFee['gibbonPersonID'] == $previousFee['gibbonPersonID'] &&
-                    $currentFee['gibbonCourseID'] == $previousFee['gibbonCourseID']) {
+                // Match by ID if available, otherwise fall back to name matching
+                $isMatch = false;
+                if (isset($currentFee['gibbonPersonID']) && isset($previousFee['gibbonPersonID']) &&
+                    isset($currentFee['gibbonCourseID']) && isset($previousFee['gibbonCourseID'])) {
+                    $isMatch = ($currentFee['gibbonPersonID'] == $previousFee['gibbonPersonID'] &&
+                                $currentFee['gibbonCourseID'] == $previousFee['gibbonCourseID']);
+                } else {
+                    $isMatch = ($currentFee['childName'] == $previousFee['childName'] &&
+                                $currentFee['courseName'] == $previousFee['courseName']);
+                }
+
+                if ($isMatch) {
                     $found = true;
                     break;
                 }
