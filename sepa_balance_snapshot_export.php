@@ -31,17 +31,6 @@ require_once __DIR__ . '/src/Domain/SepaGateway.php';
 require_once __DIR__ . '/src/Domain/SnapshotGateway.php';
 require_once __DIR__ . '/src/Domain/SepaPaymentAdjustmentGateway.php';
 
-// Register Gateway classes with the container
-$container->share(SepaGateway::class, function() use ($pdo) {
-    return new SepaGateway($pdo);
-});
-$container->share(SnapshotGateway::class, function() use ($pdo) {
-    return new SnapshotGateway($pdo);
-});
-$container->share(SepaPaymentAdjustmentGateway::class, function() use ($pdo) {
-    return new SepaPaymentAdjustmentGateway($pdo);
-});
-
 if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
