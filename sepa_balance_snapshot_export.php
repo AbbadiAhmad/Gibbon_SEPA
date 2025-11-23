@@ -27,6 +27,9 @@ require_once __DIR__ . '/../../gibbon.php';
 
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
+require_once __DIR__ . '/src/Domain/SepaGateway.php';
+require_once __DIR__ . '/src/Domain/SnapshotGateway.php';
+require_once __DIR__ . '/src/Domain/SepaPaymentAdjustmentGateway.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot.php') == false) {
     // Access denied
