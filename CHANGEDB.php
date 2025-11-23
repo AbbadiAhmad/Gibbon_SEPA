@@ -39,3 +39,26 @@ ALTER TABLE `gibbonSEPAPaymentEntry` RENAME COLUMN `payment_message` TO `transac
 ALTER TABLE `gibbonSEPAPaymentEntry` ADD COLUMN `payment_method` VARCHAR(50) NULL;end
 ALTER TABLE `gibbonSEPAPaymentEntry` DROP INDEX `unique_booking_sepa_owner_payment_message`;end
 ALTER TABLE `gibbonSEPAPaymentEntry` ADD UNIQUE KEY `unique_booking_payee_transaction_message` (`booking_date`, `payer`, `transaction_message`);";
+
+// v2.0.0 - Add Balance Snapshot Feature
+$count++;
+$sql[$count][0] = "2.0.0";
+$sql[$count][1] = "CREATE TABLE IF NOT EXISTS `gibbonSEPABalanceSnapshot` (
+    `gibbonSEPABalanceSnapshotID` int(12) unsigned NOT NULL AUTO_INCREMENT,
+    `gibbonFamilyID` int(7) unsigned zerofill NOT NULL,
+    `gibbonSEPAID` int(8) unsigned zerofill DEFAULT NULL,
+    `academicYear` INT UNSIGNED NOT NULL,
+    `snapshotDate` datetime NOT NULL,
+    `balance` decimal(10,2) NOT NULL COMMENT 'Total balance at time of snapshot',
+    `totalFees` decimal(10,2) NOT NULL COMMENT 'Total fees at time of snapshot',
+    `totalPayments` decimal(10,2) NOT NULL COMMENT 'Total payments at time of snapshot',
+    `totalAdjustments` decimal(10,2) NOT NULL COMMENT 'Total adjustments at time of snapshot',
+    `snapshotData` LONGTEXT NOT NULL COMMENT 'JSON object containing detailed snapshot data',
+    `gibbonPersonID` varchar(255) NOT NULL COMMENT 'User who created the snapshot',
+    `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`gibbonSEPABalanceSnapshotID`),
+    KEY `gibbonFamilyID` (`gibbonFamilyID`),
+    KEY `gibbonSEPAID` (`gibbonSEPAID`),
+    KEY `academicYear` (`academicYear`),
+    KEY `snapshotDate` (`snapshotDate`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
