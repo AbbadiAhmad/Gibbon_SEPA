@@ -130,20 +130,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         // Convert to data collection
         $data = new \Gibbon\Domain\DataSet($familiesWithChanges);
     } else {
-        // Show specific snapshot - need to parse JSON data for display
-        $snapshotsRaw = $SnapshotGateway->getSnapshotsByDate($criteria, $selectedSnapshot, $schoolYearID);
-
-        // Parse JSON data and add calculated fields
-        $snapshotsProcessed = [];
-        foreach ($snapshotsRaw as $snapshot) {
-            $snapshotData = json_decode($snapshot['snapshotData'], true);
-            $snapshot['totalFees'] = $snapshotData['balance']['totalFees'] ?? 0;
-            $snapshot['totalPayments'] = $snapshotData['balance']['totalPayments'] ?? 0;
-            $snapshot['totalAdjustments'] = $snapshotData['balance']['totalAdjustments'] ?? 0;
-            $snapshotsProcessed[] = $snapshot;
-        }
-
-        $data = new \Gibbon\Domain\DataSet($snapshotsProcessed);
+        // Show specific snapshot
+        $data = $SnapshotGateway->getSnapshotsByDate($criteria, $selectedSnapshot, $schoolYearID);
     }
 
     $table = DataTable::createPaginated('balanceSnapshot', $criteria);
