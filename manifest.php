@@ -105,6 +105,28 @@ $moduleTables[] = "
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  ";
 
+$moduleTables[] = "
+    CREATE TABLE `gibbonSEPABalanceSnapshot` (
+    `gibbonSEPABalanceSnapshotID` int(12) unsigned NOT NULL AUTO_INCREMENT,
+    `gibbonFamilyID` int(7) unsigned zerofill NOT NULL,
+    `gibbonSEPAID` int(8) unsigned zerofill DEFAULT NULL,
+    `academicYear` INT UNSIGNED NOT NULL,
+    `snapshotDate` datetime NOT NULL,
+    `balance` decimal(10,2) NOT NULL COMMENT 'Total balance at time of snapshot',
+    `totalFees` decimal(10,2) NOT NULL COMMENT 'Total fees at time of snapshot',
+    `totalPayments` decimal(10,2) NOT NULL COMMENT 'Total payments at time of snapshot',
+    `totalAdjustments` decimal(10,2) NOT NULL COMMENT 'Total adjustments at time of snapshot',
+    `snapshotData` LONGTEXT NOT NULL COMMENT 'JSON object containing detailed snapshot data',
+    `gibbonPersonID` varchar(255) NOT NULL COMMENT 'User who created the snapshot',
+    `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`gibbonSEPABalanceSnapshotID`),
+    KEY `gibbonFamilyID` (`gibbonFamilyID`),
+    KEY `gibbonSEPAID` (`gibbonSEPAID`),
+    KEY `academicYear` (`academicYear`),
+    KEY `snapshotDate` (`snapshotDate`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ ";
+
 // Add gibbonSettings entries
 //$gibbonSetting[] = "";
 
@@ -343,6 +365,26 @@ $actionRows[] = [
     'description' => 'Manage SEPA Payment Adjustments (Add, Edit, Delete)',
     'URLList' => 'sepa_payment_adjustment_manage.php, sepa_payment_adjustment_add.php, sepa_payment_adjustment_edit.php, sepa_payment_adjustment_delete.php',
     'entryURL' => 'sepa_payment_adjustment_manage.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Balance Snapshot',
+    'precedence' => '15',
+    'category' => 'Reports',
+    'description' => 'View and manage balance snapshots for families',
+    'URLList' => 'sepa_balance_snapshot.php, sepa_balance_snapshot_create.php, sepa_balance_snapshot_details.php',
+    'entryURL' => 'sepa_balance_snapshot.php',
     'entrySidebar' => 'Y',
     'menuShow' => 'Y',
     'defaultPermissionAdmin' => 'Y',
