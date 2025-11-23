@@ -42,14 +42,14 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_child_enrollmen
 
     $SepaGateway = $container->get(SepaGateway::class);
     $criteria = $SepaGateway->newQueryCriteria(true)
-        ->searchBy(['childID', 'preferredName', 'gibbonFamilyID', 'className'], $search)
-        ->sortBy(['gibbonFamilyID','childID'])
+        ->searchBy(['gibbonPerson.preferredName','gibbonPerson.surname'], $search)
+        ->sortBy(['total'])
         ->fromPOST();
-
+    // todo: the search is not working. need a check
     $form = Form::createSearch();
     $row = $form->addRow();
     $row->addLabel('search', __('Search For'))
-        ->description(__('payer, booking date, amount, transaction message, IBAN, transaction reference, note'));
+        ->description(__('Student name'));
     $row->addTextField('search')->setValue($criteria->getSearchText());
     $form->addRow()->addSearchSubmit('', __('Clear Search'));
     echo $form->getOutput();
@@ -63,15 +63,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_child_enrollmen
     $table = DataTable::createPaginated('enrollmentDetails', $criteria);
 
 
-    $table->addColumn('childID', __('Child ID'));
-    $table->addColumn('preferredName', __('Preferred Name'));
-    $table->addColumn('gibbonFamilyID', __('Family ID'));
-    $table->addColumn('gibbonCourseClassID', __('ClassID'));
-    $table->addColumn('shortName', __('Class shortName'));
+   // $table->addColumn('childID', __('Child ID'));
+    $table->addColumn('student_name', __('Student Name'));
+    $table->addColumn('familyName', __('Family'));
+    //$table->addColumn('gibbonCourseClassID', __('ClassID'));
+    $table->addColumn('shortName', __('Course'));
     $table->addColumn('dateEnrolled', __('dateEnrolled'));
     $table->addColumn('dateUnenrolled', __('dateUnenrolled'));
-    $table->addColumn('startDate', __('startDate'));
-    $table->addColumn('lastDate', __('lastDate'));
+    $table->addColumn('startDate', __('Calc. start'));
+    $table->addColumn('lastDate', __('Calc. end'));
     $table->addColumn('monthsEnrolled', __('Months Enrolled'));
     $table->addColumn('courseFee', __('Course Fee'));
     $table->addColumn('total', __('Total'));

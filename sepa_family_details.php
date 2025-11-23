@@ -80,7 +80,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
 
         // Detailed Fees
         echo '<h4>' . __('Fees Details') . '</h4>';
-        $detailedFees = $SepaGateway->getFamilyDetailedFees($gibbonFamilyID, $schoolYearID);
+        $detailedFees = $SepaGateway->getFamilyEnrollmentFees($gibbonFamilyID, $schoolYearID);
         $table = DataTable::create('feesDetails');
 
         $table->addColumn('totalCost', __('Total Cost'));

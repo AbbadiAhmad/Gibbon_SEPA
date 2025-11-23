@@ -44,7 +44,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
     $CustomFieldsGateway = $container->get(CustomFieldsGateway::class);
     
     $criteria = $SepaGateway->newQueryCriteria(true)
-        ->searchBy(['payer', 'customData'], $search)
+        ->searchBy(['payer','IBAN', 'customData'], $search)
         ->sortBy(['payer'])
         ->fromPOST();
 
@@ -58,7 +58,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
 
     $row = $form->addRow();
         $row->addLabel('search', __('Search For'))
-            ->description(__('payer, booking date, amount, transaction message, IBAN, transaction reference, note'));
+            ->description(__('Payer, IBAN'));
         $row->addTextField('search')->setValue($criteria->getSearchText());
 
     $form->addRow()->addSearchSubmit('', __('Clear Search'));
@@ -110,7 +110,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
         ->addParam('search', $search)
         ->displayLabel();
 
-    $table->addColumn('payer', __('SEPA Owner'));
+    $table->addColumn('payer', __('Payer'));
 
     $table->addColumn('adults', __('Adults'))
         ->notSortable()

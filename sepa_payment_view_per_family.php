@@ -23,8 +23,6 @@ use Gibbon\Tables\DataTable;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 // use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
 use Gibbon\Data\Validator;
-$_GET = $container->get(Validator::class)->sanitize($_GET);
-$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -37,6 +35,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_pe
 
     // $search = isset($_GET['search']) ? $_GET['search'] : '';
 
+    $_GET = $container->get(Validator::class)->sanitize($_GET);
+    $_POST = $container->get(Validator::class)->sanitize($_POST);
     $SepaGateway = $container->get(SepaGateway::class);
 
 
@@ -46,17 +46,22 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_pe
 
     // QUERY
     $SEPAList = $SepaGateway->getSEPAPerPerson($_SESSION[$guid]["gibbonPersonID"]);
+    $SchoolYearID = $_SESSION[$guid]['gibbonSchoolYearID'];
 
+    if (empty($SEPAList)){
+        echo __('The payment information is missing for your Family. Please ask the school administration to correct it.');
+        return;
+    }
 
     // DATA TABLE
-    
+
     $table = DataTable::createDetails('PaymentEntries');
 
     $table->addColumn('payer', __('SEPA Owner'))->width('50');
     $table->addColumn('Payments', __('Payments'))->width('600')
         ->format(
-            function ($row) use ($SepaGateway) {
-                $paymentEntries = $SepaGateway->getPaymentEntries($row);
+            function ($row) use ($SepaGateway, $SchoolYearID) {
+                $paymentEntries = $SepaGateway->getPaymentEntriesByFamily($row['gibbonSEPAID'], $SchoolYearID );
                 $Sum = 0;
                 $output_text = '<table width=100%><tr>';
                 $output_text .= '<th>Date</th>';
@@ -65,18 +70,18 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_pe
                 $output_text .= '</tr>';
                 foreach ($paymentEntries as $paymentEntry) {
                     $output_text .= '<tr>';
-                    $output_text .= "<td width=100>". htmlspecialchars($paymentEntry['booking_date'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
+                    $output_text .= "<td width=100>" . htmlspecialchars($paymentEntry['booking_date'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
                     $output_text .= "<td width=100>" . htmlspecialchars($paymentEntry['amount'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
                     $output_text .= "<td >" . htmlspecialchars($paymentEntry['transaction_message'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>";
                     $output_text .= '</tr>';
-                    
+
                     $Sum += $paymentEntry['amount'];
                 }
                 $output_text .= '<tr>';
-                    $output_text .= "<td></td>";
-                    $output_text .= "<th>= $Sum €</th>";
-                    $output_text .= "<td ></td>";
-                    $output_text .= '</tr>';
+                $output_text .= "<td></td>";
+                $output_text .= "<th>= $Sum €</th>";
+                $output_text .= "<td ></td>";
+                $output_text .= '</tr>';
                 $output_text .= '</table>';
 
                 return $output_text;

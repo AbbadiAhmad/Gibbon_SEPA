@@ -45,15 +45,38 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         ->searchBy(['familyName'])
         ->fromPOST();
 
+    $criteria->addFilterRules([
+        'unpaidNoSepa' => function ($query, $unpaidNoSepa) {
+            if ($unpaidNoSepa == 'unpaidNoSepa') {
+                return $query->having('sepaName IS NULL')
+                    ->having('balance != 0')
+                    ->having('totalDept = 0');
+            }
+            return $query;
+        },
+    ]);
+
     $familyTotals = $SepaGateway->getFamilyTotals($schoolYearID, $criteria);
 
     $table = DataTable::createPaginated('familyTotals', $criteria);
 
+    $table->addMetaData('filterOptions', ['unpaidNoSepa' => __('Unpaid without SEPA')]);
+
     //$table->addColumn('gibbonFamilyID', __('Family ID'));
     $table->addColumn('familyName', __('Family Name'));
     $table->addColumn('sepaName', __('SEPA Name'));
-    $table->addColumn('totalDept', __('Total Dept'));
-    $table->addColumn('payments', __('Payments'));
+    $table->addColumn('totalDept', __('Total Dept'))->format(function ($row) {
+        return number_format($row['totalDept'], 2);
+    });
+    $table->addColumn('payments', __('Payments'))->format(function ($row) {
+        return number_format($row['payments'], 2);
+    });
+    $table->addColumn('paymentsAdjustment', __('Payments Adjustment'))->format(function ($row) {
+        return number_format($row['paymentsAdjustment'], 2);
+    });
+    $table->addColumn('balance', __('Balance'))->format(function ($row) {
+        return number_format($row['balance'], 2);
+    });
 
     $table->addActionColumn()
         ->addParam('schoolYearID', $schoolYearID)
