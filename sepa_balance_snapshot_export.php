@@ -31,6 +31,17 @@ require_once __DIR__ . '/src/Domain/SepaGateway.php';
 require_once __DIR__ . '/src/Domain/SnapshotGateway.php';
 require_once __DIR__ . '/src/Domain/SepaPaymentAdjustmentGateway.php';
 
+// Register Gateway classes with the container
+$container->share(SepaGateway::class, function() use ($pdo) {
+    return new SepaGateway($pdo);
+});
+$container->share(SnapshotGateway::class, function() use ($pdo) {
+    return new SnapshotGateway($pdo);
+});
+$container->share(SepaPaymentAdjustmentGateway::class, function() use ($pdo) {
+    return new SepaPaymentAdjustmentGateway($pdo);
+});
+
 if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot.php') == false) {
     // Access denied
     $page->addError(__('You do not have access to this action.'));
@@ -38,10 +49,10 @@ if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot
     $schoolYearID = isset($_GET['schoolYearID']) ? $_GET['schoolYearID'] : $_SESSION[$guid]["gibbonSchoolYearID"];
     $selectedSnapshot = isset($_GET['snapshotDate']) ? $_GET['snapshotDate'] : 'current';
 
-    // Manually instantiate gateway classes
-    $SepaGateway = new SepaGateway($pdo);
-    $SnapshotGateway = new SnapshotGateway($pdo);
-    $SepaPaymentAdjustmentGateway = new SepaPaymentAdjustmentGateway($pdo);
+    // Get gateway classes from container
+    $SepaGateway = $container->get(SepaGateway::class);
+    $SnapshotGateway = $container->get(SnapshotGateway::class);
+    $SepaPaymentAdjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
     $exportData = [];
 
