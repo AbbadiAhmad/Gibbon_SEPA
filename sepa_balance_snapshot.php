@@ -97,7 +97,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
     if ($selectedSnapshot == 'current') {
         // Show families with balance changes since last snapshot
-        $familyTotals = $SepaGateway->getFamilyTotals($schoolYearID, $criteria);
+        // Get ALL families without pagination first
+        $criteriaAll = $SepaGateway->newQueryCriteria(false);
+        $familyTotals = $SepaGateway->getFamilyTotals($schoolYearID, $criteriaAll);
 
         // Get latest snapshots
         $latestSnapshots = $SnapshotGateway->getLatestSnapshotsByYear($schoolYearID);
@@ -127,8 +129,18 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
             }
         }
 
-        // Convert to data collection
+        // Apply search filter if needed
+        $search = $criteria->getSearchText();
+        if (!empty($search)) {
+            $familiesWithChanges = array_filter($familiesWithChanges, function($family) use ($search) {
+                return stripos($family['familyName'], $search) !== false ||
+                       stripos($family['sepaName'], $search) !== false;
+            });
+        }
+
+        // Convert to data collection with pagination support
         $data = new \Gibbon\Domain\DataSet($familiesWithChanges);
+        $data = $data->paginate($criteria->getPage(), $criteria->getPageSize());
     } else {
         // Show specific snapshot
         $data = $SnapshotGateway->getSnapshotsByDate($criteria, $selectedSnapshot, $schoolYearID);
