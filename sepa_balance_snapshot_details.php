@@ -37,6 +37,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     $snapshotID = isset($_GET['snapshotID']) ? $_GET['snapshotID'] : '';
     $snapshotDate = isset($_GET['snapshotDate']) ? $_GET['snapshotDate'] : 'current';
     $schoolYearID = isset($_GET['schoolYearID']) ? $_GET['schoolYearID'] : $_SESSION[$guid]["gibbonSchoolYearID"];
+    $search = isset($_GET['search']) ? $_GET['search'] : '';
 
     if (empty($gibbonFamilyID)) {
         $page->addError(__('Family ID is required.'));
@@ -366,6 +367,6 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     }
 
     echo '<div class="linkTop">';
-    echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot.php&schoolYearID=' . $schoolYearID . '&snapshotDate=' . $snapshotDate . '">' . __('Back to Snapshots') . '</a>';
+    echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot.php&schoolYearID=' . $schoolYearID . '&snapshotDate=' . $snapshotDate . '&search=' . urlencode($search) . '">' . __('Back to Snapshots') . '</a>';
     echo '</div>';
 }
