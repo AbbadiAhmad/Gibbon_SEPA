@@ -154,7 +154,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
                     $actions->addAction('edit', __('Edit'))
                         ->setURL('/modules/Sepa/sepa_payment_edit.php');
                     $actions->addAction('delete', __('Unlink'))
-                        ->setURL('/modules/Sepa/sepa_payment_unlink.php');
+                        ->setURL('/modules/Sepa/sepa_payment_delete.php');
                 });
 
             echo $table2->render($paymentEntries);
