@@ -102,15 +102,6 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
             ->searchBy(['familyName', 'payer'], $search)
             ->sortBy(['familyName'])
             ->fromPOST();
-        $criteriaAll->addFilterRules([
-            'search' => function ($query, $search) {
-                if (!empty($search)) {
-                    return $query->where('(gibbonFamily.name LIKE :search OR gibbonSEPA.payer LIKE :search)')
-                        ->bindValue('search', '%' . $search . '%');
-                }
-                return $query;
-            }
-        ]);
         $familyTotals = $SepaGateway->getFamilyTotals($schoolYearID, $criteriaAll);
 
         // Get latest snapshots

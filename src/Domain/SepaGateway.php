@@ -464,8 +464,14 @@ class SepaGateway extends QueryableGateway
             ->leftJoin('gibbonSEPA', 'gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID')
             ->where('gibbonSchoolYear.gibbonSchoolYearID = :schoolYearID')
             ->bindValue('schoolYearID', $schoolYearID)
-            ->groupBy(['gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonSEPA.payer', 'gibbonSEPA.gibbonSEPAID'])
-        ;
+            ->groupBy(['gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonSEPA.payer', 'gibbonSEPA.gibbonSEPAID']);
+
+        // Apply search for family name and payer if search term is provided
+        if (!empty($criteria->getSearchText())) {
+            $searchTerm = $criteria->getSearchText();
+            $query->where('(gibbonFamily.name LIKE :search OR gibbonSEPA.payer LIKE :search)')
+                ->bindValue('search', '%' . $searchTerm . '%');
+        }
 
         return $this->runQuery($query, $criteria);
     }

@@ -17,7 +17,7 @@ class SnapshotGateway extends QueryableGateway
 
     private static $tableName = 'gibbonSEPABalanceSnapshot';
     private static $primaryKey = 'gibbonSEPABalanceSnapshotID';
-    private static $searchableColumns = ['gibbonFamilyID'];
+    private static $searchableColumns = ['f.name', 'sepa.payer'];
 
     /**
      * Get all snapshots for a given academic year
