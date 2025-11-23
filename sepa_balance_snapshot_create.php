@@ -154,7 +154,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
                     'balance' => $balance,
                     'currency' => 'EUR'
                 ],
-                'fees' => $feesDetails->toArray(),
+                'fees' => is_array($feesDetails) ? $feesDetails : $feesDetails->toArray(),
                 'payments' => $payments,
                 'adjustments' => $adjustments
             ];
