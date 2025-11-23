@@ -155,7 +155,7 @@ class SnapshotGateway extends QueryableGateway
             ->newSelect()
             ->from($this->getTableName())
             ->cols([
-                'DISTINCT snapshotDate',
+                'snapshotDate',
                 'COUNT(*) as snapshotCount'
             ])
             ->where('academicYear = :academicYear')
