@@ -40,10 +40,16 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
     $SepaGateway = $container->get(SepaGateway::class);
 
     $criteria = $SepaGateway->newQueryCriteria(true)
-        ->searchBy(['familyName', 'sepaName'], $search)
         ->fromPOST();
 
     $criteria->addFilterRules([
+        'search' => function ($query, $search) {
+            if (!empty($search)) {
+                return $query->where('(gibbonFamily.name LIKE :search OR gibbonSEPA.payer LIKE :search)')
+                    ->bindValue('search', '%' . $search . '%');
+            }
+            return $query;
+        },
         'unpaidNoSepa' => function ($query, $unpaidNoSepa) {
             if ($unpaidNoSepa == 'unpaidNoSepa') {
                 return $query->having('sepaName IS NULL')
@@ -54,12 +60,16 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         },
     ]);
 
+    if (!empty($search)) {
+        $criteria->filterBy('search', $search);
+    }
+
     $form = Form::createSearch();
 
     $row = $form->addRow();
         $row->addLabel('search', __('Search For'))
             ->description(__('Family Name, SEPA Name'));
-        $row->addTextField('search')->setValue($criteria->getSearchText());
+        $row->addTextField('search')->setValue($search);
 
     $form->addRow()->addSearchSubmit('', __('Clear Search'));
 
@@ -93,7 +103,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
 
     $table->addActionColumn()
         ->addParam('schoolYearID', $schoolYearID)
-        ->addParam('search', $criteria->getSearchText(true))
+        ->addParam('search', $search)
         ->format(function ($row, $actions) {
             $actions->addAction('view', __('View Details'))
                 ->setURL('/modules/Sepa/sepa_family_details.php')
