@@ -46,27 +46,33 @@ class SnapshotGateway extends QueryableGateway
      */
     public function getLatestSnapshotsByYear($academicYear)
     {
+        // Get all snapshots for the year, ordered by family and date
         $query = $this
             ->newSelect()
-            ->from($this->getTableName() . ' as s1')
+            ->from($this->getTableName())
             ->cols([
-                's1.gibbonSEPABalanceSnapshotID',
-                's1.gibbonFamilyID',
-                's1.gibbonSEPAID',
-                's1.snapshotDate',
-                's1.balance'
+                'gibbonSEPABalanceSnapshotID',
+                'gibbonFamilyID',
+                'gibbonSEPAID',
+                'snapshotDate',
+                'balance'
             ])
-            ->innerJoin(
-                '(SELECT gibbonFamilyID, MAX(snapshotDate) as maxDate
-                  FROM gibbonSEPABalanceSnapshot
-                  WHERE academicYear = :academicYear
-                  GROUP BY gibbonFamilyID) as s2',
-                's1.gibbonFamilyID = s2.gibbonFamilyID AND s1.snapshotDate = s2.maxDate'
-            )
-            ->where('s1.academicYear = :academicYear')
-            ->bindValue('academicYear', $academicYear);
+            ->where('academicYear = :academicYear')
+            ->bindValue('academicYear', $academicYear)
+            ->orderBy(['gibbonFamilyID', 'snapshotDate DESC']);
 
-        return $this->runSelect($query);
+        $results = $this->runSelect($query);
+
+        // Filter to only keep the most recent snapshot per family
+        $latestByFamily = [];
+        foreach ($results as $snapshot) {
+            $familyID = $snapshot['gibbonFamilyID'];
+            if (!isset($latestByFamily[$familyID])) {
+                $latestByFamily[$familyID] = $snapshot;
+            }
+        }
+
+        return new \Gibbon\Domain\DataSet(array_values($latestByFamily));
     }
 
     /**
