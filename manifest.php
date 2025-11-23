@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.0.0';            // Version number
+$version = '2.0.1';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -102,6 +102,26 @@ $moduleTables[] = "
     `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`gibbonSEPAPaymentAdjustmentID`),
     KEY `gibbonSEPAID` (`gibbonSEPAID`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ ";
+
+$moduleTables[] = "
+    CREATE TABLE `gibbonSEPABalanceSnapshot` (
+    `gibbonSEPABalanceSnapshotID` int(12) unsigned NOT NULL AUTO_INCREMENT,
+    `gibbonFamilyID` int(7) unsigned zerofill NOT NULL,
+    `gibbonSEPAID` int(8) unsigned zerofill DEFAULT NULL,
+    `academicYear` INT UNSIGNED NOT NULL,
+    `snapshotDate` datetime NOT NULL,
+    `balance` decimal(10,2) NOT NULL COMMENT 'Total balance at time of snapshot',
+    `snapshotData` LONGTEXT NOT NULL COMMENT 'JSON object containing detailed snapshot data',
+    `gibbonPersonID` varchar(255) NOT NULL COMMENT 'User who created the snapshot',
+    `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`gibbonSEPABalanceSnapshotID`),
+    UNIQUE KEY `unique_family_snapshot_date` (`gibbonFamilyID`, `snapshotDate`, `academicYear`),
+    KEY `gibbonFamilyID` (`gibbonFamilyID`),
+    KEY `gibbonSEPAID` (`gibbonSEPAID`),
+    KEY `academicYear` (`academicYear`),
+    KEY `snapshotDate` (`snapshotDate`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  ";
 
@@ -343,6 +363,26 @@ $actionRows[] = [
     'description' => 'Manage SEPA Payment Adjustments (Add, Edit, Delete)',
     'URLList' => 'sepa_payment_adjustment_manage.php, sepa_payment_adjustment_add.php, sepa_payment_adjustment_edit.php, sepa_payment_adjustment_delete.php',
     'entryURL' => 'sepa_payment_adjustment_manage.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Balance Snapshot',
+    'precedence' => '15',
+    'category' => 'Reports',
+    'description' => 'View and manage balance snapshots for families',
+    'URLList' => 'sepa_balance_snapshot.php, sepa_balance_snapshot_create.php, sepa_balance_snapshot_details.php',
+    'entryURL' => 'sepa_balance_snapshot.php',
     'entrySidebar' => 'Y',
     'menuShow' => 'Y',
     'defaultPermissionAdmin' => 'Y',

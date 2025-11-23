@@ -22,8 +22,6 @@ use Gibbon\Tables\DataTable;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Data\Validator;
 
-$_GET = $container->get(Validator::class)->sanitize($_GET);
-$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -33,6 +31,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
     $page->addError(__('You do not have access to this action.'));
 } else {
     $page->breadcrumbs->add(__('Family Totals'));
+
+    $_GET = $container->get(Validator::class)->sanitize($_GET);
+    $_POST = $container->get(Validator::class)->sanitize($_POST);
 
     $schoolYearID = isset($_GET['schoolYearID']) ? $_GET['schoolYearID'] : $_SESSION[$guid]["gibbonSchoolYearID"];
     $search = isset($_GET['search']) ? $_GET['search'] : '';
@@ -67,9 +68,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
     $form = Form::createSearch();
 
     $row = $form->addRow();
-        $row->addLabel('search', __('Search For'))
-            ->description(__('Family Name, SEPA Name'));
-        $row->addTextField('search')->setValue($search);
+    $row->addLabel('search', __('Search For'))
+        ->description(__('Family Name, SEPA Name'));
+    $row->addTextField('search')->setValue($search);
 
     $form->addRow()->addSearchSubmit('', __('Clear Search'));
 
