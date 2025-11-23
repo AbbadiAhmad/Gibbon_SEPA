@@ -138,15 +138,14 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
             });
         }
 
-        // Convert to data collection with pagination support
+        // Convert to data collection
         $data = new \Gibbon\Domain\DataSet($familiesWithChanges);
-        $data = $data->paginate($criteria->getPage(), $criteria->getPageSize());
+        $table = DataTable::create('balanceSnapshot');
     } else {
         // Show specific snapshot
         $data = $SnapshotGateway->getSnapshotsByDate($criteria, $selectedSnapshot, $schoolYearID);
+        $table = DataTable::createPaginated('balanceSnapshot', $criteria);
     }
-
-    $table = DataTable::createPaginated('balanceSnapshot', $criteria);
 
     $table->addColumn('familyName', __('Family Name'));
     $table->addColumn('payer', __('Payer'));
