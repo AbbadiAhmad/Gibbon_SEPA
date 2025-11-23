@@ -446,7 +446,7 @@ class SepaGateway extends QueryableGateway
             ->cols([
                 'gibbonFamily.gibbonFamilyID',
                 'gibbonFamily.name as familyName',
-                'gibbonSEPA.payer as sepaName',
+                'gibbonSEPA.payer as payer',
                 'gibbonSEPA.gibbonSEPAID as gibbonSEPAID',
                 'SUM(COALESCE(gibbonSepaCoursesFees.fees, 0) * TIMESTAMPDIFF(MONTH,  DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\'), LAST_DAY(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay)))) as totalDept',
                 '(SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentEntry WHERE gibbonSEPAPaymentEntry.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentEntry.academicYear = :schoolYearID) as payments',
