@@ -84,7 +84,15 @@ class SnapshotGateway extends QueryableGateway
             ->newQuery()
             ->from($this->getTableName() . ' as snap')
             ->cols([
-                'snap.*',
+                'snap.gibbonSEPABalanceSnapshotID',
+                'snap.gibbonFamilyID',
+                'snap.gibbonSEPAID',
+                'snap.academicYear',
+                'snap.snapshotDate',
+                'snap.balance',
+                'snap.snapshotData',
+                'snap.gibbonPersonID',
+                'snap.timestamp',
                 'f.name as familyName',
                 'sepa.payer',
                 'sepa.IBAN'

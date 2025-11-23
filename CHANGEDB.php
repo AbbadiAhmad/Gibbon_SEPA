@@ -54,8 +54,24 @@ $sql[$count][1] = "CREATE TABLE IF NOT EXISTS `gibbonSEPABalanceSnapshot` (
     `gibbonPersonID` varchar(255) NOT NULL COMMENT 'User who created the snapshot',
     `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`gibbonSEPABalanceSnapshotID`),
+    UNIQUE KEY `unique_family_snapshot_date` (`gibbonFamilyID`, `snapshotDate`, `academicYear`),
     KEY `gibbonFamilyID` (`gibbonFamilyID`),
     KEY `gibbonSEPAID` (`gibbonSEPAID`),
     KEY `academicYear` (`academicYear`),
     KEY `snapshotDate` (`snapshotDate`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
+
+// v2.0.1 - Add unique constraint to existing snapshot tables
+$count++;
+$sql[$count][0] = "2.0.1";
+$sql[$count][1] = "
+-- Remove duplicate snapshots, keeping only the most recent one per family/date/year
+DELETE t1 FROM gibbonSEPABalanceSnapshot t1
+INNER JOIN gibbonSEPABalanceSnapshot t2
+WHERE t1.gibbonSEPABalanceSnapshotID < t2.gibbonSEPABalanceSnapshotID
+  AND t1.gibbonFamilyID = t2.gibbonFamilyID
+  AND t1.snapshotDate = t2.snapshotDate
+  AND t1.academicYear = t2.academicYear;end
+-- Add unique constraint to prevent future duplicates
+ALTER TABLE gibbonSEPABalanceSnapshot
+ADD UNIQUE KEY unique_family_snapshot_date (gibbonFamilyID, snapshotDate, academicYear);";
