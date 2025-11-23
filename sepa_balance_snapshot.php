@@ -48,23 +48,6 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     echo __('Balance Snapshot');
     echo '</h2>';
 
-    // Search form
-    $form = Form::createSearch();
-
-    $row = $form->addRow();
-        $row->addLabel('search', __('Search For'))
-            ->description(__('Family Name, Payer Name'));
-        $row->addTextField('search')->setValue($search);
-
-    $row = $form->addRow();
-        $row->addHiddenValue('q', '/modules/Sepa/sepa_balance_snapshot.php');
-        $row->addHiddenValue('schoolYearID', $schoolYearID);
-        $row->addHiddenValue('snapshotDate', $selectedSnapshot);
-
-    $form->addRow()->addSearchSubmit('', __('Clear Search'));
-
-    echo $form->getOutput();
-
     // Get available snapshot dates
     $snapshotDates = $SnapshotGateway->getSnapshotDates($schoolYearID);
     $snapshotOptions = ['current' => __('Current Status (Families with changes)')];
@@ -74,8 +57,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         $snapshotOptions[$snapshot['snapshotDate']] = $date . ' (' . $snapshot['snapshotCount'] . ' families)';
     }
 
-    // Snapshot selection form
-    $form = Form::create('snapshotSelect', $_SESSION[$guid]['absoluteURL'] . '/index.php', 'get');
+    // Combined search and snapshot selection form
+    $form = Form::create('snapshotFilter', $_SESSION[$guid]['absoluteURL'] . '/index.php', 'get');
     $form->setClass('noIntBorder fullWidth');
 
     $form->addHiddenValue('q', '/modules/Sepa/sepa_balance_snapshot.php');
@@ -88,7 +71,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         ->selected($selectedSnapshot);
 
     $row = $form->addRow();
-    $row->addSubmit(__('View'));
+    $row->addLabel('search', __('Search For'))
+        ->description(__('Family Name, Payer Name'));
+    $row->addTextField('search')->setValue($search);
+
+    $row = $form->addRow();
+    $row->addSubmit(__('Apply'));
+    $row->addSubmit(__('Clear'))->prepend('&nbsp;');
 
     echo $form->getOutput();
 
