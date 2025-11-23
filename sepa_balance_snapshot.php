@@ -85,8 +85,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     $row->addLabel('snapshotDate', __('Select Snapshot'));
     $row->addSelect('snapshotDate')
         ->fromArray($snapshotOptions)
-        ->selected($selectedSnapshot)
-        ->placeholder(__('Select a snapshot'));
+        ->selected($selectedSnapshot);
 
     $row = $form->addRow();
     $row->addSubmit(__('View'));
@@ -103,8 +102,10 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     echo '<h3>';
     if ($selectedSnapshot == 'current') {
         echo __('Families with Balance Changes Since Last Snapshot');
-    } else {
+    } elseif (!empty($selectedSnapshot) && strtotime($selectedSnapshot) !== false) {
         echo __('Snapshot from ') . date('Y-m-d H:i', strtotime($selectedSnapshot));
+    } else {
+        echo __('Invalid Snapshot');
     }
     echo '</h3>';
 
