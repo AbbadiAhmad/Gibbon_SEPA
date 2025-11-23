@@ -102,8 +102,7 @@ class SnapshotGateway extends QueryableGateway
             ->where('snap.snapshotDate = :snapshotDate')
             ->where('snap.academicYear = :academicYear')
             ->bindValue('snapshotDate', $snapshotDate)
-            ->bindValue('academicYear', $academicYear)
-            ->orderBy(['f.name']);
+            ->bindValue('academicYear', $academicYear);
 
         return $this->runQuery($query, $criteria);
     }

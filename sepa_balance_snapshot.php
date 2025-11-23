@@ -24,8 +24,6 @@ use Gibbon\Module\Sepa\Domain\SepaPaymentAdjustmentGateway;
 use Gibbon\Data\Validator;
 use Gibbon\Forms\Form;
 
-$_GET = $container->get(Validator::class)->sanitize($_GET);
-$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -36,6 +34,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 } else {
     $page->breadcrumbs->add(__('Balance Snapshot'));
 
+    $_GET = $container->get(Validator::class)->sanitize($_GET);
+    $_POST = $container->get(Validator::class)->sanitize($_POST);
     $schoolYearID = isset($_GET['schoolYearID']) ? $_GET['schoolYearID'] : $_SESSION[$guid]["gibbonSchoolYearID"];
     $selectedSnapshot = isset($_GET['snapshotDate']) ? $_GET['snapshotDate'] : 'current';
     $search = isset($_GET['search']) ? $_GET['search'] : '';
@@ -58,11 +58,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     }
 
     // Combined search and snapshot selection form
-    $form = Form::create('snapshotFilter', $_SESSION[$guid]['absoluteURL'] . '/index.php', 'get');
-    $form->setClass('noIntBorder fullWidth');
 
-    $form->addHiddenValue('q', '/modules/Sepa/sepa_balance_snapshot.php');
-    $form->addHiddenValue('schoolYearID', $schoolYearID);
+    $form = Form::createSearch();
+
 
     $row = $form->addRow();
     $row->addLabel('snapshotDate', __('Select Snapshot'));
@@ -74,11 +72,10 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     $row->addLabel('search', __('Search For'))
         ->description(__('Family Name, Payer Name'));
     $row->addTextField('search')->setValue($search);
-
-    $row = $form->addRow();
-    $row->addSearchSubmit($session, __('Clear Filters'));
+    $form->addRow()->addSearchSubmit('', __('Clear Search'));
 
     echo $form->getOutput();
+
 
     // Button to create new snapshot
     if ($selectedSnapshot == 'current') {
@@ -97,15 +94,23 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     }
     echo '</h3>';
 
-    // Get the data to display
-    $criteria = $SepaGateway->newQueryCriteria(true)
-        ->searchBy(['familyName'])
-        ->fromPOST();
 
     if ($selectedSnapshot == 'current') {
         // Show families with balance changes since last snapshot
         // Get ALL families without pagination first
-        $criteriaAll = $SepaGateway->newQueryCriteria(false);
+        $criteriaAll = $SepaGateway->newQueryCriteria(false)
+            ->searchBy(['familyName', 'payer'], $search)
+            ->sortBy(['familyName'])
+            ->fromPOST();
+        $criteriaAll->addFilterRules([
+            'search' => function ($query, $search) {
+                if (!empty($search)) {
+                    return $query->where('(gibbonFamily.name LIKE :search OR gibbonSEPA.payer LIKE :search)')
+                        ->bindValue('search', '%' . $search . '%');
+                }
+                return $query;
+            }
+        ]);
         $familyTotals = $SepaGateway->getFamilyTotals($schoolYearID, $criteriaAll);
 
         // Get latest snapshots
@@ -136,20 +141,17 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
             }
         }
 
-        // Apply search filter if needed
-        if (!empty($search)) {
-            $familiesWithChanges = array_filter($familiesWithChanges, function($family) use ($search) {
-                return (isset($family['familyName']) && stripos($family['familyName'], $search) !== false) ||
-                       (isset($family['sepaName']) && stripos($family['sepaName'], $search) !== false) ||
-                       (isset($family['payer']) && stripos($family['payer'], $search) !== false);
-            });
-        }
-
         // Convert to data collection
         $data = new \Gibbon\Domain\DataSet($familiesWithChanges);
         $table = DataTable::create('balanceSnapshot');
     } else {
         // Show specific snapshot
+        // Get the data to display
+        $criteria = $SepaGateway->newQueryCriteria(true)
+            ->searchBy(['familyName', 'payer'], $search)
+            ->sortBy(['familyName'])
+            ->fromPOST();
+
         $data = $SnapshotGateway->getSnapshotsByDate($criteria, $selectedSnapshot, $schoolYearID);
         $table = DataTable::createPaginated('balanceSnapshot', $criteria);
     }
