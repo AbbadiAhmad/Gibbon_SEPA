@@ -152,39 +152,19 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     $table->addColumn('payer', __('Payer'));
 
     if ($selectedSnapshot == 'current') {
-        $table->addColumn('totalDept', __('Total Fees'))->format(function ($row) {
-            return number_format($row['totalDept'], 2);
-        });
-        $table->addColumn('payments', __('Payments'))->format(function ($row) {
-            return number_format($row['payments'], 2);
-        });
-        $table->addColumn('paymentsAdjustment', __('Adjustments'))->format(function ($row) {
-            return number_format($row['paymentsAdjustment'], 2);
-        });
-        $table->addColumn('lastBalance', __('Last Snapshot'))->format(function ($row) {
-            return number_format($row['lastBalance'], 2);
+        $table->addColumn('lastBalance', __('Last Balance (Snapshot)'))->format(function ($row) {
+            return number_format($row['lastBalance'], 2) . ' €';
         });
         $table->addColumn('balance', __('Current Balance'))->format(function ($row) {
-            return number_format($row['balance'], 2);
-        });
-        $table->addColumn('balanceChange', __('Change'))->format(function ($row) {
-            $change = $row['balanceChange'];
-            $color = $change > 0 ? 'green' : ($change < 0 ? 'red' : 'black');
-            $prefix = $change > 0 ? '+' : '';
-            return '<span style="color: ' . $color . '; font-weight: bold;">' . $prefix . number_format($change, 2) . '</span>';
+            $balance = $row['balance'];
+            $color = $balance < 0 ? 'red' : 'green';
+            return '<span style="color: ' . $color . ';">' . number_format($balance, 2) . ' €</span>';
         });
     } else {
-        $table->addColumn('totalFees', __('Total Fees'))->format(function ($row) {
-            return number_format($row['totalFees'] ?? 0, 2);
-        });
-        $table->addColumn('totalPayments', __('Payments'))->format(function ($row) {
-            return number_format($row['totalPayments'] ?? 0, 2);
-        });
-        $table->addColumn('totalAdjustments', __('Adjustments'))->format(function ($row) {
-            return number_format($row['totalAdjustments'] ?? 0, 2);
-        });
         $table->addColumn('balance', __('Balance'))->format(function ($row) {
-            return number_format($row['balance'], 2);
+            $balance = $row['balance'];
+            $color = $balance < 0 ? 'red' : 'green';
+            return '<span style="color: ' . $color . ';">' . number_format($balance, 2) . ' €</span>';
         });
     }
 
