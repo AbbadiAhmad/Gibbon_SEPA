@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Data\Validator;
@@ -34,18 +35,21 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
     $page->breadcrumbs->add(__('Family Totals'));
 
     $schoolYearID = isset($_GET['schoolYearID']) ? $_GET['schoolYearID'] : $_SESSION[$guid]["gibbonSchoolYearID"];
+    $search = isset($_GET['search']) ? $_GET['search'] : '';
 
     $SepaGateway = $container->get(SepaGateway::class);
 
-    echo '<h2>';
-    echo __('Family Totals');
-    echo '</h2>';
-
     $criteria = $SepaGateway->newQueryCriteria(true)
-        ->searchBy(['familyName'])
         ->fromPOST();
 
     $criteria->addFilterRules([
+        'search' => function ($query, $search) {
+            if (!empty($search)) {
+                return $query->where('(gibbonFamily.name LIKE :search OR gibbonSEPA.payer LIKE :search)')
+                    ->bindValue('search', '%' . $search . '%');
+            }
+            return $query;
+        },
         'unpaidNoSepa' => function ($query, $unpaidNoSepa) {
             if ($unpaidNoSepa == 'unpaidNoSepa') {
                 return $query->having('sepaName IS NULL')
@@ -55,6 +59,25 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
             return $query;
         },
     ]);
+
+    if (!empty($search)) {
+        $criteria->filterBy('search', $search);
+    }
+
+    $form = Form::createSearch();
+
+    $row = $form->addRow();
+        $row->addLabel('search', __('Search For'))
+            ->description(__('Family Name, SEPA Name'));
+        $row->addTextField('search')->setValue($search);
+
+    $form->addRow()->addSearchSubmit('', __('Clear Search'));
+
+    echo $form->getOutput();
+
+    echo '<h2>';
+    echo __('Family Totals');
+    echo '</h2>';
 
     $familyTotals = $SepaGateway->getFamilyTotals($schoolYearID, $criteria);
 
@@ -80,6 +103,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
 
     $table->addActionColumn()
         ->addParam('schoolYearID', $schoolYearID)
+        ->addParam('search', $search)
         ->format(function ($row, $actions) {
             $actions->addAction('view', __('View Details'))
                 ->setURL('/modules/Sepa/sepa_family_details.php')
