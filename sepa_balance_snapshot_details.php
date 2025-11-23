@@ -72,6 +72,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         $totalAdjustments = $SepaPaymentAdjustmentGateway->getFamilyTotalAdjustments($gibbonFamilyID, $schoolYearID);
         $currentBalance = $totalPayments + $totalAdjustments - $totalFees;
 
+        // Get fees, payments, and adjustments
+        $fees = $SepaGateway->getFamilyEnrollmentFees($gibbonFamilyID, $schoolYearID);
+        $feesArray = is_array($fees) ? $fees : $fees->toArray();
+
+        $payments = $gibbonSEPAID ? $SepaGateway->getPaymentEntriesByFamily($gibbonSEPAID, $schoolYearID) : [];
+        $adjustments = $gibbonSEPAID ? $SepaPaymentAdjustmentGateway->getFamilyAdjustments($gibbonSEPAID, $schoolYearID) : [];
+
         // Current snapshot data
         $currentData = [
             'balance' => [
@@ -80,9 +87,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
                 'totalAdjustments' => $totalAdjustments,
                 'balance' => $currentBalance
             ],
-            'fees' => $SepaGateway->getFamilyEnrollmentFees($gibbonFamilyID, $schoolYearID)->toArray(),
-            'payments' => $gibbonSEPAID ? $SepaGateway->getPaymentEntriesByFamily($gibbonSEPAID, $schoolYearID)->toArray() : [],
-            'adjustments' => $gibbonSEPAID ? $SepaPaymentAdjustmentGateway->getFamilyAdjustments($gibbonSEPAID, $schoolYearID)->toArray() : []
+            'fees' => $feesArray,
+            'payments' => $payments,
+            'adjustments' => $adjustments
         ];
 
         $previousData = $lastSnapshot ? json_decode($lastSnapshot['snapshotData'], true) : null;
