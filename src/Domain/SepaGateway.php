@@ -586,6 +586,8 @@ class SepaGateway extends QueryableGateway
                 'gibbonPerson.preferredName as childName',
                 'gibbonCourse.name as courseName',
                 'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee',
+                'DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\') AS startDate',
+                'LAST_DAY(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay)) as lastDate',
                 $this->getEnrollmentFeesSQLstatments('enrollmentMonths') . ' as monthsEnrolled',
                 $this->getEnrollmentFeesSQLstatments('enrollmentFees') . ' as totalCost',
             ]);
