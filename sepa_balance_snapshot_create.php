@@ -31,6 +31,7 @@ $_POST = $container->get(Validator::class)->sanitize($_POST);
 require_once __DIR__ . '/moduleFunctions.php';
 
 $schoolYearID = isset($_GET['schoolYearID']) ? $_GET['schoolYearID'] : $_SESSION[$guid]["gibbonSchoolYearID"];
+$search = isset($_GET['search']) ? $_GET['search'] : '';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot.php')) {
     // Access denied
@@ -187,7 +188,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         }
 
         echo '<div class="linkTop">';
-        echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot.php&schoolYearID=' . $schoolYearID . '">' . __('Back to Snapshots') . '</a>';
+        echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot.php&schoolYearID=' . $schoolYearID . '&search=' . urlencode($search) . '">' . __('Back to Snapshots') . '</a>';
         echo '</div>';
     } else {
         // Display confirmation form
