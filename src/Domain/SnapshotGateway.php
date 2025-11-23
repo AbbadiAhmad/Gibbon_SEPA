@@ -54,10 +54,7 @@ class SnapshotGateway extends QueryableGateway
                 's1.gibbonFamilyID',
                 's1.gibbonSEPAID',
                 's1.snapshotDate',
-                's1.balance',
-                's1.totalFees',
-                's1.totalPayments',
-                's1.totalAdjustments'
+                's1.balance'
             ])
             ->innerJoin(
                 '(SELECT gibbonFamilyID, MAX(snapshotDate) as maxDate

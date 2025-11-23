@@ -130,8 +130,20 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         // Convert to data collection
         $data = new \Gibbon\Domain\DataSet($familiesWithChanges);
     } else {
-        // Show specific snapshot
-        $data = $SnapshotGateway->getSnapshotsByDate($criteria, $selectedSnapshot, $schoolYearID);
+        // Show specific snapshot - need to parse JSON data for display
+        $snapshotsRaw = $SnapshotGateway->getSnapshotsByDate($criteria, $selectedSnapshot, $schoolYearID);
+
+        // Parse JSON data and add calculated fields
+        $snapshotsProcessed = [];
+        foreach ($snapshotsRaw as $snapshot) {
+            $snapshotData = json_decode($snapshot['snapshotData'], true);
+            $snapshot['totalFees'] = $snapshotData['balance']['totalFees'] ?? 0;
+            $snapshot['totalPayments'] = $snapshotData['balance']['totalPayments'] ?? 0;
+            $snapshot['totalAdjustments'] = $snapshotData['balance']['totalAdjustments'] ?? 0;
+            $snapshotsProcessed[] = $snapshot;
+        }
+
+        $data = new \Gibbon\Domain\DataSet($snapshotsProcessed);
     }
 
     $table = DataTable::createPaginated('balanceSnapshot', $criteria);
@@ -163,13 +175,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         });
     } else {
         $table->addColumn('totalFees', __('Total Fees'))->format(function ($row) {
-            return number_format($row['totalFees'], 2);
+            return number_format($row['totalFees'] ?? 0, 2);
         });
         $table->addColumn('totalPayments', __('Payments'))->format(function ($row) {
-            return number_format($row['totalPayments'], 2);
+            return number_format($row['totalPayments'] ?? 0, 2);
         });
         $table->addColumn('totalAdjustments', __('Adjustments'))->format(function ($row) {
-            return number_format($row['totalAdjustments'], 2);
+            return number_format($row['totalAdjustments'] ?? 0, 2);
         });
         $table->addColumn('balance', __('Balance'))->format(function ($row) {
             return number_format($row['balance'], 2);
