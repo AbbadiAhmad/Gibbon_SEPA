@@ -449,9 +449,9 @@ class SepaGateway extends QueryableGateway
                 'gibbonSEPA.payer as sepaName',
                 'gibbonSEPA.gibbonSEPAID as gibbonSEPAID',
                 'SUM(COALESCE(gibbonSepaCoursesFees.fees, 0) * TIMESTAMPDIFF(MONTH,  DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\'), LAST_DAY(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay)))) as totalDept',
-                'SUM(COALESCE(gibbonSEPAPaymentEntry.amount, 0)) as payments',
-                'SUM(COALESCE(gibbonSEPAPaymentAdjustment.amount, 0)) as paymentsAdjustment',
-                '(SUM(COALESCE(gibbonSEPAPaymentEntry.amount, 0)) + SUM(COALESCE(gibbonSEPAPaymentAdjustment.amount, 0)) - SUM(COALESCE(gibbonSepaCoursesFees.fees, 0) * TIMESTAMPDIFF(MONTH, DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\'), LAST_DAY(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay))))) as balance'
+                'COALESCE(paymentTotals.total, 0) as payments',
+                'COALESCE(adjustmentTotals.total, 0) as paymentsAdjustment',
+                '(COALESCE(paymentTotals.total, 0) + COALESCE(adjustmentTotals.total, 0) - SUM(COALESCE(gibbonSepaCoursesFees.fees, 0) * TIMESTAMPDIFF(MONTH, DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\'), LAST_DAY(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay))))) as balance'
             ])
             ->from('gibbonFamily')
             ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonFamilyID = gibbonFamily.gibbonFamilyID')
@@ -462,11 +462,11 @@ class SepaGateway extends QueryableGateway
             ->innerJoin('gibbonSchoolYear', 'gibbonSchoolYear.gibbonSchoolYearID = gibbonCourse.gibbonSchoolYearID')
             ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
             ->leftJoin('gibbonSEPA', 'gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID')
-            ->leftJoin('gibbonSEPAPaymentEntry', 'gibbonSEPA.gibbonSEPAID = gibbonSEPAPaymentEntry.gibbonSEPAID AND gibbonSEPAPaymentEntry.academicYear = gibbonSchoolYear.gibbonSchoolYearID')
-            ->leftJoin('gibbonSEPAPaymentAdjustment', 'gibbonSEPA.gibbonSEPAID = gibbonSEPAPaymentAdjustment.gibbonSEPAID AND gibbonSEPAPaymentAdjustment.academicYear = gibbonSchoolYear.gibbonSchoolYearID')
+            ->leftJoin('(SELECT gibbonSEPAID, SUM(amount) as total FROM gibbonSEPAPaymentEntry WHERE academicYear = :schoolYearID GROUP BY gibbonSEPAID) paymentTotals', 'gibbonSEPA.gibbonSEPAID = paymentTotals.gibbonSEPAID')
+            ->leftJoin('(SELECT gibbonSEPAID, SUM(amount) as total FROM gibbonSEPAPaymentAdjustment WHERE academicYear = :schoolYearID GROUP BY gibbonSEPAID) adjustmentTotals', 'gibbonSEPA.gibbonSEPAID = adjustmentTotals.gibbonSEPAID')
             ->where('gibbonSchoolYear.gibbonSchoolYearID = :schoolYearID')
             ->bindValue('schoolYearID', $schoolYearID)
-            ->groupBy(['gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonSEPA.payer'])
+            ->groupBy(['gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonSEPA.payer', 'gibbonSEPA.gibbonSEPAID', 'paymentTotals.total', 'adjustmentTotals.total'])
         ;
 
         return $this->runQuery($query, $criteria);
