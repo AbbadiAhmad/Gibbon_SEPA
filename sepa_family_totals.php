@@ -41,6 +41,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
     $SepaGateway = $container->get(SepaGateway::class);
 
     $criteria = $SepaGateway->newQueryCriteria(true)
+        ->sortBy(['balance'])
         ->fromPOST();
 
     $criteria->addFilterRules([
@@ -50,15 +51,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
                     ->bindValue('search', '%' . $search . '%');
             }
             return $query;
-        },
-        'unpaidNoSepa' => function ($query, $unpaidNoSepa) {
-            if ($unpaidNoSepa == 'unpaidNoSepa') {
-                return $query->having('sepaName IS NULL')
-                    ->having('balance != 0')
-                    ->having('totalDept = 0');
-            }
-            return $query;
-        },
+        }
     ]);
 
     if (!empty($search)) {
@@ -69,7 +62,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
 
     $row = $form->addRow();
     $row->addLabel('search', __('Search For'))
-        ->description(__('Family Name, SEPA Name'));
+        ->description(__('Family Name, Payer'));
     $row->addTextField('search')->setValue($search);
 
     $form->addRow()->addSearchSubmit('', __('Clear Search'));
@@ -84,11 +77,11 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
 
     $table = DataTable::createPaginated('familyTotals', $criteria);
 
-    $table->addMetaData('filterOptions', ['unpaidNoSepa' => __('Unpaid without SEPA')]);
+    //$table->addMetaData('filterOptions', ['unpaidNoSepa' => __('Unpaid without SEPA')]);
 
     //$table->addColumn('gibbonFamilyID', __('Family ID'));
     $table->addColumn('familyName', __('Family Name'));
-    $table->addColumn('sepaName', __('SEPA Name'));
+    $table->addColumn('payer', __('Payer'));
     $table->addColumn('totalDept', __('Total Dept'))->format(function ($row) {
         return number_format($row['totalDept'], 2);
     });

@@ -470,44 +470,6 @@ class SepaGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    /*  public function getFamilyTotals($schoolYearID, $criteria)
-     {
-         // Base query
-         $query = $this->getFamilySepaBase($schoolYearID);
-
-         // Join fees calculation
-         $query->joinColumn(
-             $this->calculateFamilyFees($schoolYearID),
-             'totalDept',
-             'gibbonFamilyID',
-             0 // default value
-         );
-
-         // Join payments
-         $query->joinColumn(
-             $this->getPaymentTotals($schoolYearID),
-             'payments',
-             'gibbonFamilyID',
-             0
-         );
-
-         // Join adjustments
-         $query->joinColumn(
-             $this->getAdjustmentTotals($schoolYearID),
-             'paymentsAdjustment',
-             'gibbonFamilyID',
-             0
-         );
-
-         // Add calculated balance column
-         $query->cols([
-             '(COALESCE(payments, 0) + COALESCE(paymentsAdjustment, 0) - COALESCE(totalDept, 0)) as balance'
-         ]);
-
-         return $query;
-     }
-
-  */
     public function getFamilyInfo($gibbonFamilyID)
     {
         $query = $this
