@@ -439,7 +439,7 @@ class SepaGateway extends QueryableGateway
 
     }
 
-    public function getFamilyTotals($schoolYearID, $criteria)
+    public function getFamilyTotals($schoolYearID, $criteria, $search = '')
     {
         $query = $this
             ->newQuery()
@@ -467,10 +467,9 @@ class SepaGateway extends QueryableGateway
             ->groupBy(['gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonSEPA.payer', 'gibbonSEPA.gibbonSEPAID']);
 
         // Apply search for family name and payer if search term is provided
-        if (!empty($criteria->getSearchText())) {
-            $searchTerm = $criteria->getSearchText();
+        if (!empty($search)) {
             $query->where('(gibbonFamily.name LIKE :search OR gibbonSEPA.payer LIKE :search)')
-                ->bindValue('search', '%' . $searchTerm . '%');
+                ->bindValue('search', '%' . $search . '%');
         }
 
         return $this->runQuery($query, $criteria);

@@ -99,10 +99,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         // Show families with balance changes since last snapshot
         // Get ALL families without pagination first
         $criteriaAll = $SepaGateway->newQueryCriteria(false)
-            ->searchBy(['familyName', 'payer'], $search)
             ->sortBy(['familyName'])
             ->fromPOST();
-        $familyTotals = $SepaGateway->getFamilyTotals($schoolYearID, $criteriaAll);
+        $familyTotals = $SepaGateway->getFamilyTotals($schoolYearID, $criteriaAll, $search);
 
         // Get latest snapshots
         $latestSnapshots = $SnapshotGateway->getLatestSnapshotsByYear($schoolYearID);
@@ -139,11 +138,10 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         // Show specific snapshot
         // Get the data to display
         $criteria = $SepaGateway->newQueryCriteria(true)
-            ->searchBy(['familyName', 'payer'], $search)
             ->sortBy(['familyName'])
             ->fromPOST();
 
-        $data = $SnapshotGateway->getSnapshotsByDate($criteria, $selectedSnapshot, $schoolYearID);
+        $data = $SnapshotGateway->getSnapshotsByDate($criteria, $selectedSnapshot, $schoolYearID, $search);
         $table = DataTable::createPaginated('balanceSnapshot', $criteria);
     }
 

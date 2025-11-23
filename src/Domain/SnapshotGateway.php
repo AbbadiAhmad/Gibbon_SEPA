@@ -17,7 +17,7 @@ class SnapshotGateway extends QueryableGateway
 
     private static $tableName = 'gibbonSEPABalanceSnapshot';
     private static $primaryKey = 'gibbonSEPABalanceSnapshotID';
-    private static $searchableColumns = ['f.name', 'sepa.payer'];
+    private static $searchableColumns = ['gibbonFamilyID'];
 
     /**
      * Get all snapshots for a given academic year
@@ -78,7 +78,7 @@ class SnapshotGateway extends QueryableGateway
     /**
      * Get snapshots by snapshot date
      */
-    public function getSnapshotsByDate(QueryCriteria $criteria, $snapshotDate, $academicYear)
+    public function getSnapshotsByDate(QueryCriteria $criteria, $snapshotDate, $academicYear, $search = '')
     {
         $query = $this
             ->newQuery()
@@ -103,6 +103,12 @@ class SnapshotGateway extends QueryableGateway
             ->where('snap.academicYear = :academicYear')
             ->bindValue('snapshotDate', $snapshotDate)
             ->bindValue('academicYear', $academicYear);
+
+        // Apply search for family name and payer if search term is provided
+        if (!empty($search)) {
+            $query->where('(f.name LIKE :search OR sepa.payer LIKE :search)')
+                ->bindValue('search', '%' . $search . '%');
+        }
 
         return $this->runQuery($query, $criteria);
     }
