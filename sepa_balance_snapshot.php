@@ -150,8 +150,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         // Apply search filter if needed
         if (!empty($search)) {
             $familiesWithChanges = array_filter($familiesWithChanges, function($family) use ($search) {
-                return stripos($family['familyName'], $search) !== false ||
-                       stripos($family['sepaName'], $search) !== false ||
+                return (isset($family['familyName']) && stripos($family['familyName'], $search) !== false) ||
+                       (isset($family['sepaName']) && stripos($family['sepaName'], $search) !== false) ||
                        (isset($family['payer']) && stripos($family['payer'], $search) !== false);
             });
         }
