@@ -166,9 +166,6 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
                 'academicYear' => $schoolYearID,
                 'snapshotDate' => $snapshotDate,
                 'balance' => $balance,
-                'totalFees' => $totalFees,
-                'totalPayments' => $totalPayments,
-                'totalAdjustments' => $totalAdjustments,
                 'snapshotData' => json_encode($snapshotData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
                 'gibbonPersonID' => $gibbonPersonID
             ];
