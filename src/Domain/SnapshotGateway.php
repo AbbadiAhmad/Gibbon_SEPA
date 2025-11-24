@@ -55,7 +55,9 @@ class SnapshotGateway extends QueryableGateway
                 'gibbonFamilyID',
                 'gibbonSEPAID',
                 'snapshotDate',
-                'balance'
+                'balance',
+                'totalFees',
+                'totalAdjustments'
             ])
             ->where('academicYear = :academicYear')
             ->bindValue('academicYear', $academicYear)
@@ -90,6 +92,8 @@ class SnapshotGateway extends QueryableGateway
                 'snap.academicYear',
                 'snap.snapshotDate',
                 'snap.balance',
+                'snap.totalFees',
+                'snap.totalAdjustments',
                 'snap.snapshotData',
                 'snap.gibbonPersonID',
                 'snap.timestamp',

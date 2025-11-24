@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.0.1';            // Version number
+$version = '2.0.2';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -113,6 +113,8 @@ $moduleTables[] = "
     `academicYear` INT UNSIGNED NOT NULL,
     `snapshotDate` datetime NOT NULL,
     `balance` decimal(10,2) NOT NULL COMMENT 'Total balance at time of snapshot',
+    `totalFees` decimal(12,2) DEFAULT 0.00 COMMENT 'Total owed fees at time of snapshot',
+    `totalAdjustments` decimal(12,2) DEFAULT 0.00 COMMENT 'Total adjustments at time of snapshot',
     `snapshotData` LONGTEXT NOT NULL COMMENT 'JSON object containing detailed snapshot data',
     `gibbonPersonID` varchar(255) NOT NULL COMMENT 'User who created the snapshot',
     `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

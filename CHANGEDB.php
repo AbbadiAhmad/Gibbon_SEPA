@@ -75,3 +75,13 @@ WHERE t1.gibbonSEPABalanceSnapshotID < t2.gibbonSEPABalanceSnapshotID
 -- Add unique constraint to prevent future duplicates
 ALTER TABLE gibbonSEPABalanceSnapshot
 ADD UNIQUE KEY unique_family_snapshot_date (gibbonFamilyID, snapshotDate, academicYear);";
+
+// v2.0.2 - Add totalFees and totalAdjustments columns for efficient snapshot comparison
+$count++;
+$sql[$count][0] = "2.0.2";
+$sql[$count][1] = "
+-- Add totalFees and totalAdjustments columns to store snapshot comparison values directly
+ALTER TABLE gibbonSEPABalanceSnapshot
+ADD COLUMN totalFees DECIMAL(12,2) DEFAULT 0.00 COMMENT 'Total owed fees at time of snapshot' AFTER balance;end
+ALTER TABLE gibbonSEPABalanceSnapshot
+ADD COLUMN totalAdjustments DECIMAL(12,2) DEFAULT 0.00 COMMENT 'Total adjustments at time of snapshot' AFTER totalFees;";

@@ -68,11 +68,16 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
             $gibbonFamilyID = $family['gibbonFamilyID'];
             $currentBalance = $family['balance'];
 
-            // Check if balance has changed
+            // Calculate sum of owed fees and adjustments
+            $currentFeesAndAdjustments = $family['totalDept'] + $family['paymentsAdjustment'];
+
+            // Check if sum of fees and adjustments has changed
             $hasChanged = true;
             if (isset($snapshotsByFamily[$gibbonFamilyID])) {
-                $lastBalance = $snapshotsByFamily[$gibbonFamilyID]['balance'];
-                $hasChanged = abs($currentBalance - $lastBalance) > 0.01;
+                $lastTotalFees = $snapshotsByFamily[$gibbonFamilyID]['totalFees'] ?? 0;
+                $lastTotalAdjustments = $snapshotsByFamily[$gibbonFamilyID]['totalAdjustments'] ?? 0;
+                $lastFeesAndAdjustments = $lastTotalFees + $lastTotalAdjustments;
+                $hasChanged = abs($currentFeesAndAdjustments - $lastFeesAndAdjustments) > 0.01;
             }
 
             if (!$hasChanged) {
@@ -167,6 +172,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
                 'academicYear' => $schoolYearID,
                 'snapshotDate' => $snapshotDate,
                 'balance' => $balance,
+                'totalFees' => $totalFees,
+                'totalAdjustments' => $totalAdjustments,
                 'snapshotData' => json_encode($snapshotData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
                 'gibbonPersonID' => $gibbonPersonID
             ];
@@ -210,11 +217,14 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         // Count families with changes
         $familiesWithChanges = 0;
         foreach ($familyTotals as $family) {
-            $currentBalance = $family['balance'];
+            // Calculate sum of owed fees and adjustments
+            $currentFeesAndAdjustments = $family['totalDept'] + $family['paymentsAdjustment'];
 
             if (isset($snapshotsByFamily[$family['gibbonFamilyID']])) {
-                $lastBalance = $snapshotsByFamily[$family['gibbonFamilyID']]['balance'];
-                if (abs($currentBalance - $lastBalance) > 0.01) {
+                $lastTotalFees = $snapshotsByFamily[$family['gibbonFamilyID']]['totalFees'] ?? 0;
+                $lastTotalAdjustments = $snapshotsByFamily[$family['gibbonFamilyID']]['totalAdjustments'] ?? 0;
+                $lastFeesAndAdjustments = $lastTotalFees + $lastTotalAdjustments;
+                if (abs($currentFeesAndAdjustments - $lastFeesAndAdjustments) > 0.01) {
                     $familiesWithChanges++;
                 }
             } else {
@@ -224,7 +234,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
         if ($familiesWithChanges == 0) {
             echo '<div class="message">';
-            echo __('No families with balance changes found.');
+            echo __('No families with changes in fees or adjustments found.');
             echo '</div>';
 
             echo '<div class="linkTop">';
@@ -232,7 +242,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
             echo '</div>';
         } else {
             echo '<p>';
-            echo __('This will create a snapshot for {count} families with balance changes since the last snapshot.', ['count' => $familiesWithChanges]);
+            echo __('This will create a snapshot for {count} families with changes in fees or adjustments since the last snapshot.', ['count' => $familiesWithChanges]);
             echo '</p>';
 
             echo '<p>';

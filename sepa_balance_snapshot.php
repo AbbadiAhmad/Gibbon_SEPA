@@ -86,7 +86,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
     echo '<h3>';
     if ($selectedSnapshot == 'current') {
-        echo __('Families with Balance Changes Since Last Snapshot');
+        echo __('Families with Changes in Fees or Adjustments Since Last Snapshot');
     } elseif (!empty($selectedSnapshot) && strtotime($selectedSnapshot) !== false) {
         echo __('Snapshot from ') . date('Y-m-d H:i', strtotime($selectedSnapshot));
     } else {
@@ -96,7 +96,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
 
     if ($selectedSnapshot == 'current') {
-        // Show families with balance changes since last snapshot
+        // Show families with changes in fees or adjustments since last snapshot
         // Get ALL families without pagination first
         $criteriaAll = $SepaGateway->newQueryCriteria(false)
             ->sortBy(['familyName'])
@@ -114,19 +114,38 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         $familiesWithChanges = [];
         foreach ($familyTotals as $family) {
             $currentBalance = $family['balance'];
+            // Calculate sum of owed fees and adjustments
+            $currentFeesAndAdjustments = $family['totalDept'] + $family['paymentsAdjustment'];
 
             if (isset($snapshotsByFamily[$family['gibbonFamilyID']])) {
                 $lastBalance = $snapshotsByFamily[$family['gibbonFamilyID']]['balance'];
-                // Only show if balance has changed
-                if (abs($currentBalance - $lastBalance) > 0.01) {
+                // Calculate sum of owed fees and adjustments from snapshot
+                $lastTotalFees = $snapshotsByFamily[$family['gibbonFamilyID']]['totalFees'] ?? 0;
+                $lastTotalAdjustments = $snapshotsByFamily[$family['gibbonFamilyID']]['totalAdjustments'] ?? 0;
+                $lastFeesAndAdjustments = $lastTotalFees + $lastTotalAdjustments;
+
+                // Only show if sum of fees and adjustments has changed
+                if (abs($currentFeesAndAdjustments - $lastFeesAndAdjustments) > 0.01) {
                     $family['lastBalance'] = $lastBalance;
                     $family['balanceChange'] = $currentBalance - $lastBalance;
+                    $family['lastTotalFees'] = $lastTotalFees;
+                    $family['currentTotalFees'] = $family['totalDept'];
+                    $family['lastTotalAdjustments'] = $lastTotalAdjustments;
+                    $family['currentTotalAdjustments'] = $family['paymentsAdjustment'];
+                    $family['lastFeesAndAdjustments'] = $lastFeesAndAdjustments;
+                    $family['currentFeesAndAdjustments'] = $currentFeesAndAdjustments;
                     $familiesWithChanges[] = $family;
                 }
             } else {
                 // No previous snapshot, show all families
                 $family['lastBalance'] = 0;
                 $family['balanceChange'] = $currentBalance;
+                $family['lastTotalFees'] = 0;
+                $family['currentTotalFees'] = $family['totalDept'];
+                $family['lastTotalAdjustments'] = 0;
+                $family['currentTotalAdjustments'] = $family['paymentsAdjustment'];
+                $family['lastFeesAndAdjustments'] = 0;
+                $family['currentFeesAndAdjustments'] = $currentFeesAndAdjustments;
                 $familiesWithChanges[] = $family;
             }
         }
@@ -157,11 +176,44 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
             $color = $balance < 0 ? 'red' : 'green';
             return '<span style="color: ' . $color . ';">' . number_format($balance, 2) . ' €</span>';
         });
+        $table->addColumn('lastTotalFees', __('Last Total Fees'))->format(function ($row) {
+            return number_format($row['lastTotalFees'], 2) . ' €';
+        });
+        $table->addColumn('currentTotalFees', __('Current Total Fees'))->format(function ($row) {
+            return number_format($row['currentTotalFees'], 2) . ' €';
+        });
+        $table->addColumn('lastTotalAdjustments', __('Last Adjustments'))->format(function ($row) {
+            return number_format($row['lastTotalAdjustments'], 2) . ' €';
+        });
+        $table->addColumn('currentTotalAdjustments', __('Current Adjustments'))->format(function ($row) {
+            return number_format($row['currentTotalAdjustments'], 2) . ' €';
+        });
+        $table->addColumn('lastFeesAndAdjustments', __('Last Fees+Adj Sum'))->format(function ($row) {
+            return number_format($row['lastFeesAndAdjustments'], 2) . ' €';
+        });
+        $table->addColumn('currentFeesAndAdjustments', __('Current Fees+Adj Sum'))->format(function ($row) {
+            $value = $row['currentFeesAndAdjustments'];
+            $color = $value < 0 ? 'red' : 'green';
+            return '<span style="color: ' . $color . ';">' . number_format($value, 2) . ' €</span>';
+        });
     } else {
         $table->addColumn('balance', __('Balance'))->format(function ($row) {
             $balance = $row['balance'];
             $color = $balance < 0 ? 'red' : 'green';
             return '<span style="color: ' . $color . ';">' . number_format($balance, 2) . ' €</span>';
+        });
+        $table->addColumn('totalFees', __('Total Fees'))->format(function ($row) {
+            return number_format($row['totalFees'] ?? 0, 2) . ' €';
+        });
+        $table->addColumn('totalAdjustments', __('Adjustments'))->format(function ($row) {
+            return number_format($row['totalAdjustments'] ?? 0, 2) . ' €';
+        });
+        $table->addColumn('feesAndAdjustments', __('Fees+Adj Sum'))->format(function ($row) {
+            $fees = $row['totalFees'] ?? 0;
+            $adjustments = $row['totalAdjustments'] ?? 0;
+            $sum = $fees + $adjustments;
+            $color = $sum < 0 ? 'red' : 'green';
+            return '<span style="color: ' . $color . ';">' . number_format($sum, 2) . ' €</span>';
         });
     }
 
