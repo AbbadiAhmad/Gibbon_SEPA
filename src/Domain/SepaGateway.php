@@ -146,6 +146,17 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query)->fetchAll();
     }
 
+    public function getSEPAByIBAN($iban)
+    {
+        $query = $this->newSelect()
+            ->cols(['gibbonSEPA.*'])
+            ->from('gibbonSEPA')
+            ->where("REPLACE(gibbonSEPA.IBAN, ' ', '') = REPLACE(:iban, ' ', '')")
+            ->bindValue('iban', $iban);
+
+        return $this->runSelect($query)->fetch();
+    }
+
     public function getFamiliesWithoutBankDetails()
     {
         // "SELECT gibbonFamily.gibbonFamilyID as value, name FROM gibbonFamily LEFT JOIN gibbonSEPA ON gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID WHERE gibbonSEPA.gibbonFamilyID is NULL order by name";

@@ -37,11 +37,48 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
     $criteria = $SepaGateway->newQueryCriteria(true)
         ->fromPOST();
 
+    // Display auto-link results if available
+    if (isset($_GET['return'])) {
+        $return = $_GET['return'];
+        if ($return == 'success0') {
+            $linked = $_GET['linked'] ?? 0;
+            $notLinked = $_GET['notLinked'] ?? 0;
+            $multiple = $_GET['multiple'] ?? 0;
+
+            $message = __('Auto-link completed:') . '<br/>';
+            $message .= __('Successfully linked:') . ' ' . $linked . '<br/>';
+            if ($multiple > 0) {
+                $message .= __('Multiple matches found (not linked):') . ' ' . $multiple . '<br/>';
+            }
+            if ($notLinked > 0) {
+                $message .= __('No match found:') . ' ' . $notLinked;
+            }
+
+            if ($linked > 0) {
+                $page->addSuccess($message);
+            } else {
+                $page->addWarning($message);
+            }
+
+            // Clear the results from session
+            unset($_SESSION[$guid]['autoLinkResults']);
+        }
+    }
+
     // QUERY to get unlinked payments
     $unlinkedPayments = $SepaGateway->getUnlinkedPayments($criteria);
 
     // DATA TABLE
     echo '<h2>' . __('View Unlinked Payment Entries') . '</h2>';
+
+    // Add auto-link button if there are unlinked payments
+    if (count($unlinkedPayments) > 0) {
+        echo '<div class="linkTop">';
+        echo '<a class="button" href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_unlinked_payment_autolink_process.php">';
+        echo __('Auto-Link All Payments');
+        echo '</a>';
+        echo '</div>';
+    }
 
     $table = DataTable::createPaginated('UnlinkedPaymentEntries', $criteria);
 
