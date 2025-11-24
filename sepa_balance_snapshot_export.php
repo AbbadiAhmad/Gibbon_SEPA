@@ -60,14 +60,24 @@ if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot
         // Build export data
         foreach ($familyTotals as $family) {
             $currentBalance = $family['balance'];
+            $currentTotalFees = $family['totalDept'];
+            $currentTotalAdjustments = $family['paymentsAdjustment'];
+            $currentFeesAndAdjustments = $currentTotalFees + $currentTotalAdjustments;
+
             $lastBalance = 0;
+            $lastTotalFees = 0;
+            $lastTotalAdjustments = 0;
+            $lastFeesAndAdjustments = 0;
 
             if (isset($snapshotsByFamily[$family['gibbonFamilyID']])) {
                 $lastBalance = $snapshotsByFamily[$family['gibbonFamilyID']]['balance'];
+                $lastTotalFees = $snapshotsByFamily[$family['gibbonFamilyID']]['totalFees'] ?? 0;
+                $lastTotalAdjustments = $snapshotsByFamily[$family['gibbonFamilyID']]['totalAdjustments'] ?? 0;
+                $lastFeesAndAdjustments = $lastTotalFees + $lastTotalAdjustments;
             }
 
-            // Only include families with changes
-            if (abs($currentBalance - $lastBalance) > 0.01 || !isset($snapshotsByFamily[$family['gibbonFamilyID']])) {
+            // Only include families with changes in fees or adjustments
+            if (abs($currentFeesAndAdjustments - $lastFeesAndAdjustments) > 0.01 || !isset($snapshotsByFamily[$family['gibbonFamilyID']])) {
                 // Get SEPA details
                 $FamilySEPA = $SepaGateway->getFamilySEPA($family['gibbonFamilyID']);
                 $sepaInfo = !empty($FamilySEPA) ? $FamilySEPA[0] : null;
@@ -80,7 +90,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot
                     'IBAN' => isset($sepaInfo['IBAN']) ? str_replace(' ', '', $sepaInfo['IBAN']) : '',
                     'SEPA Signed Date' => $sepaInfo['SEPA_signedDate'] ?? '',
                     'Old Balance' => number_format($lastBalance, 2, '.', ''),
-                    'New Balance' => number_format($currentBalance, 2, '.', '')
+                    'New Balance' => number_format($currentBalance, 2, '.', ''),
+                    'Old Total Fees' => number_format($lastTotalFees, 2, '.', ''),
+                    'New Total Fees' => number_format($currentTotalFees, 2, '.', ''),
+                    'Old Total Adjustments' => number_format($lastTotalAdjustments, 2, '.', ''),
+                    'New Total Adjustments' => number_format($currentTotalAdjustments, 2, '.', ''),
+                    'Old Fees+Adjustments Sum' => number_format($lastFeesAndAdjustments, 2, '.', ''),
+                    'New Fees+Adjustments Sum' => number_format($currentFeesAndAdjustments, 2, '.', '')
                 ];
             }
         }
@@ -91,6 +107,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot
 
         foreach ($currentSnapshots as $snapshot) {
             $currentBalance = $snapshot['balance'];
+            $currentTotalFees = $snapshot['totalFees'] ?? 0;
+            $currentTotalAdjustments = $snapshot['totalAdjustments'] ?? 0;
+            $currentFeesAndAdjustments = $currentTotalFees + $currentTotalAdjustments;
 
             // Get previous snapshot for this family
             $previousSnapshot = null;
@@ -108,6 +127,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot
             }
 
             $lastBalance = $previousSnapshot ? $previousSnapshot['balance'] : 0;
+            $lastTotalFees = $previousSnapshot ? ($previousSnapshot['totalFees'] ?? 0) : 0;
+            $lastTotalAdjustments = $previousSnapshot ? ($previousSnapshot['totalAdjustments'] ?? 0) : 0;
+            $lastFeesAndAdjustments = $lastTotalFees + $lastTotalAdjustments;
 
             $exportData[] = [
                 'Family Name' => $snapshot['familyName'],
@@ -117,7 +139,13 @@ if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot
                 'IBAN' => isset($snapshot['IBAN']) ? str_replace(' ', '', $snapshot['IBAN']) : '',
                 'SEPA Signed Date' => $snapshot['snapshotData'] ? (json_decode($snapshot['snapshotData'], true)['sepaInfo']['SEPA_signedDate'] ?? '') : '',
                 'Old Balance' => number_format($lastBalance, 2, '.', ''),
-                'New Balance' => number_format($currentBalance, 2, '.', '')
+                'New Balance' => number_format($currentBalance, 2, '.', ''),
+                'Old Total Fees' => number_format($lastTotalFees, 2, '.', ''),
+                'New Total Fees' => number_format($currentTotalFees, 2, '.', ''),
+                'Old Total Adjustments' => number_format($lastTotalAdjustments, 2, '.', ''),
+                'New Total Adjustments' => number_format($currentTotalAdjustments, 2, '.', ''),
+                'Old Fees+Adjustments Sum' => number_format($lastFeesAndAdjustments, 2, '.', ''),
+                'New Fees+Adjustments Sum' => number_format($currentFeesAndAdjustments, 2, '.', '')
             ];
         }
     }

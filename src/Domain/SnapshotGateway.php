@@ -92,6 +92,8 @@ class SnapshotGateway extends QueryableGateway
                 'snap.academicYear',
                 'snap.snapshotDate',
                 'snap.balance',
+                'snap.totalFees',
+                'snap.totalAdjustments',
                 'snap.snapshotData',
                 'snap.gibbonPersonID',
                 'snap.timestamp',
