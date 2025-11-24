@@ -19,6 +19,43 @@ class SepaGateway extends QueryableGateway
     private static $primaryKey = 'gibbonSEPAID'; //The primaryKey of said table
     private static $searchableColumns = ['payer', 'IBAN', 'customData']; // Optional: Array of Columns to be searched when using the search filter
 
+    /**
+     * Mask IBAN to show only first 2 characters + 4 asterisks + last 3 characters
+     * Returns NULL if IBAN is too short (less than 5 characters) or empty
+     *
+     * @param string|null $iban The IBAN to mask
+     * @return string|null Masked IBAN (e.g., "DE****678") or NULL
+     */
+    public function maskIBAN($iban)
+    {
+        if (empty($iban)) {
+            return null;
+        }
+
+        // Remove spaces and convert to uppercase
+        $iban = strtoupper(str_replace(' ', '', $iban));
+
+        // If IBAN is too short (less than 5 characters), return NULL
+        if (strlen($iban) < 5) {
+            return null;
+        }
+
+        // Return first 2 + 4 asterisks + last 3
+        return substr($iban, 0, 2) . '****' . substr($iban, -3);
+    }
+
+    /**
+     * Mask BIC - always returns NULL as per security requirements
+     * BIC will not be stored in the database
+     *
+     * @param string|null $bic The BIC code (ignored)
+     * @return null Always returns NULL
+     */
+    public function maskBIC($bic)
+    {
+        return null;
+    }
+
     public function getSEPAList(QueryCriteria $criteria, $gibbonSEPAIDs)
     {
         $gibbonSEPAIDList = is_array($gibbonSEPAIDs) ? implode(',', $gibbonSEPAIDs) : $gibbonSEPAIDs;
@@ -257,8 +294,8 @@ class SepaGateway extends QueryableGateway
                 ->cols([
                     'gibbonFamilyID' => $familyID,
                     'payer' => $sepaData['payer'],
-                    'IBAN' => $sepaData['IBAN'],
-                    'BIC' => $sepaData['BIC'],
+                    'IBAN' => $this->maskIBAN($sepaData['IBAN'] ?? null),
+                    'BIC' => $this->maskBIC($sepaData['BIC'] ?? null),
                     'SEPA_signedDate' => $sepaData['SEPA_signedDate'],
                     'note' => $sepaData['note'],
                 ]);
@@ -320,7 +357,7 @@ class SepaGateway extends QueryableGateway
             ->cols([
                 'booking_date' => $paymentData['booking_date'],
                 'payer' => $paymentData['payer'],
-                'IBAN' => $paymentData['IBAN'],
+                'IBAN' => $this->maskIBAN($paymentData['IBAN'] ?? null),
                 'transaction_reference' => $paymentData['transaction_reference'],
                 'transaction_message' => $paymentData['transaction_message'],
                 'amount' => $paymentData['amount'],
@@ -343,7 +380,7 @@ class SepaGateway extends QueryableGateway
             ->cols([
                 'booking_date' => $paymentData['booking_date'],
                 'payer' => $paymentData['payer'],
-                'IBAN' => $paymentData['IBAN'],
+                'IBAN' => $this->maskIBAN($paymentData['IBAN'] ?? null),
                 'transaction_reference' => $paymentData['transaction_reference'],
                 'transaction_message' => $paymentData['transaction_message'],
                 'amount' => $paymentData['amount'],
@@ -650,8 +687,8 @@ class SepaGateway extends QueryableGateway
             ->table('gibbonSEPA')
             ->cols([
                 'payer' => $sepaData['payer'],
-                'IBAN' => $sepaData['IBAN'],
-                'BIC' => $sepaData['BIC'],
+                'IBAN' => $this->maskIBAN($sepaData['IBAN'] ?? null),
+                'BIC' => $this->maskBIC($sepaData['BIC'] ?? null),
                 'SEPA_signedDate' => $sepaData['SEPA_signedDate'],
                 'note' => $sepaData['note']
             ])

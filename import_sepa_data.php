@@ -227,6 +227,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         if (!empty($validData)) {
             echo "<h3>" . __('Import Preview') . "</h3>";
             echo "<p>" . __('Review the records below and select which existing records to update.') . "</p>";
+            echo "<div class='warning' style='margin-bottom: 15px;'>";
+            echo "<strong>" . __('Security Notice:') . "</strong> ";
+            echo __('IBANs will be automatically masked before storage (format: XX****XXX). Full IBAN data shown below will NOT be saved to the database. BIC codes will NOT be stored.');
+            echo "</div>";
 
             // Start form
             $form = Form::create('importStep3', $StepLink . '4');

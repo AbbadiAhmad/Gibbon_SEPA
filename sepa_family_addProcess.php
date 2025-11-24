@@ -22,6 +22,7 @@ use Gibbon\Data\Validator;
 include '../../gibbon.php';
 include './moduleFunctions.php';
 use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
+use Gibbon\Module\Sepa\Domain\SepaGateway;
 
 
 $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -61,7 +62,12 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_add.php'
         exit;
     } else {
         try {
-            $data = array('gibbonFamilyID' => $gibbonFamilyID, 'payer' => $payer, 'IBAN' => $IBAN, 'BIC' => $BIC, 'SEPA_signedDate' => $SEPA_signedDate, 'note' => $note, 'customData' => $customData);
+            // Mask IBAN and BIC before storage
+            $sepaGateway = $container->get(SepaGateway::class);
+            $maskedIBAN = $sepaGateway->maskIBAN($IBAN);
+            $maskedBIC = $sepaGateway->maskBIC($BIC);
+
+            $data = array('gibbonFamilyID' => $gibbonFamilyID, 'payer' => $payer, 'IBAN' => $maskedIBAN, 'BIC' => $maskedBIC, 'SEPA_signedDate' => $SEPA_signedDate, 'note' => $note, 'customData' => $customData);
             $sql = "INSERT INTO gibbonSEPA SET gibbonFamilyID=:gibbonFamilyID, payer=:payer, IBAN=:IBAN, BIC=:BIC, SEPA_signedDate=:SEPA_signedDate, note=:note, customData=:customData";
             $result = $connection2->prepare($sql);
             $result->execute($data);
