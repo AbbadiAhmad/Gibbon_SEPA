@@ -51,11 +51,10 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
     $table->addColumn('transaction_message', __('Message'));
     
     $table->addActionColumn()
-        ->addParam('payer')
-        ->addParam('IBAN')
+        ->addParam('gibbonSEPAPaymentRecordID')
         ->format(function ($row, $actions) {
             $actions->addAction('Add', __(''))
-                ->setURL('/modules/Sepa/sepa_family_add.php');
+                ->setURL('/modules/Sepa/sepa_payment_edit.php');
         });
 
     echo $table->render($unlinkedPayments);

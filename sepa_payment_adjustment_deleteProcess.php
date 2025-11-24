@@ -28,7 +28,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
 
     $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
-    $deleted = $adjustmentGateway->deletePaymentAdjustment($gibbonSEPAPaymentAdjustmentID);
+    $deleted = $adjustmentGateway->deleteAdjustment($gibbonSEPAPaymentAdjustmentID);
 
     if ($deleted) {
         if (!empty($family_details)) {
