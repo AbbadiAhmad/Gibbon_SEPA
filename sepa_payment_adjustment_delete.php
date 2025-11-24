@@ -35,7 +35,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
 
     $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
-    $payment_adjustment = $adjustmentGateway->getPaymentAdjustmentByID($gibbonSEPAPaymentAdjustmentID);
+    $payment_adjustment = $adjustmentGateway->getAdjustmentByID($gibbonSEPAPaymentAdjustmentID);
 
     if (empty($payment_adjustment)) {
         $page->addError(__('The specified payment_adjustment cannot be found.'));
