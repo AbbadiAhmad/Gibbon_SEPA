@@ -297,7 +297,7 @@ $actionRows[] = [
 // Action rows
 $actionRows[] = [
     'name' => 'Update Courses Fee',
-    'precedence' => '10',
+    'precedence' => '11',
     'category' => 'Courses',
     'description' => 'Courses Fee',
     'URLList' => 'sepa_courses_fee_view.php',
@@ -309,7 +309,7 @@ $actionRows[] = [
     'defaultPermissionStudent' => 'N', // Default permission for built in role Student
     'defaultPermissionParent' => 'N', // Default permission for built in role Parent
     'defaultPermissionSupport' => 'N', // Default permission for built in role Support
-    'categoryPermissionStaff' => 'N', // Should this action be available to user roles in the Staff category?
+    'categoryPermissionStaff' => 'Y', // Should this action be available to user roles in the Staff category?
     'categoryPermissionStudent' => 'N', // Should this action be available to user roles in the Student category?
     'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
     'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
@@ -317,7 +317,7 @@ $actionRows[] = [
 
 $actionRows[] = [
     'name' => 'Family Balance',
-    'precedence' => '11',
+    'precedence' => '12',
     'category' => 'Reports',
     'description' => 'View family totals including dept and payments',
     'URLList' => 'sepa_family_totals.php',
@@ -337,7 +337,7 @@ $actionRows[] = [
 
 $actionRows[] = [
     'name' => 'Child Enrollment Details',
-    'precedence' => '12',
+    'precedence' => '13',
     'category' => 'Reports',
     'description' => 'View child enrollment details and fees',
     'URLList' => 'sepa_child_enrollment_details.php',
