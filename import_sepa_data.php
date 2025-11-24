@@ -234,7 +234,9 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             echo "<table class='fullWidth standardForm' cellspacing='0'>";
             echo "<thead>";
             echo "<tr>";
-            echo "<th style='width: 5%;'>" . __('Update') . "</th>";
+            echo "<th style='width: 5%; text-align: center;'>";
+            echo "<input type='checkbox' id='selectAll' title='" . __('Select All') . "' />";
+            echo "</th>";
             echo "<th style='width: 10%;'>" . __('Status') . "</th>";
             echo "<th style='width: 5%;'>" . __('Row') . "</th>";
             echo "<th style='width: 20%;'>" . __('Payer') . "</th>";
@@ -313,6 +315,16 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
             echo "</tbody>";
             echo "</table>";
+
+            // Add JavaScript for select all functionality
+            echo "<script>
+            document.getElementById('selectAll').addEventListener('change', function() {
+                var checkboxes = document.getElementsByName('updateRecords[]');
+                for (var i = 0; i < checkboxes.length; i++) {
+                    checkboxes[i].checked = this.checked;
+                }
+            });
+            </script>";
 
             echo "<div class='success' style='margin-top: 20px;'>";
             echo "<strong>" . __('Summary:') . "</strong><br/>";
