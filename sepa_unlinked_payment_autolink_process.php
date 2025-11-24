@@ -45,54 +45,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
     $results = [];
 
     foreach ($unlinkedPayments as $payment) {
-        $matchedSEPA = null;
-        $matchMethod = '';
+        // Match by payer name only (IBANs are masked, so not reliable for matching)
+        $matches = !empty($payment['payer'])
+            ? $SepaGateway->getSEPAForPaymentEntry($payment)
+            : [];
 
-        // Strategy: Match by payer name first, use masked IBAN as secondary filter if needed
-        // Note: IBANs are stored in masked format (XX****XXX), so IBAN-only matching may be ambiguous
-
-        if (!empty($payment['payer'])) {
-            // Primary: Match by payer name
-            $matches = $SepaGateway->getSEPAForPaymentEntry($payment);
-
-            if (count($matches) == 1) {
-                // Single payer match found
-                $matchedSEPA = $matches[0];
-                $matchMethod = 'Payer Name';
-
-                // Verify with IBAN if both payment and matched record have IBANs
-                if (!empty($payment['IBAN']) && !empty($matchedSEPA['IBAN'])) {
-                    $matchMethod = ($SepaGateway->maskIBAN($payment['IBAN']) === $matchedSEPA['IBAN'])
-                        ? 'Payer Name + IBAN'
-                        : 'Payer Name (IBAN mismatch)';
-                }
-            } elseif (count($matches) > 1 && !empty($payment['IBAN'])) {
-                // Multiple payer matches - try to narrow down using masked IBAN
-                $paymentMaskedIBAN = $SepaGateway->maskIBAN($payment['IBAN']);
-                $filtered = array_filter($matches, function($m) use ($paymentMaskedIBAN) {
-                    return !empty($m['IBAN']) && $m['IBAN'] === $paymentMaskedIBAN;
-                });
-
-                if (count($filtered) == 1) {
-                    $matchedSEPA = reset($filtered);
-                    $matchMethod = 'Payer Name + IBAN';
-                }
-            }
-        } elseif (!empty($payment['IBAN'])) {
-            // Fallback: No payer name, try IBAN-only matching (may be ambiguous with masking)
-            $matches = $SepaGateway->getSEPAByIBAN($SepaGateway->maskIBAN($payment['IBAN']));
-
-            if (count($matches) == 1) {
-                $matchedSEPA = $matches[0];
-                $matchMethod = 'IBAN only';
-            }
-        }
-
-        // Process the match result
-        if ($matchedSEPA) {
-            // Attempt to link the payment
+        if (count($matches) == 1) {
+            // Exactly one match - link the payment
             $updateData = [
-                'gibbonSEPAID' => $matchedSEPA['gibbonSEPAID'],
+                'gibbonSEPAID' => $matches[0]['gibbonSEPAID'],
                 'payer' => $payment['payer'],
                 'IBAN' => $payment['IBAN'],
                 'transaction_reference' => $payment['transaction_reference'],
@@ -110,7 +71,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
                     'payer' => $payment['payer'],
                     'amount' => $payment['amount'],
                     'status' => 'Successfully linked',
-                    'method' => $matchMethod
+                    'method' => 'Payer Name'
                 ];
             } else {
                 $notLinkedCount++;
@@ -118,26 +79,26 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
                     'payer' => $payment['payer'],
                     'amount' => $payment['amount'],
                     'status' => 'Update failed',
-                    'method' => $matchMethod
+                    'method' => 'Error'
                 ];
             }
-        } else {
-            // No unique match found - determine why
-            $status = 'No match found';
-
-            if (!empty($payment['payer'])) {
-                $matchCount = count($SepaGateway->getSEPAForPaymentEntry($payment));
-                if ($matchCount > 1) {
-                    $status = 'Multiple matches found';
-                    $multipleMatchesCount++;
-                }
-            }
-
+        } elseif (count($matches) > 1) {
+            // Multiple matches - cannot auto-link
+            $multipleMatchesCount++;
             $notLinkedCount++;
             $results[] = [
                 'payer' => $payment['payer'],
                 'amount' => $payment['amount'],
-                'status' => $status,
+                'status' => 'Multiple matches found',
+                'method' => 'None'
+            ];
+        } else {
+            // No match found
+            $notLinkedCount++;
+            $results[] = [
+                'payer' => $payment['payer'],
+                'amount' => $payment['amount'],
+                'status' => 'No match found',
                 'method' => 'None'
             ];
         }
