@@ -40,8 +40,17 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
     {
         $query = $this
             ->newQuery()
-            ->cols(['*'])
+            ->cols([
+                'gibbonSEPAPaymentAdjustment.*',
+                'gibbonFamily.name as familyName',
+                'gibbonSchoolYear.name as yearName',
+                'gibbonSEPAPaymentAdjustment.gibbonPersonID'
+            ])
             ->from($this->getTableName())
+            ->leftJoin('gibbonSEPA', 'gibbonSEPAPaymentAdjustment.gibbonSEPAID = gibbonSEPA.gibbonSEPAID')
+            ->leftJoin('gibbonFamily', 'gibbonSEPA.gibbonFamilyID = gibbonFamily.gibbonFamilyID')
+            ->leftJoin('gibbonSchoolYear', 'gibbonSEPAPaymentAdjustment.academicYear = gibbonSchoolYear.gibbonSchoolYearID')
+            //->leftJoin('gibbonPerson', 'gibbonSEPAPaymentAdjustment.gibbonPersonID = gibbonPerson.gibbonPersonID')
         ;
 
         if ($criteria) {
@@ -78,7 +87,7 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
                 'description' => $data['description'],
                 'note' => $data['note'],
                 'academicYear' => $data['academicYear'],
-                'gibbonPersonID'=> $username
+                'gibbonPersonID' => $username
             ])
             ->where('gibbonSEPAPaymentAdjustmentID = :gibbonSEPAPaymentAdjustmentID')
             ->bindValue('gibbonSEPAPaymentAdjustmentID', $gibbonSEPAPaymentAdjustmentID);
