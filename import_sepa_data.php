@@ -225,28 +225,30 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
         // Display preview table
         if (!empty($validData)) {
-            $form = Form::create('importStep3', $StepLink . '4');
-            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
-
             echo "<h3>" . __('Import Preview') . "</h3>";
             echo "<p>" . __('Review the records below and select which existing records to update.') . "</p>";
 
-            echo "<table class='fullWidth standardForm' cellspacing='0'>";
-            echo "<thead>";
-            echo "<tr>";
-            echo "<th style='width: 5%; text-align: center;'>";
-            echo "<input type='checkbox' id='selectAll' title='" . __('Select All') . "' />";
-            echo "</th>";
-            echo "<th style='width: 10%;'>" . __('Status') . "</th>";
-            echo "<th style='width: 5%;'>" . __('Row') . "</th>";
-            echo "<th style='width: 20%;'>" . __('Payer') . "</th>";
-            echo "<th style='width: 15%;'>" . __('IBAN') . "</th>";
-            echo "<th style='width: 10%;'>" . __('BIC') . "</th>";
-            echo "<th style='width: 15%;'>" . __('Signed Date') . "</th>";
-            echo "<th style='width: 20%;'>" . __('Note') . "</th>";
-            echo "</tr>";
-            echo "</thead>";
-            echo "<tbody>";
+            // Start form
+            $form = Form::create('importStep3', $StepLink . '4');
+            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+
+            // Add raw HTML for the table
+            $tableHTML = "<table class='fullWidth standardForm' cellspacing='0'>";
+            $tableHTML .= "<thead>";
+            $tableHTML .= "<tr>";
+            $tableHTML .= "<th style='width: 5%; text-align: center;'>";
+            $tableHTML .= "<input type='checkbox' id='selectAll' title='" . __('Select All') . "' />";
+            $tableHTML .= "</th>";
+            $tableHTML .= "<th style='width: 10%;'>" . __('Status') . "</th>";
+            $tableHTML .= "<th style='width: 5%;'>" . __('Row') . "</th>";
+            $tableHTML .= "<th style='width: 20%;'>" . __('Payer') . "</th>";
+            $tableHTML .= "<th style='width: 15%;'>" . __('IBAN') . "</th>";
+            $tableHTML .= "<th style='width: 10%;'>" . __('BIC') . "</th>";
+            $tableHTML .= "<th style='width: 15%;'>" . __('Signed Date') . "</th>";
+            $tableHTML .= "<th style='width: 20%;'>" . __('Note') . "</th>";
+            $tableHTML .= "</tr>";
+            $tableHTML .= "</thead>";
+            $tableHTML .= "<tbody>";
 
             $newCount = 0;
             $existingCount = 0;
@@ -282,42 +284,42 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                         break;
                 }
 
-                echo "<tr>";
-                echo "<td style='text-align: center;'>";
+                $tableHTML .= "<tr>";
+                $tableHTML .= "<td style='text-align: center;'>";
                 if ($showCheckbox) {
-                    echo "<input type='checkbox' name='updateRecords[]' value='{$index}' />";
+                    $tableHTML .= "<input type='checkbox' name='updateRecords[]' value='{$index}' />";
                 } else {
-                    echo "-";
+                    $tableHTML .= "-";
                 }
-                echo "</td>";
-                echo "<td style='color: {$statusColor}; font-weight: bold;'>{$statusText}</td>";
-                echo "<td>{$record['__RowNumberInExcelFile__']}</td>";
-                echo "<td>{$record['payer']}</td>";
-                echo "<td>{$record['IBAN']}</td>";
-                echo "<td>{$record['BIC']}</td>";
-                echo "<td>{$record['SEPA_signedDate']}</td>";
-                echo "<td>{$record['note']}</td>";
-                echo "</tr>";
+                $tableHTML .= "</td>";
+                $tableHTML .= "<td style='color: {$statusColor}; font-weight: bold;'>{$statusText}</td>";
+                $tableHTML .= "<td>{$record['__RowNumberInExcelFile__']}</td>";
+                $tableHTML .= "<td>{$record['payer']}</td>";
+                $tableHTML .= "<td>{$record['IBAN']}</td>";
+                $tableHTML .= "<td>{$record['BIC']}</td>";
+                $tableHTML .= "<td>{$record['SEPA_signedDate']}</td>";
+                $tableHTML .= "<td>{$record['note']}</td>";
+                $tableHTML .= "</tr>";
 
                 // Show existing data for comparison if status is existing
                 if ($record['__Status__'] === 'existing' && !empty($record['__ExistingData__'])) {
                     $existing = $record['__ExistingData__'];
-                    echo "<tr style='background-color: #f5f5f5; font-style: italic;'>";
-                    echo "<td colspan='3' style='text-align: right; padding-right: 10px;'>" . __('Current Data:') . "</td>";
-                    echo "<td>{$existing['payer']}</td>";
-                    echo "<td>{$existing['IBAN']}</td>";
-                    echo "<td>{$existing['BIC']}</td>";
-                    echo "<td>{$existing['SEPA_signedDate']}</td>";
-                    echo "<td>{$existing['note']}</td>";
-                    echo "</tr>";
+                    $tableHTML .= "<tr style='background-color: #f5f5f5; font-style: italic;'>";
+                    $tableHTML .= "<td colspan='3' style='text-align: right; padding-right: 10px;'>" . __('Current Data:') . "</td>";
+                    $tableHTML .= "<td>{$existing['payer']}</td>";
+                    $tableHTML .= "<td>{$existing['IBAN']}</td>";
+                    $tableHTML .= "<td>{$existing['BIC']}</td>";
+                    $tableHTML .= "<td>{$existing['SEPA_signedDate']}</td>";
+                    $tableHTML .= "<td>{$existing['note']}</td>";
+                    $tableHTML .= "</tr>";
                 }
             }
 
-            echo "</tbody>";
-            echo "</table>";
+            $tableHTML .= "</tbody>";
+            $tableHTML .= "</table>";
 
             // Add JavaScript for select all functionality
-            echo "<script>
+            $tableHTML .= "<script>
             document.getElementById('selectAll').addEventListener('change', function() {
                 var checkboxes = document.getElementsByName('updateRecords[]');
                 for (var i = 0; i < checkboxes.length; i++) {
@@ -326,12 +328,16 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             });
             </script>";
 
-            echo "<div class='success' style='margin-top: 20px;'>";
-            echo "<strong>" . __('Summary:') . "</strong><br/>";
-            echo __('New records:') . " {$newCount}<br/>";
-            echo __('Existing records:') . " {$existingCount}<br/>";
-            echo __('Errors:') . " {$errorCount}<br/>";
-            echo "</div>";
+            $tableHTML .= "<div class='success' style='margin-top: 20px;'>";
+            $tableHTML .= "<strong>" . __('Summary:') . "</strong><br/>";
+            $tableHTML .= __('New records:') . " {$newCount}<br/>";
+            $tableHTML .= __('Existing records:') . " {$existingCount}<br/>";
+            $tableHTML .= __('Errors:') . " {$errorCount}<br/>";
+            $tableHTML .= "</div>";
+
+            // Add table as a custom row
+            $row = $form->addRow();
+            $row->addContent($tableHTML);
 
             $row = $form->addRow();
             $row->addFooter();
@@ -351,8 +357,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         try {
             $SepaGateway = $container->get(SepaGateway::class);
 
-            // Get selected records to update
-            $updateRecords = $_POST['updateRecords'] ?? [];
+            // Get selected records to update (convert to integers for comparison)
+            $updateRecords = array_map('intval', $_POST['updateRecords'] ?? []);
 
             $insertedCount = 0;
             $updatedCount = 0;
