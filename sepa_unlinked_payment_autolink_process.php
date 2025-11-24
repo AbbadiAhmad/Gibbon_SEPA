@@ -48,42 +48,80 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
         $matchedSEPA = null;
         $matchMethod = '';
 
-        // Try to match by IBAN first
-        if (!empty($payment['IBAN'])) {
-            $ibanMatches = $SepaGateway->getSEPAByIBAN($payment['IBAN']);
+        // IMPORTANT: Since IBANs are now masked (XX****XXX format), we prioritize payer name matching
+        // Multiple different full IBANs can have the same masked format, making IBAN-only matching unreliable
 
-            if (count($ibanMatches) == 1) {
-                // Exactly one IBAN match - use it
-                $matchedSEPA = $ibanMatches[0];
-                $matchMethod = 'IBAN';
-            } elseif (count($ibanMatches) > 1) {
-                // Multiple IBAN matches - cannot auto-link
-                $multipleMatchesCount++;
-                $results[] = [
-                    'payer' => $payment['payer'],
-                    'amount' => $payment['amount'],
-                    'status' => 'Multiple matches found',
-                    'method' => 'IBAN'
-                ];
-                continue;
+        // Try to match by payer name first (most reliable for masked IBANs)
+        if (!empty($payment['payer'])) {
+            $payerMatches = $SepaGateway->getSEPAForPaymentEntry($payment);
+
+            if (count($payerMatches) == 1) {
+                // Exactly one payer match - use it
+                $matchedSEPA = $payerMatches[0];
+                $matchMethod = 'Payer Name';
+
+                // Optional: Verify masked IBAN also matches if available (for extra confidence)
+                if (!empty($payment['IBAN']) && !empty($matchedSEPA['IBAN'])) {
+                    $paymentMaskedIBAN = $SepaGateway->maskIBAN($payment['IBAN']);
+                    if ($paymentMaskedIBAN === $matchedSEPA['IBAN']) {
+                        $matchMethod = 'Payer Name + IBAN';
+                    } else {
+                        // Payer matches but IBAN doesn't - add warning
+                        $matchMethod = 'Payer Name (IBAN mismatch)';
+                    }
+                }
+            } elseif (count($payerMatches) > 1) {
+                // Multiple payer matches - try to narrow down by masked IBAN
+                if (!empty($payment['IBAN'])) {
+                    $paymentMaskedIBAN = $SepaGateway->maskIBAN($payment['IBAN']);
+                    $ibanFilteredMatches = array_filter($payerMatches, function($match) use ($paymentMaskedIBAN) {
+                        return $match['IBAN'] === $paymentMaskedIBAN;
+                    });
+
+                    if (count($ibanFilteredMatches) == 1) {
+                        // Narrowed down to one match using both payer and IBAN
+                        $matchedSEPA = reset($ibanFilteredMatches);
+                        $matchMethod = 'Payer Name + IBAN';
+                    } else {
+                        // Still multiple matches even with IBAN filter
+                        $multipleMatchesCount++;
+                        $results[] = [
+                            'payer' => $payment['payer'],
+                            'amount' => $payment['amount'],
+                            'status' => 'Multiple matches found (Payer + IBAN)',
+                            'method' => 'Payer Name + IBAN'
+                        ];
+                        continue;
+                    }
+                } else {
+                    // Multiple payer matches and no IBAN to filter
+                    $multipleMatchesCount++;
+                    $results[] = [
+                        'payer' => $payment['payer'],
+                        'amount' => $payment['amount'],
+                        'status' => 'Multiple matches found',
+                        'method' => 'Payer Name'
+                    ];
+                    continue;
+                }
             }
         }
 
-        // If no IBAN match, try to match by payer name
-        if (!$matchedSEPA && !empty($payment['payer'])) {
-            $matches = $SepaGateway->getSEPAForPaymentEntry($payment);
+        // Fallback: If no payer, try IBAN-only matching (less reliable with masking)
+        if (!$matchedSEPA && !empty($payment['IBAN'])) {
+            $paymentMaskedIBAN = $SepaGateway->maskIBAN($payment['IBAN']);
+            $ibanMatches = $SepaGateway->getSEPAByIBAN($paymentMaskedIBAN);
 
-            if (count($matches) == 1) {
-                $matchedSEPA = $matches[0];
-                $matchMethod = 'Payer Name';
-            } elseif (count($matches) > 1) {
-                // Multiple matches - cannot auto-link
+            if (count($ibanMatches) == 1) {
+                $matchedSEPA = $ibanMatches[0];
+                $matchMethod = 'IBAN only (masked)';
+            } elseif (count($ibanMatches) > 1) {
                 $multipleMatchesCount++;
                 $results[] = [
                     'payer' => $payment['payer'],
                     'amount' => $payment['amount'],
-                    'status' => 'Multiple matches found',
-                    'method' => 'Payer Name'
+                    'status' => 'Multiple matches found (masked IBAN ambiguous)',
+                    'method' => 'IBAN only'
                 ];
                 continue;
             }

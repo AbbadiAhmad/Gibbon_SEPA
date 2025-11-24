@@ -183,6 +183,18 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query)->fetchAll();
     }
 
+    /**
+     * Get SEPA records by IBAN
+     *
+     * IMPORTANT: Since IBANs are now stored in masked format (XX****XXX),
+     * this method searches for masked IBANs. Multiple different full IBANs
+     * may have the same masked format, so this can return multiple results.
+     *
+     * Recommendation: Use in combination with payer name matching for better accuracy.
+     *
+     * @param string $iban The IBAN to search for (will be masked before comparison)
+     * @return array Array of matching SEPA records (may be multiple)
+     */
     public function getSEPAByIBAN($iban)
     {
         $query = $this->newSelect()
