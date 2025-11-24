@@ -49,9 +49,6 @@ $moduleTables[] = "
         (`title`, `active`, `description`, `type`, `options`, `required`, `heading`, `sequenceNumber`)
     VALUES
         ('SEPA Archive ID', 'Y', 'SEPA ID in the paper form', 'varchar', '15', 'N', 'SEPA', 1);
-        ('SEPA Owner Address', 'Y', 'Der Strasse des SEPA-Kontoinhabers', 'varchar', '100', 'N', 'SEPA', 2),
-        ('SEPA Owner Zip/City/Country', 'Y', 'Der Postzal Stadt, Land des SEPA-Kontoinhabers', 'varchar', '150', 'N', 'SEPA', 3),
-        ('SEPA Owner Phone', 'Y', 'Der Telefone des SEPA-Kontoinhabers', 'varchar', '15', 'N', 'SEPA', 4);
     ";
 
 $moduleTables[] = "
