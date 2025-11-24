@@ -452,6 +452,13 @@ class SepaGateway extends QueryableGateway
             ->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
             ->bindValue('schoolYearID', $schoolYearID);
 
+        // Apply search for student name if search term is provided
+        $search = $criteria->getSearchText();
+        if (!empty($search)) {
+            $query->where('(gibbonPerson.preferredName LIKE :search OR gibbonPerson.surname LIKE :search OR CONCAT(gibbonPerson.preferredName, " ", gibbonPerson.surname) LIKE :search)')
+                ->bindValue('search', '%' . $search . '%');
+        }
+
         $res = $this->runQuery($query, $criteria);
         return $res;
 
