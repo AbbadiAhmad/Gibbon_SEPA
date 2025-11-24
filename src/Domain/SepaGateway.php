@@ -452,6 +452,13 @@ class SepaGateway extends QueryableGateway
             ->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
             ->bindValue('schoolYearID', $schoolYearID);
 
+        // Apply search for student name if search term is provided
+        $search = $criteria->getSearchText();
+        if (!empty($search)) {
+            $query->where('(gibbonPerson.preferredName LIKE :search OR gibbonPerson.surname LIKE :search OR CONCAT(gibbonPerson.preferredName, " ", gibbonPerson.surname) LIKE :search)')
+                ->bindValue('search', '%' . $search . '%');
+        }
+
         $res = $this->runQuery($query, $criteria);
         return $res;
 
@@ -619,6 +626,53 @@ class SepaGateway extends QueryableGateway
 
         $result = $this->runSelect($query)->fetch();
         return $result['totalPayments'] ?? 0;
+    }
+
+    public function getSEPAByUserID($userID)
+    {
+        $familyIDs = $this->getfamilyPerPerson($userID);
+        $result = [];
+
+        foreach ($familyIDs as $familyID) {
+            $sepaData = $this->getFamilySEPA($familyID);
+            if (!empty($sepaData)) {
+                $result = array_merge($result, $sepaData);
+            }
+        }
+
+        return $result;
+    }
+
+    public function updateSEPAByFamilyID($gibbonFamilyID, $sepaData)
+    {
+        $query = $this
+            ->newUpdate()
+            ->table('gibbonSEPA')
+            ->cols([
+                'payer' => $sepaData['payer'],
+                'IBAN' => $sepaData['IBAN'],
+                'BIC' => $sepaData['BIC'],
+                'SEPA_signedDate' => $sepaData['SEPA_signedDate'],
+                'note' => $sepaData['note']
+            ])
+            ->where('gibbonFamilyID = :gibbonFamilyID')
+            ->bindValue('gibbonFamilyID', $gibbonFamilyID);
+
+        return $this->runUpdate($query);
+    }
+
+    public function updateSEPAByUserID($userID, $sepaData)
+    {
+        $familyIDs = $this->getfamilyPerPerson($userID);
+        $result = [];
+
+        foreach ($familyIDs as $familyID) {
+            if ($this->getFamilySEPA($familyID)) {
+                $result[] = $this->updateSEPAByFamilyID($familyID, $sepaData);
+            }
+        }
+
+        return $result;
     }
 
 }

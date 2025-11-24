@@ -160,6 +160,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         // Perform dry run validation
         $errors = [];
         $validData = [];
+        $SepaGateway = $container->get(SepaGateway::class);
 
         foreach ($data as $rowIndex => $row) {
             if ($rowIndex === 0)
@@ -185,6 +186,26 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                 if (!empty($mappedRow['SEPA_signedDate']))
                     $mappedRow['SEPA_signedDate'] = DateTime::createFromFormat($dateFormat, $mappedRow['SEPA_signedDate'])->format('Y-m-d');
 
+                // Check if record exists
+                $userID = $SepaGateway->getUserID($mappedRow['payer']);
+                $mappedRow['__UserID__'] = $userID;
+                $mappedRow['__Status__'] = 'error';
+                $mappedRow['__ExistingData__'] = null;
+
+                if (count($userID) === 1) {
+                    $existingSEPA = $SepaGateway->getSEPAByUserID($userID[0]);
+                    if (!empty($existingSEPA)) {
+                        $mappedRow['__Status__'] = 'existing';
+                        $mappedRow['__ExistingData__'] = $existingSEPA[0];
+                    } else {
+                        $mappedRow['__Status__'] = 'new';
+                    }
+                } elseif (count($userID) === 0) {
+                    $mappedRow['__Status__'] = 'user_not_found';
+                } else {
+                    $mappedRow['__Status__'] = 'multiple_users';
+                }
+
                 $validData[] = $mappedRow;
             }
 
@@ -198,23 +219,132 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             echo "<ul><li>" . implode("</li><li>", $errors) . "</li></ul>";
             echo "</div>";
         }
-        if (!empty($validData)) {
-            echo "<div class='success'>";
-            echo __(count($validData) . ' Rows are ready for import.');
-            echo "</div>";
-        }
 
         // Store valid data for final step
         $_SESSION[$guid]['sepaValidData'] = $validData;
 
-        $form = Form::create('importStep3', $StepLink . '4');
-        $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+        // Display preview table
+        if (!empty($validData)) {
+            echo "<h3>" . __('Import Preview') . "</h3>";
+            echo "<p>" . __('Review the records below and select which existing records to update.') . "</p>";
 
-        $row = $form->addRow();
-        $row->addFooter();
-        $row->addSubmit(__('Proceed to Import'));
+            // Start form
+            $form = Form::create('importStep3', $StepLink . '4');
+            $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
-        echo $form->getOutput();
+            // Add raw HTML for the table
+            $tableHTML = "<table class='fullWidth standardForm' cellspacing='0'>";
+            $tableHTML .= "<thead>";
+            $tableHTML .= "<tr>";
+            $tableHTML .= "<th style='width: 5%; text-align: center;'>";
+            $tableHTML .= "<input type='checkbox' id='selectAll' title='" . __('Select All') . "' />";
+            $tableHTML .= "</th>";
+            $tableHTML .= "<th style='width: 10%;'>" . __('Status') . "</th>";
+            $tableHTML .= "<th style='width: 5%;'>" . __('Row') . "</th>";
+            $tableHTML .= "<th style='width: 20%;'>" . __('Payer') . "</th>";
+            $tableHTML .= "<th style='width: 15%;'>" . __('IBAN') . "</th>";
+            $tableHTML .= "<th style='width: 10%;'>" . __('BIC') . "</th>";
+            $tableHTML .= "<th style='width: 15%;'>" . __('Signed Date') . "</th>";
+            $tableHTML .= "<th style='width: 20%;'>" . __('Note') . "</th>";
+            $tableHTML .= "</tr>";
+            $tableHTML .= "</thead>";
+            $tableHTML .= "<tbody>";
+
+            $newCount = 0;
+            $existingCount = 0;
+            $errorCount = 0;
+
+            foreach ($validData as $index => $record) {
+                $rowClass = '';
+                $statusText = '';
+                $statusColor = '';
+                $showCheckbox = false;
+
+                switch ($record['__Status__']) {
+                    case 'new':
+                        $statusText = __('New');
+                        $statusColor = 'green';
+                        $newCount++;
+                        break;
+                    case 'existing':
+                        $statusText = __('Existing');
+                        $statusColor = 'orange';
+                        $showCheckbox = true;
+                        $existingCount++;
+                        break;
+                    case 'user_not_found':
+                        $statusText = __('User Not Found');
+                        $statusColor = 'red';
+                        $errorCount++;
+                        break;
+                    case 'multiple_users':
+                        $statusText = __('Multiple Users');
+                        $statusColor = 'red';
+                        $errorCount++;
+                        break;
+                }
+
+                $tableHTML .= "<tr>";
+                $tableHTML .= "<td style='text-align: center;'>";
+                if ($showCheckbox) {
+                    $tableHTML .= "<input type='checkbox' name='updateRecords[]' value='{$index}' />";
+                } else {
+                    $tableHTML .= "-";
+                }
+                $tableHTML .= "</td>";
+                $tableHTML .= "<td style='color: {$statusColor}; font-weight: bold;'>{$statusText}</td>";
+                $tableHTML .= "<td>{$record['__RowNumberInExcelFile__']}</td>";
+                $tableHTML .= "<td>{$record['payer']}</td>";
+                $tableHTML .= "<td>{$record['IBAN']}</td>";
+                $tableHTML .= "<td>{$record['BIC']}</td>";
+                $tableHTML .= "<td>{$record['SEPA_signedDate']}</td>";
+                $tableHTML .= "<td>{$record['note']}</td>";
+                $tableHTML .= "</tr>";
+
+                // Show existing data for comparison if status is existing
+                if ($record['__Status__'] === 'existing' && !empty($record['__ExistingData__'])) {
+                    $existing = $record['__ExistingData__'];
+                    $tableHTML .= "<tr style='background-color: #f5f5f5; font-style: italic;'>";
+                    $tableHTML .= "<td colspan='3' style='text-align: right; padding-right: 10px;'>" . __('Current Data:') . "</td>";
+                    $tableHTML .= "<td>{$existing['payer']}</td>";
+                    $tableHTML .= "<td>{$existing['IBAN']}</td>";
+                    $tableHTML .= "<td>{$existing['BIC']}</td>";
+                    $tableHTML .= "<td>{$existing['SEPA_signedDate']}</td>";
+                    $tableHTML .= "<td>{$existing['note']}</td>";
+                    $tableHTML .= "</tr>";
+                }
+            }
+
+            $tableHTML .= "</tbody>";
+            $tableHTML .= "</table>";
+
+            // Add JavaScript for select all functionality
+            $tableHTML .= "<script>
+            document.getElementById('selectAll').addEventListener('change', function() {
+                var checkboxes = document.getElementsByName('updateRecords[]');
+                for (var i = 0; i < checkboxes.length; i++) {
+                    checkboxes[i].checked = this.checked;
+                }
+            });
+            </script>";
+
+            $tableHTML .= "<div class='success' style='margin-top: 20px;'>";
+            $tableHTML .= "<strong>" . __('Summary:') . "</strong><br/>";
+            $tableHTML .= __('New records:') . " {$newCount}<br/>";
+            $tableHTML .= __('Existing records:') . " {$existingCount}<br/>";
+            $tableHTML .= __('Errors:') . " {$errorCount}<br/>";
+            $tableHTML .= "</div>";
+
+            // Add table as a custom row
+            $row = $form->addRow();
+            $row->addContent($tableHTML);
+
+            $row = $form->addRow();
+            $row->addFooter();
+            $row->addSubmit(__('Proceed to Import'));
+
+            echo $form->getOutput();
+        }
     }
     // STEP 4: LIVE RUN
     else if ($step == 4) {
@@ -226,27 +356,109 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
         try {
             $SepaGateway = $container->get(SepaGateway::class);
-            $count = 0;
-            $unprocessedRows = [];
-            foreach ($data as $row) {
-                // check the names without spaces and in lower cases
 
-                $userID = $SepaGateway->getUserID($row['payer']);
+            // Get selected records to update (convert to integers for comparison)
+            $updateRecords = array_map('intval', $_POST['updateRecords'] ?? []);
 
-                // if only one person found
-                if (count($userID) === 1 && $SepaGateway->insertSEPAByUserName($userID[0], $row)) {
-                        $count++;
+            $insertedCount = 0;
+            $updatedCount = 0;
+            $skippedCount = 0;
+            $errorCount = 0;
+
+            $insertedRows = [];
+            $updatedRows = [];
+            $skippedRows = [];
+            $errorRows = [];
+
+            foreach ($data as $index => $row) {
+                $status = $row['__Status__'];
+                $userID = $row['__UserID__'];
+
+                // Process based on status
+                if ($status === 'new' && count($userID) === 1) {
+                    // Insert new record
+                    if ($SepaGateway->insertSEPAByUserName($userID[0], $row)) {
+                        $insertedCount++;
+                        $insertedRows[] = "Row {$row['__RowNumberInExcelFile__']}: {$row['payer']}";
                     } else {
-                    $unprocessedRows[] = implode(' | ', $row);
+                        $errorCount++;
+                        $errorRows[] = "Row {$row['__RowNumberInExcelFile__']}: {$row['payer']} - Failed to insert";
+                    }
+                } elseif ($status === 'existing' && count($userID) === 1) {
+                    // Check if user selected to update this record
+                    if (in_array($index, $updateRecords)) {
+                        // Update existing record
+                        if ($SepaGateway->updateSEPAByUserID($userID[0], $row)) {
+                            $updatedCount++;
+                            $updatedRows[] = "Row {$row['__RowNumberInExcelFile__']}: {$row['payer']}";
+                        } else {
+                            $errorCount++;
+                            $errorRows[] = "Row {$row['__RowNumberInExcelFile__']}: {$row['payer']} - Failed to update";
+                        }
+                    } else {
+                        // Skip existing record (not selected for update)
+                        $skippedCount++;
+                        $skippedRows[] = "Row {$row['__RowNumberInExcelFile__']}: {$row['payer']}";
+                    }
+                } else {
+                    // Error cases (user not found or multiple users)
+                    $errorCount++;
+                    if ($status === 'user_not_found') {
+                        $errorRows[] = "Row {$row['__RowNumberInExcelFile__']}: {$row['payer']} - User not found";
+                    } elseif ($status === 'multiple_users') {
+                        $errorRows[] = "Row {$row['__RowNumberInExcelFile__']}: {$row['payer']} - Multiple users found";
+                    } else {
+                        $errorRows[] = "Row {$row['__RowNumberInExcelFile__']}: {$row['payer']} - Unknown error";
+                    }
                 }
             }
 
-            echo "<div class='success'>";
-            echo sprintf(__('Successfully imported %d records'), $count);
-            echo "</div>";
-            echo "<div class='error'>";
-            echo sprintf(__('%d Can not find a user with a similar name on the system, or the records are already exist.'), count($unprocessedRows));
-            echo "<ul><li>" . implode("</li><li>", $unprocessedRows) . "</li></ul>";
+            // Display results
+            echo "<h3>" . __('Import Results') . "</h3>";
+
+            if ($insertedCount > 0) {
+                echo "<div class='success'>";
+                echo "<strong>" . sprintf(__('Successfully inserted %d new records'), $insertedCount) . "</strong>";
+                if (!empty($insertedRows)) {
+                    echo "<ul><li>" . implode("</li><li>", $insertedRows) . "</li></ul>";
+                }
+                echo "</div>";
+            }
+
+            if ($updatedCount > 0) {
+                echo "<div class='success'>";
+                echo "<strong>" . sprintf(__('Successfully updated %d existing records'), $updatedCount) . "</strong>";
+                if (!empty($updatedRows)) {
+                    echo "<ul><li>" . implode("</li><li>", $updatedRows) . "</li></ul>";
+                }
+                echo "</div>";
+            }
+
+            if ($skippedCount > 0) {
+                echo "<div class='warning'>";
+                echo "<strong>" . sprintf(__('Skipped %d existing records (not selected for update)'), $skippedCount) . "</strong>";
+                if (!empty($skippedRows)) {
+                    echo "<ul><li>" . implode("</li><li>", $skippedRows) . "</li></ul>";
+                }
+                echo "</div>";
+            }
+
+            if ($errorCount > 0) {
+                echo "<div class='error'>";
+                echo "<strong>" . sprintf(__('Failed to process %d records'), $errorCount) . "</strong>";
+                if (!empty($errorRows)) {
+                    echo "<ul><li>" . implode("</li><li>", $errorRows) . "</li></ul>";
+                }
+                echo "</div>";
+            }
+
+            // Display overall summary
+            echo "<div class='success' style='margin-top: 20px;'>";
+            echo "<strong>" . __('Summary:') . "</strong><br/>";
+            echo __('Inserted:') . " {$insertedCount}<br/>";
+            echo __('Updated:') . " {$updatedCount}<br/>";
+            echo __('Skipped:') . " {$skippedCount}<br/>";
+            echo __('Errors:') . " {$errorCount}<br/>";
             echo "</div>";
 
             // Clear session data

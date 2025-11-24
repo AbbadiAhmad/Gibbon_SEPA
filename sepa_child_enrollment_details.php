@@ -45,7 +45,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_child_enrollmen
         ->searchBy(['gibbonPerson.preferredName','gibbonPerson.surname'], $search)
         ->sortBy(['total'])
         ->fromPOST();
-    // todo: the search is not working. need a check
+
     $form = Form::createSearch();
     $row = $form->addRow();
     $row->addLabel('search', __('Search For'))
