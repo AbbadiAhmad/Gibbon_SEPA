@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Services\Format;
 use Gibbon\Data\Validator;
 use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
+use Gibbon\Module\Sepa\Domain\SepaGateway;
 include '../../gibbon.php';
 
 $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -64,7 +65,12 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
             exit;
         } else {
             try {
-                $data = array('gibbonFamilyID' => $gibbonFamilyID, 'payer' => $payer, 'IBAN' => $IBAN, 'BIC' => $BIC, 'SEPA_signedDate' => $SEPA_signedDate, 'note' => $note, 'customData' => $customData, 'gibbonSEPAID' => $gibbonSEPAID);
+                // Mask IBAN and BIC before storage
+                $sepaGateway = $container->get(SepaGateway::class);
+                $maskedIBAN = $sepaGateway->maskIBAN($IBAN);
+                $maskedBIC = $sepaGateway->maskBIC($BIC);
+
+                $data = array('gibbonFamilyID' => $gibbonFamilyID, 'payer' => $payer, 'IBAN' => $maskedIBAN, 'BIC' => $maskedBIC, 'SEPA_signedDate' => $SEPA_signedDate, 'note' => $note, 'customData' => $customData, 'gibbonSEPAID' => $gibbonSEPAID);
                 $sql = "UPDATE gibbonSEPA SET gibbonFamilyID=:gibbonFamilyID, payer=:payer, IBAN=:IBAN, BIC=:BIC, SEPA_signedDate=:SEPA_signedDate, note=:note, customData=:customData WHERE gibbonSEPAID=:gibbonSEPAID";
                 $result = $connection2->prepare($sql);
                 $result->execute($data);

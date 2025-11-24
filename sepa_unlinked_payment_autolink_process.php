@@ -45,54 +45,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
     $results = [];
 
     foreach ($unlinkedPayments as $payment) {
-        $matchedSEPA = null;
-        $matchMethod = '';
+        // Match by payer name only (IBANs are masked, so not reliable for matching)
+        $matches = !empty($payment['payer'])
+            ? $SepaGateway->getSEPAForPaymentEntry($payment)
+            : [];
 
-        // Try to match by IBAN first
-        if (!empty($payment['IBAN'])) {
-            $ibanMatches = $SepaGateway->getSEPAByIBAN($payment['IBAN']);
-
-            if (count($ibanMatches) == 1) {
-                // Exactly one IBAN match - use it
-                $matchedSEPA = $ibanMatches[0];
-                $matchMethod = 'IBAN';
-            } elseif (count($ibanMatches) > 1) {
-                // Multiple IBAN matches - cannot auto-link
-                $multipleMatchesCount++;
-                $results[] = [
-                    'payer' => $payment['payer'],
-                    'amount' => $payment['amount'],
-                    'status' => 'Multiple matches found',
-                    'method' => 'IBAN'
-                ];
-                continue;
-            }
-        }
-
-        // If no IBAN match, try to match by payer name
-        if (!$matchedSEPA && !empty($payment['payer'])) {
-            $matches = $SepaGateway->getSEPAForPaymentEntry($payment);
-
-            if (count($matches) == 1) {
-                $matchedSEPA = $matches[0];
-                $matchMethod = 'Payer Name';
-            } elseif (count($matches) > 1) {
-                // Multiple matches - cannot auto-link
-                $multipleMatchesCount++;
-                $results[] = [
-                    'payer' => $payment['payer'],
-                    'amount' => $payment['amount'],
-                    'status' => 'Multiple matches found',
-                    'method' => 'Payer Name'
-                ];
-                continue;
-            }
-        }
-
-        // If we found exactly one match, link the payment
-        if ($matchedSEPA) {
+        if (count($matches) == 1) {
+            // Exactly one match - link the payment
             $updateData = [
-                'gibbonSEPAID' => $matchedSEPA['gibbonSEPAID'],
+                'gibbonSEPAID' => $matches[0]['gibbonSEPAID'],
                 'payer' => $payment['payer'],
                 'IBAN' => $payment['IBAN'],
                 'transaction_reference' => $payment['transaction_reference'],
@@ -104,15 +65,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
                 'booking_date' => $payment['booking_date']
             ];
 
-            $success = $SepaGateway->updatePayment($payment['gibbonSEPAPaymentRecordID'], $updateData);
-
-            if ($success) {
+            if ($SepaGateway->updatePayment($payment['gibbonSEPAPaymentRecordID'], $updateData)) {
                 $linkedCount++;
                 $results[] = [
                     'payer' => $payment['payer'],
                     'amount' => $payment['amount'],
                     'status' => 'Successfully linked',
-                    'method' => $matchMethod
+                    'method' => 'Payer Name'
                 ];
             } else {
                 $notLinkedCount++;
@@ -120,9 +79,19 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
                     'payer' => $payment['payer'],
                     'amount' => $payment['amount'],
                     'status' => 'Update failed',
-                    'method' => $matchMethod
+                    'method' => 'Error'
                 ];
             }
+        } elseif (count($matches) > 1) {
+            // Multiple matches - cannot auto-link
+            $multipleMatchesCount++;
+            $notLinkedCount++;
+            $results[] = [
+                'payer' => $payment['payer'],
+                'amount' => $payment['amount'],
+                'status' => 'Multiple matches found',
+                'method' => 'None'
+            ];
         } else {
             // No match found
             $notLinkedCount++;
