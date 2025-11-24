@@ -55,7 +55,8 @@ class SnapshotGateway extends QueryableGateway
                 'gibbonFamilyID',
                 'gibbonSEPAID',
                 'snapshotDate',
-                'balance'
+                'balance',
+                'snapshotData'
             ])
             ->where('academicYear = :academicYear')
             ->bindValue('academicYear', $academicYear)
@@ -68,6 +69,14 @@ class SnapshotGateway extends QueryableGateway
         foreach ($results as $snapshot) {
             $familyID = $snapshot['gibbonFamilyID'];
             if (!isset($latestByFamily[$familyID])) {
+                // Parse snapshotData to extract totalFees and totalAdjustments
+                if (!empty($snapshot['snapshotData'])) {
+                    $snapshotData = json_decode($snapshot['snapshotData'], true);
+                    if ($snapshotData && isset($snapshotData['balance'])) {
+                        $snapshot['totalFees'] = $snapshotData['balance']['totalFees'] ?? 0;
+                        $snapshot['totalAdjustments'] = $snapshotData['balance']['totalAdjustments'] ?? 0;
+                    }
+                }
                 $latestByFamily[$familyID] = $snapshot;
             }
         }

@@ -86,7 +86,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
     echo '<h3>';
     if ($selectedSnapshot == 'current') {
-        echo __('Families with Balance Changes Since Last Snapshot');
+        echo __('Families with Changes in Fees or Adjustments Since Last Snapshot');
     } elseif (!empty($selectedSnapshot) && strtotime($selectedSnapshot) !== false) {
         echo __('Snapshot from ') . date('Y-m-d H:i', strtotime($selectedSnapshot));
     } else {
@@ -96,7 +96,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
 
     if ($selectedSnapshot == 'current') {
-        // Show families with balance changes since last snapshot
+        // Show families with changes in fees or adjustments since last snapshot
         // Get ALL families without pagination first
         $criteriaAll = $SepaGateway->newQueryCriteria(false)
             ->sortBy(['familyName'])
@@ -114,11 +114,18 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         $familiesWithChanges = [];
         foreach ($familyTotals as $family) {
             $currentBalance = $family['balance'];
+            // Calculate sum of owed fees and adjustments
+            $currentFeesAndAdjustments = $family['totalDept'] + $family['paymentsAdjustment'];
 
             if (isset($snapshotsByFamily[$family['gibbonFamilyID']])) {
                 $lastBalance = $snapshotsByFamily[$family['gibbonFamilyID']]['balance'];
-                // Only show if balance has changed
-                if (abs($currentBalance - $lastBalance) > 0.01) {
+                // Calculate sum of owed fees and adjustments from snapshot
+                $lastTotalFees = $snapshotsByFamily[$family['gibbonFamilyID']]['totalFees'] ?? 0;
+                $lastTotalAdjustments = $snapshotsByFamily[$family['gibbonFamilyID']]['totalAdjustments'] ?? 0;
+                $lastFeesAndAdjustments = $lastTotalFees + $lastTotalAdjustments;
+
+                // Only show if sum of fees and adjustments has changed
+                if (abs($currentFeesAndAdjustments - $lastFeesAndAdjustments) > 0.01) {
                     $family['lastBalance'] = $lastBalance;
                     $family['balanceChange'] = $currentBalance - $lastBalance;
                     $familiesWithChanges[] = $family;
