@@ -55,8 +55,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
         ->addParam('search', $search)
         ->displayLabel();
 
-    $table->addColumn('gibbonSEPAID', __('SEPA ID'))
-        ->sortable(['gibbonSEPAID']);
+    $table->addColumn('familyName', __('Family Name'))
+        ->sortable(['familyName']);
 
     $table->addColumn('amount', __('PaymentAdjustment Amount'))
         ->sortable(['amount']);
@@ -67,11 +67,14 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $table->addColumn('note', __('Note'))
         ->sortable(['note']);
 
-    $table->addColumn('gibbonPersonID', __('Person ID'))
-        ->sortable(['gibbonPersonID']);
+    $table->addColumn('personName', __('Person'))
+        ->sortable(['surname', 'preferredName'])
+        ->format(function ($row) {
+            return !empty($row['preferredName']) ? $row['preferredName'] . ' ' . $row['surname'] : '';
+        });
 
-    $table->addColumn('academicYear', __('academicYearID'))
-        ->sortable(['academicYear']);
+    $table->addColumn('yearName', __('Academic Year'))
+        ->sortable(['yearName']);
 
     $table->addColumn('timestamp', __('Timestamp'))
         ->sortable(['timestamp']);

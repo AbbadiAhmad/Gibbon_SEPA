@@ -66,7 +66,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.p
 
     $table->addColumn('payer', __('payer'))
         ->sortable(['payer']);
-    $table->addColumn('gibbonSEPAID', __('Family ID'));
+    $table->addColumn('familyName', __('Family Name'))
+        ->sortable(['familyName']);
 
     $table->addColumn('amount', __('Amount'))
         ->sortable(['amount']);
@@ -77,8 +78,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.p
     $table->addColumn('transaction_message', __('Transaction Message'))
         ->sortable(['transaction_message']);
 
-    $table->addColumn('academicYear', __('Academic Year'))
-        ->sortable(['academicYear']);
+    $table->addColumn('yearName', __('Academic Year'))
+        ->sortable(['yearName']);
 
     $table->addColumn('IBAN', __('IBAN'))
         ->sortable(['IBAN']);

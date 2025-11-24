@@ -374,13 +374,20 @@ class SepaGateway extends QueryableGateway
     {
         $query = $this
             ->newQuery()
-            ->cols(['*'])
+            ->cols([
+                'gibbonSEPAPaymentEntry.*',
+                'gibbonFamily.name as familyName',
+                'gibbonSchoolYear.name as yearName'
+            ])
             ->from('gibbonSEPAPaymentEntry')
+            ->leftJoin('gibbonSEPA', 'gibbonSEPAPaymentEntry.gibbonSEPAID = gibbonSEPA.gibbonSEPAID')
+            ->leftJoin('gibbonFamily', 'gibbonSEPA.gibbonFamilyID = gibbonFamily.gibbonFamilyID')
+            ->leftJoin('gibbonSchoolYear', 'gibbonSEPAPaymentEntry.academicYear = gibbonSchoolYear.gibbonSchoolYearID')
             ->orderBy(['timestamp DESC']);
 
         $criteria->addFilterRules([
             'academicYear' => function ($query, $academicYear) {
-                return $query->where('academicYear = :academicYear')
+                return $query->where('gibbonSEPAPaymentEntry.academicYear = :academicYear')
                     ->bindValue('academicYear', $academicYear);
             },
             'payment_method' => function ($query, $payment_method) {
