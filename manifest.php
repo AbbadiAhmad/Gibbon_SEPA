@@ -297,7 +297,7 @@ $actionRows[] = [
 // Action rows
 $actionRows[] = [
     'name' => 'Update Courses Fee',
-    'precedence' => '10',
+    'precedence' => '11',
     'category' => 'Courses',
     'description' => 'Courses Fee',
     'URLList' => 'sepa_courses_fee_view.php',
@@ -317,7 +317,7 @@ $actionRows[] = [
 
 $actionRows[] = [
     'name' => 'Family Balance',
-    'precedence' => '11',
+    'precedence' => '12',
     'category' => 'Reports',
     'description' => 'View family totals including dept and payments',
     'URLList' => 'sepa_family_totals.php',
@@ -337,7 +337,7 @@ $actionRows[] = [
 
 $actionRows[] = [
     'name' => 'Child Enrollment Details',
-    'precedence' => '12',
+    'precedence' => '13',
     'category' => 'Reports',
     'description' => 'View child enrollment details and fees',
     'URLList' => 'sepa_child_enrollment_details.php',

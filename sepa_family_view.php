@@ -45,7 +45,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
     
     $criteria = $SepaGateway->newQueryCriteria(true)
         ->searchBy(['payer','IBAN', 'customData'], $search)
-        ->sortBy(['payer'])
+        ->sortBy(['SEPA_signedDate'])
         ->fromPOST();
 
 
