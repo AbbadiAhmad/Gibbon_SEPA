@@ -235,8 +235,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
                 // if only one person found
                 if (count($userID) === 1 && $SepaGateway->insertSEPAByUserName($userID[0], $row)) {
-                    $count++;
-                } else {
+                        $count++;
+                    } else {
                     $unprocessedRows[] = implode(' | ', $row);
                 }
             }
@@ -245,7 +245,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             echo sprintf(__('Successfully imported %d records'), $count);
             echo "</div>";
             echo "<div class='error'>";
-            echo sprintf(__('%d records are already exists or the can not find a user with a similar name to SEPA owner.'), count($unprocessedRows));
+            echo sprintf(__('%d Can not find a user with a similar name on the system, or the records are already exist.'), count($unprocessedRows));
             echo "<ul><li>" . implode("</li><li>", $unprocessedRows) . "</li></ul>";
             echo "</div>";
 
