@@ -50,9 +50,22 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
 
         // Try to match by IBAN first
         if (!empty($payment['IBAN'])) {
-            $matchedSEPA = $SepaGateway->getSEPAByIBAN($payment['IBAN']);
-            if ($matchedSEPA) {
+            $ibanMatches = $SepaGateway->getSEPAByIBAN($payment['IBAN']);
+
+            if (count($ibanMatches) == 1) {
+                // Exactly one IBAN match - use it
+                $matchedSEPA = $ibanMatches[0];
                 $matchMethod = 'IBAN';
+            } elseif (count($ibanMatches) > 1) {
+                // Multiple IBAN matches - cannot auto-link
+                $multipleMatchesCount++;
+                $results[] = [
+                    'payer' => $payment['payer'],
+                    'amount' => $payment['amount'],
+                    'status' => 'Multiple matches found',
+                    'method' => 'IBAN'
+                ];
+                continue;
             }
         }
 

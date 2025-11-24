@@ -154,7 +154,7 @@ class SepaGateway extends QueryableGateway
             ->where("REPLACE(gibbonSEPA.IBAN, ' ', '') = REPLACE(:iban, ' ', '')")
             ->bindValue('iban', $iban);
 
-        return $this->runSelect($query)->fetch();
+        return $this->runSelect($query)->fetchAll();
     }
 
     public function getFamiliesWithoutBankDetails()
