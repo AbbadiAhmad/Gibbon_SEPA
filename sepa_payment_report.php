@@ -25,13 +25,21 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
 
     $SepaGateway = $container->get(SepaGateway::class);
 
-    // Get date range from query parameters
-    $fromDate = $_GET['fromDate'] ?? '';
-    $toDate = $_GET['toDate'] ?? '';
+    // Get date range and SEPA ID from query parameters
+    // Default to current year (Jan 1 to Dec 31)
+    $currentYear = date('Y');
+    $fromDate = $_GET['fromDate'] ?? $currentYear . '-01-01';
+    $toDate = $_GET['toDate'] ?? $currentYear . '-12-31';
+    $gibbonSEPAID = $_GET['gibbonSEPAID'] ?? '';
 
-    // Create form for date range selection
+    // Get all SEPA accounts for dropdown
+    $criteria = $SepaGateway->newQueryCriteria(false)
+        ->sortBy(['payer']);
+    $sepaList = $SepaGateway->getSEPAList($criteria, null);
+
+    // Create form for date range and SEPA selection
     $form = Form::create('dateRangeForm', $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_payment_report.php');
-    $form->setTitle(__('Select Date Range'));
+    $form->setTitle(__('Select Date Range and SEPA Account'));
     $form->setMethod('GET');
     $form->addHiddenValue('q', '/modules/Sepa/sepa_payment_report.php');
 
@@ -46,6 +54,16 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
         $row->addDate('toDate')
             ->required()
             ->setValue($toDate);
+
+    $row = $form->addRow();
+        $row->addLabel('gibbonSEPAID', __('SEPA Account'));
+        $sepaOptions = ['all' => __('All SEPA Accounts')];
+        foreach ($sepaList as $sepa) {
+            $sepaOptions[$sepa['gibbonSEPAID']] = $sepa['payer'] . ' (' . $sepa['IBAN'] . ')';
+        }
+        $row->addSelect('gibbonSEPAID')
+            ->fromArray($sepaOptions)
+            ->selected($gibbonSEPAID);
 
     $row = $form->addRow();
         $row->addSubmit(__('Generate Report'));
@@ -67,8 +85,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
                 ->sortBy(['booking_date'])
                 ->fromPOST();
 
-            $payments = $SepaGateway->getPaymentsByDateRange($fromDateDB, $toDateDB, $criteria);
-            $totalSum = $SepaGateway->getPaymentsSumByDateRange($fromDateDB, $toDateDB);
+            // Use SEPA ID filter if selected (not "all")
+            $sepaFilter = ($gibbonSEPAID !== '' && $gibbonSEPAID !== 'all') ? $gibbonSEPAID : null;
+
+            $payments = $SepaGateway->getPaymentsByDateRange($fromDateDB, $toDateDB, $criteria, $sepaFilter);
+            $totalSum = $SepaGateway->getPaymentsSumByDateRange($fromDateDB, $toDateDB, $sepaFilter);
 
             // Display summary
             echo "<div class='linkTop'>";
@@ -81,7 +102,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
 
             // Add print button
             echo "<div class='linkTop'>";
-            echo "<a href='" . $session->get('absoluteURL') . "/index.php?q=/modules/Sepa/sepa_payment_report_print.php&fromDate=" . $fromDateDB . "&toDate=" . $toDateDB . "' target='_blank' class='button'>" . __('Print Report') . "</a>";
+            $printURL = $session->get('absoluteURL') . "/index.php?q=/modules/Sepa/sepa_payment_report_print.php&fromDate=" . $fromDateDB . "&toDate=" . $toDateDB;
+            if ($sepaFilter) {
+                $printURL .= "&gibbonSEPAID=" . $sepaFilter;
+            }
+            echo "<a href='" . $printURL . "' target='_blank' class='button'>" . __('Print Report') . "</a>";
             echo "</div>";
 
             // DATA TABLE

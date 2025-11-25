@@ -24,9 +24,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report_p
 $SepaGateway = $container->get(SepaGateway::class);
 $settingGateway = $container->get(SettingGateway::class);
 
-// Get date range from query parameters (already in database format Y-m-d)
+// Get date range and SEPA ID from query parameters (already in database format Y-m-d)
 $fromDate = $_GET['fromDate'] ?? '';
 $toDate = $_GET['toDate'] ?? '';
+$gibbonSEPAID = $_GET['gibbonSEPAID'] ?? '';
 
 if (empty($fromDate) || empty($toDate)) {
     echo "<div class='error'>" . __('Please provide both from and to dates.') . "</div>";
@@ -40,13 +41,14 @@ if (strtotime($fromDate) > strtotime($toDate)) {
 }
 
 // Dates are already in Y-m-d format from the report page
+$sepaFilter = (!empty($gibbonSEPAID) && $gibbonSEPAID !== 'all') ? $gibbonSEPAID : null;
 
 // Fetch payments
 $criteria = $SepaGateway->newQueryCriteria(false)
     ->sortBy(['booking_date']);
 
-$payments = $SepaGateway->getPaymentsByDateRange($fromDate, $toDate, $criteria);
-$totalSum = $SepaGateway->getPaymentsSumByDateRange($fromDate, $toDate);
+$payments = $SepaGateway->getPaymentsByDateRange($fromDate, $toDate, $criteria, $sepaFilter);
+$totalSum = $SepaGateway->getPaymentsSumByDateRange($fromDate, $toDate, $sepaFilter);
 
 // Get organization name from settings
 $organizationName = $settingGateway->getSettingByScope('System', 'organisationName');

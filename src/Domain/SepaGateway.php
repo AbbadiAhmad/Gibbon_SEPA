@@ -459,7 +459,7 @@ class SepaGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function getPaymentsByDateRange($fromDate, $toDate, QueryCriteria $criteria)
+    public function getPaymentsByDateRange($fromDate, $toDate, QueryCriteria $criteria, $gibbonSEPAID = null)
     {
         $query = $this
             ->newQuery()
@@ -477,6 +477,12 @@ class SepaGateway extends QueryableGateway
             ->bindValue('toDate', $toDate)
             ->orderBy(['gibbonSEPAPaymentEntry.booking_date DESC']);
 
+        // Filter by SEPA ID if specified
+        if (!empty($gibbonSEPAID)) {
+            $query->where('gibbonSEPAPaymentEntry.gibbonSEPAID = :gibbonSEPAID')
+                ->bindValue('gibbonSEPAID', $gibbonSEPAID);
+        }
+
         $criteria->addFilterRules([
             'academicYear' => function ($query, $academicYear) {
                 return $query->where('gibbonSEPAPaymentEntry.academicYear = :academicYear')
@@ -491,7 +497,7 @@ class SepaGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
-    public function getPaymentsSumByDateRange($fromDate, $toDate)
+    public function getPaymentsSumByDateRange($fromDate, $toDate, $gibbonSEPAID = null)
     {
         $query = $this
             ->newSelect()
@@ -500,6 +506,12 @@ class SepaGateway extends QueryableGateway
             ->where('gibbonSEPAPaymentEntry.booking_date BETWEEN :fromDate AND :toDate')
             ->bindValue('fromDate', $fromDate)
             ->bindValue('toDate', $toDate);
+
+        // Filter by SEPA ID if specified
+        if (!empty($gibbonSEPAID)) {
+            $query->where('gibbonSEPAPaymentEntry.gibbonSEPAID = :gibbonSEPAID')
+                ->bindValue('gibbonSEPAID', $gibbonSEPAID);
+        }
 
         $result = $this->runSelect($query)->fetch();
         return $result['totalAmount'] ?? 0;
