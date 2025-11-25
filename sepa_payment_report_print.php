@@ -54,12 +54,51 @@ $totalSum = $SepaGateway->getPaymentsSumByDateRange($fromDate, $toDate, $sepaFil
 $organizationName = $settingGateway->getSettingByScope('System', 'organisationName');
 $organizationAddress = $settingGateway->getSettingByScope('System', 'organisationAddress');
 
-// Get SEPA account info if filtering
+// Get SEPA account info and family information if filtering
 $sepaAccountInfo = '';
+$familyInfoHtml = '';
 if ($sepaFilter) {
-    $sepaData = $SepaGateway->selectOne($sepaFilter);
-    if ($sepaData) {
+    // Get SEPA data using getFamilySEPA with the SEPA ID
+    $sepaListCriteria = $SepaGateway->newQueryCriteria(false);
+    $sepaListData = $SepaGateway->getSEPAList($sepaListCriteria, $sepaFilter);
+    $sepaData = $sepaListData->toArray();
+
+    if (!empty($sepaData) && isset($sepaData[0])) {
+        $sepaData = $sepaData[0];
         $sepaAccountInfo = '<p><strong>SEPA Account:</strong> ' . htmlspecialchars($sepaData['payer']) . ' (' . htmlspecialchars($sepaData['IBAN']) . ')</p>';
+
+        // Get family members information
+        if (!empty($sepaData['gibbonFamilyID'])) {
+            $adults = $SepaGateway->selectAdultsByFamily($sepaData['gibbonFamilyID'])->fetchAll();
+            $children = $SepaGateway->selectChildrenByFamily($sepaData['gibbonFamilyID'])->fetchAll();
+
+            $familyInfoHtml = '<div class="family-info">';
+            $familyInfoHtml .= '<h3>Family Information</h3>';
+            $familyInfoHtml .= '<p><strong>Family:</strong> ' . htmlspecialchars($sepaData['payer']) . '</p>';
+
+            if (!empty($adults)) {
+                $adultCount = 0;
+                foreach ($adults as $adult) {
+                    $adultCount++;
+                    $adultName = $adult['preferredName'] . ' ' . $adult['surname'];
+                    $adultLabel = ($adultCount === 1) ? 'First Adult' : 'Second Adult';
+                    $familyInfoHtml .= '<p><strong>' . $adultLabel . ':</strong> ' . htmlspecialchars($adultName) . ' (' . htmlspecialchars($adult['email']) . ')</p>';
+                    if ($adultCount >= 2) break; // Only show first 2 adults
+                }
+            }
+
+            if (!empty($children)) {
+                $familyInfoHtml .= '<p><strong>Children:</strong></p>';
+                $familyInfoHtml .= '<ul>';
+                foreach ($children as $child) {
+                    $childName = $child['preferredName'] . ' ' . $child['surname'];
+                    $familyInfoHtml .= '<li>' . htmlspecialchars($childName) . '</li>';
+                }
+                $familyInfoHtml .= '</ul>';
+            }
+
+            $familyInfoHtml .= '</div>';
+        }
     }
 }
 
@@ -117,7 +156,8 @@ $templateData = [
     'TOTAL_PAYMENTS' => $payments->getResultCount(),
     'TOTAL_AMOUNT' => number_format($totalSum, 2),
     'PAYMENT_TABLE' => $paymentTableHtml,
-    'SEPA_ACCOUNT_INFO' => $sepaAccountInfo
+    'SEPA_ACCOUNT_INFO' => $sepaAccountInfo,
+    'FAMILY_INFO' => $familyInfoHtml
 ];
 
 // Path to template file

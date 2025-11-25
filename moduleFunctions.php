@@ -56,7 +56,8 @@ function renderTemplate($templatePath, $data, $escapeHtml = true)
     // Replace placeholders with data
     foreach ($data as $placeholder => $value) {
         // Escape HTML if requested (for security)
-        if ($escapeHtml && !in_array($placeholder, ['PAYMENT_TABLE', 'ORGANIZATION_ADDRESS', 'SEPA_ACCOUNT_INFO'])) {
+        // Don't escape these placeholders as they contain pre-formatted HTML
+        if ($escapeHtml && !in_array($placeholder, ['PAYMENT_TABLE', 'ORGANIZATION_ADDRESS', 'SEPA_ACCOUNT_INFO', 'FAMILY_INFO'])) {
             $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
         }
 

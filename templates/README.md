@@ -25,6 +25,7 @@ You can use the following placeholders in your template:
 | `{{TOTAL_AMOUNT}}` | Total sum of all payments | "45,250.00" |
 | `{{PAYMENT_TABLE}}` | Complete HTML table with all payment data | (Full table HTML) |
 | `{{SEPA_ACCOUNT_INFO}}` | SEPA account info if filtering by account | "SEPA Account: John Doe (DE****123)" |
+| `{{FAMILY_INFO}}` | Family members information (adults & children) | (HTML div with family details) |
 
 ## How to Customize
 

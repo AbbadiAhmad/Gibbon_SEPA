@@ -70,16 +70,20 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
 
     echo $form->getOutput();
 
-    // Display results if dates are provided
+    // Display results if dates are provided AND a specific SEPA account is selected
     if (!empty($fromDate) && !empty($toDate)) {
-        // Convert dates from display format to database format if needed
-        $fromDateDB = Format::dateConvert($fromDate);
-        $toDateDB = Format::dateConvert($toDate);
-
-        // Validate date range
-        if (strtotime($fromDateDB) > strtotime($toDateDB)) {
-            echo "<div class='error'>" . __('From Date must be before or equal to To Date') . "</div>";
+        // Check if a specific SEPA account is selected
+        if (empty($gibbonSEPAID) || $gibbonSEPAID === 'all') {
+            echo "<div class='message'>" . __('Please select a specific SEPA account to generate the report.') . "</div>";
         } else {
+            // Convert dates from display format to database format if needed
+            $fromDateDB = Format::dateConvert($fromDate);
+            $toDateDB = Format::dateConvert($toDate);
+
+            // Validate date range
+            if (strtotime($fromDateDB) > strtotime($toDateDB)) {
+                echo "<div class='error'>" . __('From Date must be before or equal to To Date') . "</div>";
+            } else {
             // CRITERIA
             $criteria = $SepaGateway->newQueryCriteria(true)
                 ->sortBy(['booking_date'])
@@ -91,6 +95,47 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
             $payments = $SepaGateway->getPaymentsByDateRange($fromDateDB, $toDateDB, $criteria, $sepaFilter);
             $totalSum = $SepaGateway->getPaymentsSumByDateRange($fromDateDB, $toDateDB, $sepaFilter);
 
+            // Get family member information if SEPA account is selected
+            $familyInfo = '';
+            if ($sepaFilter) {
+                // Get SEPA data
+                $sepaListCriteria = $SepaGateway->newQueryCriteria(false);
+                $sepaListData = $SepaGateway->getSEPAList($sepaListCriteria, $sepaFilter);
+                $sepaDataArray = $sepaListData->toArray();
+
+                if (!empty($sepaDataArray) && isset($sepaDataArray[0])) {
+                    $sepaData = $sepaDataArray[0];
+
+                if ($sepaData && !empty($sepaData['gibbonFamilyID'])) {
+                    $adults = $SepaGateway->selectAdultsByFamily($sepaData['gibbonFamilyID'])->fetchAll();
+                    $children = $SepaGateway->selectChildrenByFamily($sepaData['gibbonFamilyID'])->fetchAll();
+
+                    $familyInfo .= "<h3>" . __('Family Information') . "</h3>";
+                    $familyInfo .= "<p><strong>" . __('Family') . ":</strong> " . htmlspecialchars($sepaData['payer']) . "</p>";
+
+                    if (!empty($adults)) {
+                        $adultCount = 0;
+                        foreach ($adults as $adult) {
+                            $adultCount++;
+                            $adultName = $adult['preferredName'] . ' ' . $adult['surname'];
+                            $adultLabel = ($adultCount === 1) ? __('First Adult') : __('Second Adult');
+                            $familyInfo .= "<p><strong>" . $adultLabel . ":</strong> " . htmlspecialchars($adultName) . " (" . htmlspecialchars($adult['email']) . ")</p>";
+                            if ($adultCount >= 2) break; // Only show first 2 adults
+                        }
+                    }
+
+                    if (!empty($children)) {
+                        $familyInfo .= "<p><strong>" . __('Children') . ":</strong></p><ul>";
+                        foreach ($children as $child) {
+                            $childName = $child['preferredName'] . ' ' . $child['surname'];
+                            $familyInfo .= "<li>" . htmlspecialchars($childName) . "</li>";
+                        }
+                        $familyInfo .= "</ul>";
+                    }
+                }
+                }
+            }
+
             // Display summary
             echo "<div class='linkTop'>";
             echo "<h3>" . __('Summary') . "</h3>";
@@ -98,6 +143,9 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
             echo "<p><strong>" . __('To Date') . ":</strong> " . Format::date($toDateDB) . "</p>";
             echo "<p><strong>" . __('Total Payments') . ":</strong> " . $payments->getResultCount() . "</p>";
             echo "<p><strong>" . __('Total Amount') . ":</strong> " . number_format($totalSum, 2) . "</p>";
+            if (!empty($familyInfo)) {
+                echo $familyInfo;
+            }
             echo "</div>";
 
             // Add print button
@@ -144,6 +192,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
                 ->sortable(['note']);
 
             echo $table->render($payments);
+            }
         }
     }
 }
