@@ -125,10 +125,12 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_update_approve.
                 'gibbonPersonIDApproved' => $gibbonPersonID,
                 'approvedDate' => date('Y-m-d H:i:s'),
                 'approvalNote' => $approvalNote,
-                // Add approver metadata for proof of approval
-                'approver_ip' => $approverMetadata['ip'],
-                'approver_user_agent' => $approverMetadata['user_agent'],
-                'approver_metadata' => $approverMetadata['metadata_json']
+                // Store all approver metadata in single JSON field
+                'approver_archive' => json_encode([
+                    'ip' => $approverMetadata['ip'],
+                    'user_agent' => $approverMetadata['user_agent'],
+                    'metadata' => json_decode($approverMetadata['metadata_json'], true)
+                ])
             ];
 
             $updated = $UpdateRequestGateway->updateRequestStatus($gibbonSEPAUpdateRequestID, $updateData);
@@ -151,10 +153,12 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_update_approve.
                 'gibbonPersonIDApproved' => $gibbonPersonID,
                 'approvedDate' => date('Y-m-d H:i:s'),
                 'approvalNote' => $approvalNote,
-                // Add approver metadata for proof of rejection
-                'approver_ip' => $approverMetadata['ip'],
-                'approver_user_agent' => $approverMetadata['user_agent'],
-                'approver_metadata' => $approverMetadata['metadata_json']
+                // Store all approver metadata in single JSON field
+                'approver_archive' => json_encode([
+                    'ip' => $approverMetadata['ip'],
+                    'user_agent' => $approverMetadata['user_agent'],
+                    'metadata' => json_decode($approverMetadata['metadata_json'], true)
+                ])
             ];
 
             $updated = $UpdateRequestGateway->updateRequestStatus($gibbonSEPAUpdateRequestID, $updateData);

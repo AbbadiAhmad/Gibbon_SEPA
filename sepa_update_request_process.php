@@ -115,10 +115,12 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_update_request.
         'gibbonPersonIDSubmitted' => $gibbonPersonID,
         'submittedDate' => date('Y-m-d H:i:s'),
         'status' => 'pending',
-        // Add submitter metadata for proof of submission
-        'submitter_ip' => $userMetadata['ip'],
-        'submitter_user_agent' => $userMetadata['user_agent'],
-        'submitter_metadata' => $userMetadata['metadata_json']
+        // Store all submitter metadata in single JSON field
+        'submitter_archive' => json_encode([
+            'ip' => $userMetadata['ip'],
+            'user_agent' => $userMetadata['user_agent'],
+            'metadata' => json_decode($userMetadata['metadata_json'], true)
+        ])
     ];
 
     // Store old values (current SEPA data) - will be encrypted by gateway

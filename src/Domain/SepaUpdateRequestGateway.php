@@ -365,25 +365,35 @@ class SepaUpdateRequestGateway extends QueryableGateway
             return null;
         }
 
+        // Parse submitter archive
+        $submitterArchive = !empty($request['submitter_archive'])
+            ? json_decode($request['submitter_archive'], true)
+            : null;
+
         $audit = [
             'request_id' => $gibbonSEPAUpdateRequestID,
             'submission' => [
                 'person_id' => $request['gibbonPersonIDSubmitted'],
                 'timestamp' => $request['submittedDate'],
-                'ip' => $request['submitter_ip'] ?? 'Not recorded',
-                'user_agent' => $request['submitter_user_agent'] ?? 'Not recorded',
-                'metadata' => $request['submitter_metadata'] ?? null
+                'ip' => $submitterArchive['ip'] ?? 'Not recorded',
+                'user_agent' => $submitterArchive['user_agent'] ?? 'Not recorded',
+                'metadata' => $submitterArchive['metadata'] ?? null
             ],
             'status' => $request['status']
         ];
 
         if ($request['status'] !== 'pending') {
+            // Parse approver archive
+            $approverArchive = !empty($request['approver_archive'])
+                ? json_decode($request['approver_archive'], true)
+                : null;
+
             $audit['approval'] = [
                 'person_id' => $request['gibbonPersonIDApproved'] ?? null,
                 'timestamp' => $request['approvedDate'] ?? null,
-                'ip' => $request['approver_ip'] ?? 'Not recorded',
-                'user_agent' => $request['approver_user_agent'] ?? 'Not recorded',
-                'metadata' => $request['approver_metadata'] ?? null,
+                'ip' => $approverArchive['ip'] ?? 'Not recorded',
+                'user_agent' => $approverArchive['user_agent'] ?? 'Not recorded',
+                'metadata' => $approverArchive['metadata'] ?? null,
                 'note' => $request['approvalNote'] ?? ''
             ];
         }

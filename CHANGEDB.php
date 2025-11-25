@@ -116,9 +116,14 @@ $sql[$count][1] = "CREATE TABLE IF NOT EXISTS `gibbonSEPAUpdateRequest` (
     -- Audit trail
     `gibbonPersonIDSubmitted` int(10) unsigned zerofill NOT NULL COMMENT 'Parent who submitted the request',
     `submittedDate` datetime NOT NULL,
+    `submitter_archive` TEXT NULL COMMENT 'JSON with submitter IP, user agent, and metadata',
     `gibbonPersonIDApproved` int(10) unsigned zerofill DEFAULT NULL COMMENT 'Admin who approved/rejected',
     `approvedDate` datetime DEFAULT NULL,
+    `approver_archive` TEXT NULL COMMENT 'JSON with approver IP, user agent, and metadata',
     `approvalNote` text DEFAULT NULL COMMENT 'Admin note for approval/rejection reason',
+
+    -- Integrity verification
+    `data_hash` VARCHAR(64) NULL COMMENT 'SHA-256 hash of critical fields for integrity verification',
 
     -- Metadata
     `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -128,37 +133,6 @@ $sql[$count][1] = "CREATE TABLE IF NOT EXISTS `gibbonSEPAUpdateRequest` (
     KEY `gibbonFamilyID` (`gibbonFamilyID`),
     KEY `gibbonSEPAID` (`gibbonSEPAID`),
     KEY `status` (`status`),
-    KEY `submittedDate` (`submittedDate`)
+    KEY `submittedDate` (`submittedDate`),
+    KEY `data_hash` (`data_hash`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
-
-// v2.1.1 - Add integrity hash and user metadata for tamper detection and audit trail
-$count++;
-$sql[$count][0] = "2.1.1";
-$sql[$count][1] = "
--- Add integrity hash field for tamper detection
-ALTER TABLE gibbonSEPAUpdateRequest
-ADD COLUMN `data_hash` VARCHAR(64) NULL COMMENT 'SHA-256 hash of critical fields for integrity verification' AFTER timestampUpdated;end
-
--- Add submitter metadata fields for comprehensive audit trail
-ALTER TABLE gibbonSEPAUpdateRequest
-ADD COLUMN `submitter_ip` VARCHAR(45) NULL COMMENT 'IP address of submitter (IPv4 or IPv6)' AFTER submittedDate;end
-
-ALTER TABLE gibbonSEPAUpdateRequest
-ADD COLUMN `submitter_user_agent` VARCHAR(500) NULL COMMENT 'Browser/client user agent string' AFTER submitter_ip;end
-
-ALTER TABLE gibbonSEPAUpdateRequest
-ADD COLUMN `submitter_metadata` TEXT NULL COMMENT 'JSON object with additional submitter context (timezone, language, etc)' AFTER submitter_user_agent;end
-
--- Add approver metadata fields
-ALTER TABLE gibbonSEPAUpdateRequest
-ADD COLUMN `approver_ip` VARCHAR(45) NULL COMMENT 'IP address of approver (IPv4 or IPv6)' AFTER approvalNote;end
-
-ALTER TABLE gibbonSEPAUpdateRequest
-ADD COLUMN `approver_user_agent` VARCHAR(500) NULL COMMENT 'Browser/client user agent of approver' AFTER approver_ip;end
-
-ALTER TABLE gibbonSEPAUpdateRequest
-ADD COLUMN `approver_metadata` TEXT NULL COMMENT 'JSON object with additional approver context' AFTER approver_user_agent;end
-
--- Add index on data_hash for quick integrity checks
-ALTER TABLE gibbonSEPAUpdateRequest
-ADD KEY `data_hash` (`data_hash`);";

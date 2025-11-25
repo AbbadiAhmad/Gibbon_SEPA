@@ -101,28 +101,29 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_update_approve.
         echo '</tr>';
         echo '</table>';
 
-        // Show submitter metadata
-        if (!empty($request['submitter_metadata']) || !empty($request['submitter_ip'])) {
-            echo '<h4>' . __('Submission Details') . '</h4>';
-            echo '<table class="smallIntBorder fullWidth" cellspacing="0">';
+        // Show submitter metadata from archive
+        if (!empty($request['submitter_archive'])) {
+            $submitterArchive = json_decode($request['submitter_archive'], true);
+            if ($submitterArchive) {
+                echo '<h4>' . __('Submission Details') . '</h4>';
+                echo '<table class="smallIntBorder fullWidth" cellspacing="0">';
 
-            if (!empty($request['submitter_ip'])) {
-                echo '<tr>';
-                echo '<td style="width: 30%; vertical-align: top;"><strong>' . __('IP Address') . '</strong></td>';
-                echo '<td>' . htmlspecialchars($request['submitter_ip'], ENT_QUOTES, 'UTF-8') . '</td>';
-                echo '</tr>';
-            }
+                if (!empty($submitterArchive['ip'])) {
+                    echo '<tr>';
+                    echo '<td style="width: 30%; vertical-align: top;"><strong>' . __('IP Address') . '</strong></td>';
+                    echo '<td>' . htmlspecialchars($submitterArchive['ip'], ENT_QUOTES, 'UTF-8') . '</td>';
+                    echo '</tr>';
+                }
 
-            if (!empty($request['submitter_user_agent'])) {
-                echo '<tr>';
-                echo '<td style="width: 30%; vertical-align: top;"><strong>' . __('Browser/Device') . '</strong></td>';
-                echo '<td style="font-size: 11px;">' . htmlspecialchars(substr($request['submitter_user_agent'], 0, 200), ENT_QUOTES, 'UTF-8') . '</td>';
-                echo '</tr>';
-            }
+                if (!empty($submitterArchive['user_agent'])) {
+                    echo '<tr>';
+                    echo '<td style="width: 30%; vertical-align: top;"><strong>' . __('Browser/Device') . '</strong></td>';
+                    echo '<td style="font-size: 11px;">' . htmlspecialchars(substr($submitterArchive['user_agent'], 0, 200), ENT_QUOTES, 'UTF-8') . '</td>';
+                    echo '</tr>';
+                }
 
-            if (!empty($request['submitter_metadata'])) {
-                $metadata = json_decode($request['submitter_metadata'], true);
-                if ($metadata) {
+                if (!empty($submitterArchive['metadata'])) {
+                    $metadata = $submitterArchive['metadata'];
                     if (isset($metadata['timezone'])) {
                         echo '<tr>';
                         echo '<td style="width: 30%; vertical-align: top;"><strong>' . __('Timezone') . '</strong></td>';
@@ -142,9 +143,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_update_approve.
                         echo '</tr>';
                     }
                 }
-            }
 
-            echo '</table>';
+                echo '</table>';
+            }
         }
 
         // Comparison table
