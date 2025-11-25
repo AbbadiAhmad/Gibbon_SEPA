@@ -31,6 +31,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
     // Create form for date range selection
     $form = Form::create('dateRangeForm', $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_payment_report.php');
     $form->setTitle(__('Select Date Range'));
+    $form->setMethod('GET');
+    $form->addHiddenValue('q', '/modules/Sepa/sepa_payment_report.php');
 
     $row = $form->addRow();
         $row->addLabel('fromDate', __('From Date'));
@@ -51,8 +53,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
 
     // Display results if dates are provided
     if (!empty($fromDate) && !empty($toDate)) {
+        // Convert dates from display format to database format if needed
+        $fromDateDB = dateConvert($guid, $fromDate);
+        $toDateDB = dateConvert($guid, $toDate);
+
         // Validate date range
-        if (strtotime($fromDate) > strtotime($toDate)) {
+        if (strtotime($fromDateDB) > strtotime($toDateDB)) {
             echo "<div class='error'>" . __('From Date must be before or equal to To Date') . "</div>";
         } else {
             // CRITERIA
@@ -60,8 +66,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
                 ->sortBy(['booking_date'])
                 ->fromPOST();
 
-            $payments = $SepaGateway->getPaymentsByDateRange($fromDate, $toDate, $criteria);
-            $totalSum = $SepaGateway->getPaymentsSumByDateRange($fromDate, $toDate);
+            $payments = $SepaGateway->getPaymentsByDateRange($fromDateDB, $toDateDB, $criteria);
+            $totalSum = $SepaGateway->getPaymentsSumByDateRange($fromDateDB, $toDateDB);
 
             // Display summary
             echo "<div class='linkTop'>";
@@ -74,7 +80,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
 
             // Add print button
             echo "<div class='linkTop'>";
-            echo "<a href='" . $session->get('absoluteURL') . "/index.php?q=/modules/Sepa/sepa_payment_report_print.php&fromDate=" . $fromDate . "&toDate=" . $toDate . "' target='_blank' class='button'>" . __('Print Report') . "</a>";
+            echo "<a href='" . $session->get('absoluteURL') . "/index.php?q=/modules/Sepa/sepa_payment_report_print.php&fromDate=" . $fromDateDB . "&toDate=" . $toDateDB . "' target='_blank' class='button'>" . __('Print Report') . "</a>";
             echo "</div>";
 
             // DATA TABLE

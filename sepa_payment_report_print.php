@@ -23,7 +23,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report_p
 $SepaGateway = $container->get(SepaGateway::class);
 $settingGateway = $container->get(SettingGateway::class);
 
-// Get date range from query parameters
+// Get date range from query parameters (already in database format Y-m-d)
 $fromDate = $_GET['fromDate'] ?? '';
 $toDate = $_GET['toDate'] ?? '';
 
@@ -37,6 +37,8 @@ if (strtotime($fromDate) > strtotime($toDate)) {
     echo "<div class='error'>" . __('From Date must be before or equal to To Date') . "</div>";
     exit;
 }
+
+// Dates are already in Y-m-d format from the report page
 
 // Fetch payments
 $criteria = $SepaGateway->newQueryCriteria(false)
