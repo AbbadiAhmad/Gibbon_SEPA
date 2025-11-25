@@ -22,7 +22,7 @@ class SepaUpdateRequestGateway extends QueryableGateway
     private static $primaryKey = 'gibbonSEPAUpdateRequestID';
     private static $searchableColumns = ['gibbonFamilyID', 'status'];
 
-    private SepaEncryption $encryption;
+    private $encryption;
 
     // Critical fields used for hash generation (in order)
     private const HASH_FIELDS = [
@@ -42,12 +42,16 @@ class SepaUpdateRequestGateway extends QueryableGateway
     ];
 
     /**
-     * Constructor - initialize encryption helper
+     * Get encryption helper instance (lazy initialization)
+     *
+     * @return SepaEncryption
      */
-    public function __construct(\Gibbon\Domain\DataSet $dataSet = null)
+    private function getEncryption()
     {
-        parent::__construct($dataSet);
-        $this->encryption = new SepaEncryption();
+        if ($this->encryption === null) {
+            $this->encryption = new SepaEncryption();
+        }
+        return $this->encryption;
     }
 
     /**
@@ -205,7 +209,7 @@ class SepaUpdateRequestGateway extends QueryableGateway
             'new_BIC'
         ];
 
-        return $this->encryption->encryptFields($data, $fieldsToEncrypt);
+        return $this->getEncryption()->encryptFields($data, $fieldsToEncrypt);
     }
 
     /**
@@ -225,7 +229,7 @@ class SepaUpdateRequestGateway extends QueryableGateway
             'new_BIC'
         ];
 
-        return $this->encryption->decryptFields($data, $fieldsToDecrypt);
+        return $this->getEncryption()->decryptFields($data, $fieldsToDecrypt);
     }
 
     /**
