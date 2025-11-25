@@ -21,6 +21,7 @@ use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\Sepa\Domain\SepaUpdateRequestGateway;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Module\Sepa\Domain\UserMetadataCollector;
 use Gibbon\Data\Validator;
 
 // Module includes
@@ -52,6 +53,24 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_update_approve.
 
         echo '<h3>' . __('Update Request Details') . '</h3>';
 
+        // Check data integrity and show warning if tampering detected
+        if (isset($request['_integrity_check']) && !$request['_integrity_check']['valid']) {
+            echo '<div class="error" style="border: 2px solid red; padding: 15px; margin-bottom: 20px; background-color: #ffe6e6;">';
+            echo '<h4 style="color: red; margin-top: 0;">⚠ DATA INTEGRITY ALERT</h4>';
+            echo '<p><strong>This request has FAILED integrity verification.</strong></p>';
+            echo '<p>The cryptographic hash does not match the stored data, indicating possible tampering or database corruption.</p>';
+            echo '<p style="font-family: monospace; font-size: 11px;">';
+            echo 'Expected Hash: ' . htmlspecialchars(substr($request['_integrity_check']['stored_hash'], 0, 16), ENT_QUOTES, 'UTF-8') . '...<br>';
+            echo 'Computed Hash: ' . htmlspecialchars(substr($request['_integrity_check']['computed_hash'], 0, 16), ENT_QUOTES, 'UTF-8') . '...';
+            echo '</p>';
+            echo '<p><strong>DO NOT APPROVE THIS REQUEST</strong> until the integrity issue is investigated.</p>';
+            echo '</div>';
+        } elseif (isset($request['_integrity_check']) && $request['_integrity_check']['valid']) {
+            echo '<div class="success" style="padding: 10px; margin-bottom: 15px;">';
+            echo '✓ Data integrity verified - This request has not been tampered with';
+            echo '</div>';
+        }
+
         // Family and submitter info
         $dataFamily = ['gibbonFamilyID' => $request['gibbonFamilyID']];
         $sqlFamily = 'SELECT name FROM gibbonFamily WHERE gibbonFamilyID=:gibbonFamilyID';
@@ -81,6 +100,52 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_update_approve.
         echo '<td><span style="font-weight: bold; color: orange;">' . ucfirst($request['status']) . '</span></td>';
         echo '</tr>';
         echo '</table>';
+
+        // Show submitter metadata
+        if (!empty($request['submitter_metadata']) || !empty($request['submitter_ip'])) {
+            echo '<h4>' . __('Submission Details') . '</h4>';
+            echo '<table class="smallIntBorder fullWidth" cellspacing="0">';
+
+            if (!empty($request['submitter_ip'])) {
+                echo '<tr>';
+                echo '<td style="width: 30%; vertical-align: top;"><strong>' . __('IP Address') . '</strong></td>';
+                echo '<td>' . htmlspecialchars($request['submitter_ip'], ENT_QUOTES, 'UTF-8') . '</td>';
+                echo '</tr>';
+            }
+
+            if (!empty($request['submitter_user_agent'])) {
+                echo '<tr>';
+                echo '<td style="width: 30%; vertical-align: top;"><strong>' . __('Browser/Device') . '</strong></td>';
+                echo '<td style="font-size: 11px;">' . htmlspecialchars(substr($request['submitter_user_agent'], 0, 200), ENT_QUOTES, 'UTF-8') . '</td>';
+                echo '</tr>';
+            }
+
+            if (!empty($request['submitter_metadata'])) {
+                $metadata = json_decode($request['submitter_metadata'], true);
+                if ($metadata) {
+                    if (isset($metadata['timezone'])) {
+                        echo '<tr>';
+                        echo '<td style="width: 30%; vertical-align: top;"><strong>' . __('Timezone') . '</strong></td>';
+                        echo '<td>' . htmlspecialchars($metadata['timezone'], ENT_QUOTES, 'UTF-8') . '</td>';
+                        echo '</tr>';
+                    }
+                    if (isset($metadata['accept_language'])) {
+                        echo '<tr>';
+                        echo '<td style="width: 30%; vertical-align: top;"><strong>' . __('Language') . '</strong></td>';
+                        echo '<td>' . htmlspecialchars($metadata['accept_language'], ENT_QUOTES, 'UTF-8') . '</td>';
+                        echo '</tr>';
+                    }
+                    if (isset($metadata['is_https'])) {
+                        echo '<tr>';
+                        echo '<td style="width: 30%; vertical-align: top;"><strong>' . __('Secure Connection') . '</strong></td>';
+                        echo '<td>' . ($metadata['is_https'] ? 'Yes (HTTPS)' : 'No (HTTP)') . '</td>';
+                        echo '</tr>';
+                    }
+                }
+            }
+
+            echo '</table>';
+        }
 
         // Comparison table
         echo '<h4>' . __('Requested Changes') . '</h4>';

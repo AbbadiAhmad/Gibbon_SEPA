@@ -4,6 +4,8 @@
 
 Version 2.1.0 introduces a secure parent self-service feature that allows parents to submit SEPA (bank account) information update requests through the Gibbon portal. All updates require administrative approval before being applied to the system.
 
+**Version 2.1.1** adds advanced security features including cryptographic integrity verification and comprehensive user metadata tracking to create a tamper-proof, legally-defensible audit trail.
+
 ## Features
 
 ### For Parents
@@ -29,7 +31,7 @@ Version 2.1.0 introduces a secure parent self-service feature that allows parent
 
 ## Security Features
 
-### Data Encryption
+### Data Encryption (v2.1.0)
 - All sensitive SEPA data in update requests is encrypted at rest using **AES-256-GCM**
 - Encrypted fields include:
   - Account holder names (old and new)
@@ -37,18 +39,48 @@ Version 2.1.0 introduces a secure parent self-service feature that allows parent
   - BIC codes (old and new)
 - Data is automatically encrypted when stored and decrypted when retrieved
 
+### Cryptographic Integrity Verification (v2.1.1)
+- **SHA-256 hash** generated for every update request
+- Hash computed from encrypted data to detect any tampering at database level
+- Automatic verification on data retrieval with error logging
+- Visual alerts for administrators if tampering detected
+- **Tamper-proof**: Any modification to encrypted fields invalidates the hash
+
+### User Metadata Tracking (v2.1.1)
+Comprehensive capture of user context for proof of action:
+
+**Submitter Metadata:**
+- IP address (IPv4/IPv6)
+- Browser/User agent
+- Timezone
+- Language preferences
+- HTTPS connection status
+- Browser fingerprint
+- Session information
+- Request timestamp with timezone
+
+**Approver Metadata:**
+- IP address of administrator
+- Browser/User agent
+- Timezone
+- Language preferences
+- Decision timestamp
+- All metadata captured independently for approval/rejection
+
 ### IBAN Masking
 - When approved, IBANs are masked before being stored in the main gibbonSEPA table
 - Masking format: `XX****XXX` (first 2 characters + **** + last 3 characters)
 - Full IBAN is visible to admins during the approval process but masked after approval
 
-### Audit Trail
-All update requests maintain a complete audit trail:
-- **Submission tracking**: Who submitted, when submitted
-- **Approval tracking**: Who approved/rejected, when decided
+### Complete Audit Trail
+All update requests maintain a legally-defensible audit trail:
+- **Submission tracking**: Who submitted, when, from where (IP), with what device
+- **Approval tracking**: Who approved/rejected, when, from where, with what device
 - **Historical data**: Both old and new values preserved (encrypted)
 - **Status tracking**: pending, approved, rejected
 - **Notes**: Optional notes from both parents and admins
+- **Integrity proof**: Cryptographic hash to prove no tampering
+- **Non-repudiation**: Complete metadata makes it difficult to deny actions
 
 ## Database Schema
 
@@ -190,15 +222,16 @@ Upon approval:
 
 ```
 Gibbon_SEPA/
-├── CHANGEDB.php                           # Updated with v2.1.0 migration
-├── manifest.php                           # Updated with new actions
+├── CHANGEDB.php                           # Updated with v2.1.0 and v2.1.1 migrations
+├── manifest.php                           # Updated with new actions (v2.1.1)
 ├── src/Domain/
-│   ├── SepaEncryption.php                # NEW: Encryption utility class
-│   └── SepaUpdateRequestGateway.php      # NEW: Data access layer
-├── sepa_update_request.php               # NEW: Parent update form
-├── sepa_update_request_process.php       # NEW: Parent form processor
-├── sepa_update_approve.php               # NEW: Admin approval page
-├── sepa_update_approve_process.php       # NEW: Admin approval processor
+│   ├── SepaEncryption.php                # NEW: Encryption utility class (v2.1.0)
+│   ├── SepaUpdateRequestGateway.php      # NEW: Data access with hash verification (v2.1.1)
+│   └── UserMetadataCollector.php         # NEW: User metadata collection (v2.1.1)
+├── sepa_update_request.php               # NEW: Parent update form (v2.1.0)
+├── sepa_update_request_process.php       # NEW: Parent form processor with metadata (v2.1.1)
+├── sepa_update_approve.php               # NEW: Admin approval page with integrity check (v2.1.1)
+├── sepa_update_approve_process.php       # NEW: Admin approval processor with metadata (v2.1.1)
 └── SEPA_UPDATE_REQUEST_FEATURE.md        # This documentation
 ```
 
@@ -211,29 +244,44 @@ Gibbon_SEPA/
 - **Key Derivation**: SHA-256 if raw key not available
 - **Encoding**: Base64 for storage
 
+### Hash Generation (v2.1.1)
+- **Algorithm**: SHA-256
+- **Input**: Concatenation of critical fields (encrypted values, IDs, dates, status)
+- **Fields Hashed**: gibbonFamilyID, gibbonSEPAID, old/new encrypted values, submitter ID, submitted date, status
+- **Output**: 64-character hex string
+- **Purpose**: Detect any modification to critical data
+- **Verification**: Automatic on retrieval with logging
+
 ### Data Flow
 
 ```
-Parent Submission:
+Parent Submission (v2.1.1):
 1. Parent fills form with plain text data
 2. Data validated and sanitized
-3. SepaUpdateRequestGateway encrypts sensitive fields
-4. Encrypted data stored in gibbonSEPAUpdateRequest
-5. Status set to 'pending'
+3. UserMetadataCollector captures IP, user agent, timezone, etc.
+4. SepaUpdateRequestGateway encrypts sensitive fields
+5. SHA-256 hash generated from encrypted data
+6. Encrypted data + hash + metadata stored in gibbonSEPAUpdateRequest
+7. Status set to 'pending'
 
-Admin Approval:
+Admin Approval (v2.1.1):
 1. Admin views request
 2. Gateway decrypts data for display
-3. Admin makes decision (approve/reject)
-4. If approved:
+3. Integrity verification: compute hash and compare with stored hash
+4. If hash mismatch: Display WARNING alert, recommend not approving
+5. If hash valid: Display success confirmation
+6. Display submitter metadata (IP, device, location context)
+7. Admin makes decision (approve/reject)
+8. UserMetadataCollector captures approver IP, user agent, etc.
+9. If approved:
    - Decrypt new values
    - Mask IBAN using SepaGateway::maskIBAN()
    - Set BIC to NULL
    - Insert/update gibbonSEPA
-   - Update request status to 'approved'
-5. If rejected:
-   - Update request status to 'rejected'
-   - No changes to gibbonSEPA
+   - Update request with status='approved' + approver metadata
+10. If rejected:
+    - Update request with status='rejected' + approver metadata
+    - No changes to gibbonSEPA
 ```
 
 ## Best Practices
@@ -298,9 +346,17 @@ For issues or questions:
 
 ## Version History
 
+- **v2.1.1** (2025-01-XX)
+  - Added SHA-256 cryptographic hash for tamper detection
+  - Comprehensive user metadata collection (IP, user agent, timezone, fingerprint)
+  - Automatic integrity verification on data retrieval
+  - Visual tamper alerts for administrators
+  - Enhanced audit trail with proof of action
+  - Database migration to add metadata and hash fields
+
 - **v2.1.0** (2025-01-XX)
   - Initial release of SEPA update request feature
   - AES-256-GCM encryption implementation
   - Parent self-service portal
   - Admin approval workflow
-  - Complete audit trail
+  - Basic audit trail

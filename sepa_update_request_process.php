@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Module\Sepa\Domain\SepaUpdateRequestGateway;
 use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
+use Gibbon\Module\Sepa\Domain\UserMetadataCollector;
 use Gibbon\Data\Validator;
 
 require_once '../../gibbon.php';
@@ -104,13 +105,20 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_update_request.
         }
     }
 
+    // Collect user metadata for audit trail
+    $userMetadata = UserMetadataCollector::collectAll($gibbonPersonID);
+
     // Prepare update request data
     $requestData = [
         'gibbonFamilyID' => $gibbonFamilyID,
         'gibbonSEPAID' => $gibbonSEPAID,
         'gibbonPersonIDSubmitted' => $gibbonPersonID,
         'submittedDate' => date('Y-m-d H:i:s'),
-        'status' => 'pending'
+        'status' => 'pending',
+        // Add submitter metadata for proof of submission
+        'submitter_ip' => $userMetadata['ip'],
+        'submitter_user_agent' => $userMetadata['user_agent'],
+        'submitter_metadata' => $userMetadata['metadata_json']
     ];
 
     // Store old values (current SEPA data) - will be encrypted by gateway

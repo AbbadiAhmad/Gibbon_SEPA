@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Module\Sepa\Domain\SepaUpdateRequestGateway;
+use Gibbon\Module\Sepa\Domain\UserMetadataCollector;
 use Gibbon\Data\Validator;
 
 require_once '../../gibbon.php';
@@ -66,6 +67,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_update_approve.
 
     $gibbonFamilyID = $request['gibbonFamilyID'];
     $gibbonSEPAID = $request['gibbonSEPAID'];
+
+    // Collect approver metadata for audit trail
+    $approverMetadata = UserMetadataCollector::collectAll($gibbonPersonID);
 
     try {
         // Begin transaction
@@ -115,12 +119,16 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_update_approve.
                 ]);
             }
 
-            // Update request status to approved
+            // Update request status to approved with approver metadata
             $updateData = [
                 'status' => 'approved',
                 'gibbonPersonIDApproved' => $gibbonPersonID,
                 'approvedDate' => date('Y-m-d H:i:s'),
-                'approvalNote' => $approvalNote
+                'approvalNote' => $approvalNote,
+                // Add approver metadata for proof of approval
+                'approver_ip' => $approverMetadata['ip'],
+                'approver_user_agent' => $approverMetadata['user_agent'],
+                'approver_metadata' => $approverMetadata['metadata_json']
             ];
 
             $updated = $UpdateRequestGateway->updateRequestStatus($gibbonSEPAUpdateRequestID, $updateData);
@@ -137,12 +145,16 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_update_approve.
             header("Location: {$URLSuccess}");
 
         } elseif ($decision === 'reject') {
-            // Update request status to rejected
+            // Update request status to rejected with approver metadata
             $updateData = [
                 'status' => 'rejected',
                 'gibbonPersonIDApproved' => $gibbonPersonID,
                 'approvedDate' => date('Y-m-d H:i:s'),
-                'approvalNote' => $approvalNote
+                'approvalNote' => $approvalNote,
+                // Add approver metadata for proof of rejection
+                'approver_ip' => $approverMetadata['ip'],
+                'approver_user_agent' => $approverMetadata['user_agent'],
+                'approver_metadata' => $approverMetadata['metadata_json']
             ];
 
             $updated = $UpdateRequestGateway->updateRequestStatus($gibbonSEPAUpdateRequestID, $updateData);

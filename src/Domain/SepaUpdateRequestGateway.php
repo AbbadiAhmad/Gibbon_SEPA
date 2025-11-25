@@ -9,8 +9,9 @@ use Gibbon\Domain\QueryableGateway;
  * SEPA Update Request Gateway
  *
  * Handles data access for parent-submitted SEPA information update requests
+ * Includes cryptographic integrity verification and comprehensive audit trail
  *
- * @version v2.1.0
+ * @version v2.1.1
  * @since   v2.1.0
  */
 class SepaUpdateRequestGateway extends QueryableGateway
@@ -22,6 +23,23 @@ class SepaUpdateRequestGateway extends QueryableGateway
     private static $searchableColumns = ['gibbonFamilyID', 'status'];
 
     private SepaEncryption $encryption;
+
+    // Critical fields used for hash generation (in order)
+    private const HASH_FIELDS = [
+        'gibbonFamilyID',
+        'gibbonSEPAID',
+        'old_payer',
+        'old_IBAN',
+        'old_BIC',
+        'old_SEPA_signedDate',
+        'new_payer',
+        'new_IBAN',
+        'new_BIC',
+        'new_SEPA_signedDate',
+        'gibbonPersonIDSubmitted',
+        'submittedDate',
+        'status'
+    ];
 
     /**
      * Constructor - initialize encryption helper
@@ -94,11 +112,13 @@ class SepaUpdateRequestGateway extends QueryableGateway
 
     /**
      * Get a single update request by ID with decrypted data
+     * Also verifies data integrity and logs warnings if tampering detected
      *
      * @param int $gibbonSEPAUpdateRequestID
+     * @param bool $verifyIntegrity Whether to verify data hash (default: true)
      * @return array|null
      */
-    public function getRequestByID($gibbonSEPAUpdateRequestID)
+    public function getRequestByID($gibbonSEPAUpdateRequestID, $verifyIntegrity = true)
     {
         $data = $this->getByID($gibbonSEPAUpdateRequestID);
 
@@ -107,7 +127,24 @@ class SepaUpdateRequestGateway extends QueryableGateway
         }
 
         // Decrypt sensitive fields
-        return $this->decryptRequestData($data);
+        $decryptedData = $this->decryptRequestData($data);
+
+        // Verify integrity if requested
+        if ($verifyIntegrity && !empty($data['data_hash'])) {
+            $integrity = $this->verifyDataIntegrity($decryptedData);
+            $decryptedData['_integrity_check'] = $integrity;
+
+            if (!$integrity['valid']) {
+                error_log(sprintf(
+                    'SEPA Update Request integrity check FAILED for ID %d. Expected hash: %s, Computed hash: %s',
+                    $gibbonSEPAUpdateRequestID,
+                    $data['data_hash'],
+                    $integrity['computed_hash']
+                ));
+            }
+        }
+
+        return $decryptedData;
     }
 
     /**
@@ -123,7 +160,7 @@ class SepaUpdateRequestGateway extends QueryableGateway
     }
 
     /**
-     * Insert a new update request with encrypted data
+     * Insert a new update request with encrypted data and integrity hash
      *
      * @param array $data Request data with plain text sensitive fields
      * @return int|null The inserted ID or null on failure
@@ -132,6 +169,9 @@ class SepaUpdateRequestGateway extends QueryableGateway
     {
         // Encrypt sensitive fields before insertion
         $encryptedData = $this->encryptRequestData($data);
+
+        // Generate integrity hash AFTER encryption
+        $encryptedData['data_hash'] = $this->generateDataHash($encryptedData);
 
         return $this->insert($encryptedData);
     }
@@ -210,5 +250,145 @@ class SepaUpdateRequestGateway extends QueryableGateway
             'note' => $request['new_note'] ?? '',
             'customData' => $request['new_customData'] ?? null
         ];
+    }
+
+    /**
+     * Generate SHA-256 hash of critical fields for integrity verification
+     * Hash is computed from encrypted data to detect any tampering
+     *
+     * @param array $data The request data (with encrypted fields)
+     * @return string SHA-256 hash (64 hex characters)
+     */
+    private function generateDataHash(array $data): string
+    {
+        // Build string from critical fields in defined order
+        $hashComponents = [];
+
+        foreach (self::HASH_FIELDS as $field) {
+            $value = $data[$field] ?? '';
+            // Convert to string and handle nulls
+            $hashComponents[] = $field . ':' . (string)$value;
+        }
+
+        // Join all components with a delimiter
+        $hashString = implode('|', $hashComponents);
+
+        // Generate SHA-256 hash
+        return hash('sha256', $hashString);
+    }
+
+    /**
+     * Verify data integrity by comparing stored hash with computed hash
+     *
+     * @param array $data The request data (must include original data_hash and encrypted fields)
+     * @return array ['valid' => bool, 'stored_hash' => string, 'computed_hash' => string]
+     */
+    public function verifyDataIntegrity(array $data): array
+    {
+        $storedHash = $data['data_hash'] ?? '';
+
+        // Re-encrypt the decrypted fields to match original hash
+        $reencryptedData = $this->encryptRequestData($data);
+
+        // Preserve critical fields from original data
+        foreach (self::HASH_FIELDS as $field) {
+            if (isset($data[$field]) && !isset($reencryptedData[$field])) {
+                $reencryptedData[$field] = $data[$field];
+            }
+        }
+
+        // Compute hash from current data
+        $computedHash = $this->generateDataHash($reencryptedData);
+
+        return [
+            'valid' => ($storedHash === $computedHash),
+            'stored_hash' => $storedHash,
+            'computed_hash' => $computedHash
+        ];
+    }
+
+    /**
+     * Batch verify integrity of multiple requests
+     * Useful for auditing or detecting mass tampering
+     *
+     * @param array $requestIDs Array of gibbonSEPAUpdateRequestID values
+     * @return array ['total' => int, 'valid' => int, 'invalid' => int, 'failures' => array]
+     */
+    public function batchVerifyIntegrity(array $requestIDs): array
+    {
+        $results = [
+            'total' => count($requestIDs),
+            'valid' => 0,
+            'invalid' => 0,
+            'failures' => []
+        ];
+
+        foreach ($requestIDs as $id) {
+            $request = $this->getRequestByID($id, true);
+
+            if (!$request) {
+                continue;
+            }
+
+            if (isset($request['_integrity_check'])) {
+                if ($request['_integrity_check']['valid']) {
+                    $results['valid']++;
+                } else {
+                    $results['invalid']++;
+                    $results['failures'][] = [
+                        'id' => $id,
+                        'stored_hash' => $request['_integrity_check']['stored_hash'],
+                        'computed_hash' => $request['_integrity_check']['computed_hash']
+                    ];
+                }
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Get audit trail summary for a request including metadata
+     *
+     * @param int $gibbonSEPAUpdateRequestID
+     * @return array|null Formatted audit information
+     */
+    public function getAuditTrail($gibbonSEPAUpdateRequestID): ?array
+    {
+        $request = $this->getRequestByID($gibbonSEPAUpdateRequestID, false);
+
+        if (!$request) {
+            return null;
+        }
+
+        $audit = [
+            'request_id' => $gibbonSEPAUpdateRequestID,
+            'submission' => [
+                'person_id' => $request['gibbonPersonIDSubmitted'],
+                'timestamp' => $request['submittedDate'],
+                'ip' => $request['submitter_ip'] ?? 'Not recorded',
+                'user_agent' => $request['submitter_user_agent'] ?? 'Not recorded',
+                'metadata' => $request['submitter_metadata'] ?? null
+            ],
+            'status' => $request['status']
+        ];
+
+        if ($request['status'] !== 'pending') {
+            $audit['approval'] = [
+                'person_id' => $request['gibbonPersonIDApproved'] ?? null,
+                'timestamp' => $request['approvedDate'] ?? null,
+                'ip' => $request['approver_ip'] ?? 'Not recorded',
+                'user_agent' => $request['approver_user_agent'] ?? 'Not recorded',
+                'metadata' => $request['approver_metadata'] ?? null,
+                'note' => $request['approvalNote'] ?? ''
+            ];
+        }
+
+        // Include integrity check
+        if (!empty($request['data_hash'])) {
+            $audit['integrity'] = $this->verifyDataIntegrity($request);
+        }
+
+        return $audit;
     }
 }
