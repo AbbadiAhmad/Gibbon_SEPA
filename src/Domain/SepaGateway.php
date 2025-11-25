@@ -459,6 +459,52 @@ class SepaGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
+    public function getPaymentsByDateRange($fromDate, $toDate, QueryCriteria $criteria)
+    {
+        $query = $this
+            ->newQuery()
+            ->cols([
+                'gibbonSEPAPaymentEntry.*',
+                'gibbonFamily.name as familyName',
+                'gibbonSchoolYear.name as yearName'
+            ])
+            ->from('gibbonSEPAPaymentEntry')
+            ->leftJoin('gibbonSEPA', 'gibbonSEPAPaymentEntry.gibbonSEPAID = gibbonSEPA.gibbonSEPAID')
+            ->leftJoin('gibbonFamily', 'gibbonSEPA.gibbonFamilyID = gibbonFamily.gibbonFamilyID')
+            ->leftJoin('gibbonSchoolYear', 'gibbonSEPAPaymentEntry.academicYear = gibbonSchoolYear.gibbonSchoolYearID')
+            ->where('gibbonSEPAPaymentEntry.booking_date BETWEEN :fromDate AND :toDate')
+            ->bindValue('fromDate', $fromDate)
+            ->bindValue('toDate', $toDate)
+            ->orderBy(['gibbonSEPAPaymentEntry.booking_date DESC']);
+
+        $criteria->addFilterRules([
+            'academicYear' => function ($query, $academicYear) {
+                return $query->where('gibbonSEPAPaymentEntry.academicYear = :academicYear')
+                    ->bindValue('academicYear', $academicYear);
+            },
+            'payment_method' => function ($query, $payment_method) {
+                return $query->where('payment_method = :payment_method')
+                    ->bindValue('payment_method', $payment_method);
+            },
+        ]);
+
+        return $this->runQuery($query, $criteria);
+    }
+
+    public function getPaymentsSumByDateRange($fromDate, $toDate)
+    {
+        $query = $this
+            ->newSelect()
+            ->cols(['SUM(COALESCE(gibbonSEPAPaymentEntry.amount, 0)) as totalAmount'])
+            ->from('gibbonSEPAPaymentEntry')
+            ->where('gibbonSEPAPaymentEntry.booking_date BETWEEN :fromDate AND :toDate')
+            ->bindValue('fromDate', $fromDate)
+            ->bindValue('toDate', $toDate);
+
+        $result = $this->runSelect($query)->fetch();
+        return $result['totalAmount'] ?? 0;
+    }
+
     public function getAcademicYears()
     {
         $query = $this
