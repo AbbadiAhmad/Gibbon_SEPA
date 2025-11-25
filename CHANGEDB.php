@@ -85,3 +85,27 @@ ALTER TABLE gibbonSEPABalanceSnapshot
 ADD COLUMN totalFees DECIMAL(12,2) DEFAULT 0.00 COMMENT 'Total owed fees at time of snapshot' AFTER balance;end
 ALTER TABLE gibbonSEPABalanceSnapshot
 ADD COLUMN totalAdjustments DECIMAL(12,2) DEFAULT 0.00 COMMENT 'Total adjustments at time of snapshot' AFTER totalFees;";
+
+// v2.0.3 - Add Issues Detection Settings Table
+$count++;
+$sql[$count][0] = "2.0.3";
+$sql[$count][1] = "
+-- Create table for storing issue detection settings
+CREATE TABLE IF NOT EXISTS `gibbonSEPAIssueSettings` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `settingName` varchar(50) NOT NULL,
+    `settingValue` varchar(255) DEFAULT NULL,
+    `description` text DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `unique_setting_name` (`settingName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;end
+
+-- Insert default settings
+INSERT INTO `gibbonSEPAIssueSettings` (`settingName`, `settingValue`, `description`) VALUES
+('sepa_old_date_threshold_years', '3', 'Number of years after which SEPA authorization is considered old'),
+('similar_iban_detection_enabled', '1', 'Enable detection of similar IBANs (1=enabled, 0=disabled)'),
+('similar_payer_detection_enabled', '1', 'Enable detection of similar payer names (1=enabled, 0=disabled)'),
+('balance_method_less_than', 'number', 'Balance detection method: number, percentage, or proportion_to_academic_year'),
+('balance_method_attribute', '2', 'Threshold value for low balance detection (meaning depends on method)'),
+('balance_method_more_than_attribute', '10', 'Threshold value for high balance detection (in euros)')
+ON DUPLICATE KEY UPDATE settingValue=VALUES(settingValue);";

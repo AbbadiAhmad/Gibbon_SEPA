@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.0.2';            // Version number
+$version = '2.0.3';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -121,6 +121,17 @@ $moduleTables[] = "
     KEY `gibbonSEPAID` (`gibbonSEPAID`),
     KEY `academicYear` (`academicYear`),
     KEY `snapshotDate` (`snapshotDate`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ ";
+
+$moduleTables[] = "
+    CREATE TABLE `gibbonSEPAIssueSettings` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `settingName` varchar(50) NOT NULL,
+    `settingValue` varchar(255) DEFAULT NULL,
+    `description` text DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `unique_setting_name` (`settingName`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  ";
 
@@ -384,6 +395,46 @@ $actionRows[] = [
     'entryURL' => 'sepa_balance_snapshot.php',
     'entrySidebar' => 'Y',
     'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Payment & Data Issues',
+    'precedence' => '16',
+    'category' => 'Reports',
+    'description' => 'View payment issues, data quality problems, and balance alerts',
+    'URLList' => 'sepa_issues_view.php',
+    'entryURL' => 'sepa_issues_view.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Issue Detection Settings',
+    'precedence' => '17',
+    'category' => 'hidden',
+    'description' => 'Configure thresholds and detection methods for payment issues',
+    'URLList' => 'sepa_issues_settings.php, sepa_issues_settings_process.php',
+    'entryURL' => 'sepa_issues_settings.php',
+    'entrySidebar' => 'N',
+    'menuShow' => 'N',
     'defaultPermissionAdmin' => 'Y',
     'defaultPermissionTeacher' => 'N',
     'defaultPermissionStudent' => 'N',
