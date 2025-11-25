@@ -53,198 +53,75 @@ $totalSum = $SepaGateway->getPaymentsSumByDateRange($fromDate, $toDate, $sepaFil
 // Get organization name from settings
 $organizationName = $settingGateway->getSettingByScope('System', 'organisationName');
 $organizationAddress = $settingGateway->getSettingByScope('System', 'organisationAddress');
-?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title><?php echo __('Payment Report'); ?></title>
-    <style>
-        @media print {
-            .no-print {
-                display: none;
-            }
-        }
+// Get SEPA account info if filtering
+$sepaAccountInfo = '';
+if ($sepaFilter) {
+    $sepaData = $SepaGateway->selectOne($sepaFilter);
+    if ($sepaData) {
+        $sepaAccountInfo = '<p><strong>SEPA Account:</strong> ' . htmlspecialchars($sepaData['payer']) . ' (' . htmlspecialchars($sepaData['IBAN']) . ')</p>';
+    }
+}
 
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            font-size: 12pt;
-        }
+// Build payment table HTML
+$paymentTableHtml = '';
+if ($payments->getResultCount() > 0) {
+    $paymentTableHtml .= '<table class="payment-table">';
+    $paymentTableHtml .= '<thead>';
+    $paymentTableHtml .= '<tr>';
+    $paymentTableHtml .= '<th>Date</th>';
+    $paymentTableHtml .= '<th>Payer</th>';
+    $paymentTableHtml .= '<th>Family</th>';
+    $paymentTableHtml .= '<th>Amount</th>';
+    $paymentTableHtml .= '<th>Method</th>';
+    $paymentTableHtml .= '<th>Reference</th>';
+    $paymentTableHtml .= '<th>Message</th>';
+    $paymentTableHtml .= '</tr>';
+    $paymentTableHtml .= '</thead>';
+    $paymentTableHtml .= '<tbody>';
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 20px;
-        }
+    foreach ($payments as $payment) {
+        $paymentTableHtml .= '<tr>';
+        $paymentTableHtml .= '<td>' . Format::date($payment['booking_date']) . '</td>';
+        $paymentTableHtml .= '<td>' . htmlspecialchars($payment['payer']) . '</td>';
+        $paymentTableHtml .= '<td>' . htmlspecialchars($payment['familyName'] ?? '-') . '</td>';
+        $paymentTableHtml .= '<td class="amount">' . number_format($payment['amount'], 2) . '</td>';
+        $paymentTableHtml .= '<td>' . htmlspecialchars($payment['payment_method']) . '</td>';
+        $paymentTableHtml .= '<td>' . htmlspecialchars($payment['transaction_reference'] ?? '-') . '</td>';
+        $paymentTableHtml .= '<td>' . htmlspecialchars($payment['transaction_message'] ?? '-') . '</td>';
+        $paymentTableHtml .= '</tr>';
+    }
 
-        .header h1 {
-            margin: 5px 0;
-            font-size: 24pt;
-        }
+    $paymentTableHtml .= '</tbody>';
+    $paymentTableHtml .= '<tfoot>';
+    $paymentTableHtml .= '<tr>';
+    $paymentTableHtml .= '<th colspan="3">Total</th>';
+    $paymentTableHtml .= '<th class="amount">' . number_format($totalSum, 2) . '</th>';
+    $paymentTableHtml .= '<th colspan="3"></th>';
+    $paymentTableHtml .= '</tr>';
+    $paymentTableHtml .= '</tfoot>';
+    $paymentTableHtml .= '</table>';
+} else {
+    $paymentTableHtml = '<p>No payments found for the selected date range.</p>';
+}
 
-        .header p {
-            margin: 3px 0;
-            color: #666;
-        }
+// Prepare template data
+$templateData = [
+    'ORGANIZATION_NAME' => $organizationName,
+    'ORGANIZATION_ADDRESS' => !empty($organizationAddress) ? '<p>' . nl2br(htmlspecialchars($organizationAddress)) . '</p>' : '',
+    'REPORT_TITLE' => 'Payment Report',
+    'GENERATED_DATE' => date('Y-m-d H:i:s'),
+    'GENERATED_BY' => $session->get('preferredName') . ' ' . $session->get('surname'),
+    'FROM_DATE' => Format::date($fromDate),
+    'TO_DATE' => Format::date($toDate),
+    'TOTAL_PAYMENTS' => $payments->getResultCount(),
+    'TOTAL_AMOUNT' => number_format($totalSum, 2),
+    'PAYMENT_TABLE' => $paymentTableHtml,
+    'SEPA_ACCOUNT_INFO' => $sepaAccountInfo
+];
 
-        .report-info {
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
-        }
+// Path to template file
+$templatePath = __DIR__ . '/templates/payment_report_template.html';
 
-        .report-info p {
-            margin: 5px 0;
-        }
-
-        .summary {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #e8f4f8;
-            border-left: 4px solid #2196F3;
-        }
-
-        .summary h2 {
-            margin-top: 0;
-            color: #1976D2;
-        }
-
-        .summary p {
-            margin: 8px 0;
-            font-size: 14pt;
-        }
-
-        .payment-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .payment-table th,
-        .payment-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        .payment-table th {
-            background-color: #4CAF50;
-            color: white;
-            font-weight: bold;
-        }
-
-        .payment-table tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        .payment-table tr:hover {
-            background-color: #ddd;
-        }
-
-        .amount {
-            text-align: right;
-        }
-
-        .footer {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #333;
-            text-align: center;
-            font-size: 10pt;
-            color: #666;
-        }
-
-        .no-print {
-            margin-bottom: 20px;
-        }
-
-        .print-button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            cursor: pointer;
-            border: none;
-            font-size: 14pt;
-        }
-
-        .print-button:hover {
-            background-color: #45a049;
-        }
-    </style>
-</head>
-<body>
-    <div class="no-print">
-        <button class="print-button" onclick="window.print();"><?php echo __('Print'); ?></button>
-        <button class="print-button" onclick="window.close();"><?php echo __('Close'); ?></button>
-    </div>
-
-    <div class="header">
-        <h1><?php echo $organizationName; ?></h1>
-        <?php if (!empty($organizationAddress)): ?>
-            <p><?php echo nl2br($organizationAddress); ?></p>
-        <?php endif; ?>
-        <h2><?php echo __('Payment Report'); ?></h2>
-    </div>
-
-    <div class="report-info">
-        <p><strong><?php echo __('Report Generated'); ?>:</strong> <?php echo date('Y-m-d H:i:s'); ?></p>
-        <p><strong><?php echo __('Generated By'); ?>:</strong> <?php echo $session->get('preferredName') . ' ' . $session->get('surname'); ?></p>
-    </div>
-
-    <div class="summary">
-        <h2><?php echo __('Summary'); ?></h2>
-        <p><strong><?php echo __('Period'); ?>:</strong> <?php echo Format::date($fromDate); ?> - <?php echo Format::date($toDate); ?></p>
-        <p><strong><?php echo __('Total Number of Payments'); ?>:</strong> <?php echo $payments->getResultCount(); ?></p>
-        <p><strong><?php echo __('Total Amount'); ?>:</strong> <?php echo number_format($totalSum, 2); ?></p>
-    </div>
-
-    <?php if ($payments->getResultCount() > 0): ?>
-        <table class="payment-table">
-            <thead>
-                <tr>
-                    <th><?php echo __('Date'); ?></th>
-                    <th><?php echo __('Payer'); ?></th>
-                    <th><?php echo __('Family'); ?></th>
-                    <th><?php echo __('Amount'); ?></th>
-                    <th><?php echo __('Method'); ?></th>
-                    <th><?php echo __('Reference'); ?></th>
-                    <th><?php echo __('Message'); ?></th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($payments as $payment): ?>
-                    <tr>
-                        <td><?php echo Format::date($payment['booking_date']); ?></td>
-                        <td><?php echo htmlspecialchars($payment['payer']); ?></td>
-                        <td><?php echo htmlspecialchars($payment['familyName'] ?? '-'); ?></td>
-                        <td class="amount"><?php echo number_format($payment['amount'], 2); ?></td>
-                        <td><?php echo htmlspecialchars($payment['payment_method']); ?></td>
-                        <td><?php echo htmlspecialchars($payment['transaction_reference'] ?? '-'); ?></td>
-                        <td><?php echo htmlspecialchars($payment['transaction_message'] ?? '-'); ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="3"><?php echo __('Total'); ?></th>
-                    <th class="amount"><?php echo number_format($totalSum, 2); ?></th>
-                    <th colspan="3"></th>
-                </tr>
-            </tfoot>
-        </table>
-    <?php else: ?>
-        <p><?php echo __('No payments found for the selected date range.'); ?></p>
-    <?php endif; ?>
-
-    <div class="footer">
-        <p><?php echo __('This report was generated automatically by the SEPA Payment Management System'); ?></p>
-        <p><?php echo sprintf(__('Generated on %s'), date('Y-m-d H:i:s')); ?></p>
-    </div>
-</body>
-</html>
+// Render and output the template
+echo renderTemplate($templatePath, $templateData, true);
