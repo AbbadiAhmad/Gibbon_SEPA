@@ -8,6 +8,7 @@ Copyright © 2010, Gibbon Foundation
 use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Services\Format;
 use Gibbon\Data\Validator;
 $_GET = $container->get(Validator::class)->sanitize($_GET);
 $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -54,8 +55,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
     // Display results if dates are provided
     if (!empty($fromDate) && !empty($toDate)) {
         // Convert dates from display format to database format if needed
-        $fromDateDB = dateConvert($guid, $fromDate);
-        $toDateDB = dateConvert($guid, $toDate);
+        $fromDateDB = Format::dateConvert($fromDate);
+        $toDateDB = Format::dateConvert($toDate);
 
         // Validate date range
         if (strtotime($fromDateDB) > strtotime($toDateDB)) {
@@ -72,8 +73,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
             // Display summary
             echo "<div class='linkTop'>";
             echo "<h3>" . __('Summary') . "</h3>";
-            echo "<p><strong>" . __('From Date') . ":</strong> " . dateConvertBack($guid, $fromDate) . "</p>";
-            echo "<p><strong>" . __('To Date') . ":</strong> " . dateConvertBack($guid, $toDate) . "</p>";
+            echo "<p><strong>" . __('From Date') . ":</strong> " . Format::date($fromDateDB) . "</p>";
+            echo "<p><strong>" . __('To Date') . ":</strong> " . Format::date($toDateDB) . "</p>";
             echo "<p><strong>" . __('Total Payments') . ":</strong> " . $payments->getResultCount() . "</p>";
             echo "<p><strong>" . __('Total Amount') . ":</strong> " . number_format($totalSum, 2) . "</p>";
             echo "</div>";

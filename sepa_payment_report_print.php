@@ -6,6 +6,7 @@ Copyright © 2010, Gibbon Foundation
 */
 
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Services\Format;
 use Gibbon\Data\Validator;
 use Gibbon\Domain\System\SettingGateway;
 
@@ -196,7 +197,7 @@ $organizationAddress = $settingGateway->getSettingByScope('System', 'organisatio
 
     <div class="summary">
         <h2><?php echo __('Summary'); ?></h2>
-        <p><strong><?php echo __('Period'); ?>:</strong> <?php echo dateConvertBack($guid, $fromDate); ?> - <?php echo dateConvertBack($guid, $toDate); ?></p>
+        <p><strong><?php echo __('Period'); ?>:</strong> <?php echo Format::date($fromDate); ?> - <?php echo Format::date($toDate); ?></p>
         <p><strong><?php echo __('Total Number of Payments'); ?>:</strong> <?php echo $payments->getResultCount(); ?></p>
         <p><strong><?php echo __('Total Amount'); ?>:</strong> <?php echo number_format($totalSum, 2); ?></p>
     </div>
@@ -217,7 +218,7 @@ $organizationAddress = $settingGateway->getSettingByScope('System', 'organisatio
             <tbody>
                 <?php foreach ($payments as $payment): ?>
                     <tr>
-                        <td><?php echo dateConvertBack($guid, $payment['booking_date']); ?></td>
+                        <td><?php echo Format::date($payment['booking_date']); ?></td>
                         <td><?php echo htmlspecialchars($payment['payer']); ?></td>
                         <td><?php echo htmlspecialchars($payment['familyName'] ?? '-'); ?></td>
                         <td class="amount"><?php echo number_format($payment['amount'], 2); ?></td>
