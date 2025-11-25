@@ -85,3 +85,48 @@ ALTER TABLE gibbonSEPABalanceSnapshot
 ADD COLUMN totalFees DECIMAL(12,2) DEFAULT 0.00 COMMENT 'Total owed fees at time of snapshot' AFTER balance;end
 ALTER TABLE gibbonSEPABalanceSnapshot
 ADD COLUMN totalAdjustments DECIMAL(12,2) DEFAULT 0.00 COMMENT 'Total adjustments at time of snapshot' AFTER totalFees;";
+
+// v2.1.0 - Add SEPA Update Request table with encryption for parent self-service updates
+$count++;
+$sql[$count][0] = "2.1.0";
+$sql[$count][1] = "CREATE TABLE IF NOT EXISTS `gibbonSEPAUpdateRequest` (
+    `gibbonSEPAUpdateRequestID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `gibbonFamilyID` int(7) unsigned zerofill NOT NULL,
+    `gibbonSEPAID` int(8) unsigned zerofill DEFAULT NULL COMMENT 'Link to existing SEPA record if updating',
+
+    -- Old values (current data from gibbonSEPA, encrypted for audit trail)
+    `old_payer` varchar(500) DEFAULT NULL COMMENT 'Encrypted old payer name',
+    `old_IBAN` varchar(500) DEFAULT NULL COMMENT 'Encrypted old IBAN',
+    `old_BIC` varchar(500) DEFAULT NULL COMMENT 'Encrypted old BIC',
+    `old_SEPA_signedDate` date DEFAULT NULL,
+    `old_note` text DEFAULT NULL,
+    `old_customData` text DEFAULT NULL COMMENT 'JSON object of old custom field values',
+
+    -- New values (requested changes, encrypted)
+    `new_payer` varchar(500) NOT NULL COMMENT 'Encrypted new payer name',
+    `new_IBAN` varchar(500) NOT NULL COMMENT 'Encrypted new IBAN',
+    `new_BIC` varchar(500) DEFAULT NULL COMMENT 'Encrypted new BIC',
+    `new_SEPA_signedDate` date DEFAULT NULL,
+    `new_note` text DEFAULT NULL,
+    `new_customData` text DEFAULT NULL COMMENT 'JSON object of new custom field values',
+
+    -- Workflow tracking
+    `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+
+    -- Audit trail
+    `gibbonPersonIDSubmitted` int(10) unsigned zerofill NOT NULL COMMENT 'Parent who submitted the request',
+    `submittedDate` datetime NOT NULL,
+    `gibbonPersonIDApproved` int(10) unsigned zerofill DEFAULT NULL COMMENT 'Admin who approved/rejected',
+    `approvedDate` datetime DEFAULT NULL,
+    `approvalNote` text DEFAULT NULL COMMENT 'Admin note for approval/rejection reason',
+
+    -- Metadata
+    `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `timestampUpdated` timestamp NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (`gibbonSEPAUpdateRequestID`),
+    KEY `gibbonFamilyID` (`gibbonFamilyID`),
+    KEY `gibbonSEPAID` (`gibbonSEPAID`),
+    KEY `status` (`status`),
+    KEY `submittedDate` (`submittedDate`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";

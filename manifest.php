@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.0.2';            // Version number
+$version = '2.1.0';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -382,6 +382,46 @@ $actionRows[] = [
     'description' => 'View and manage balance snapshots for families',
     'URLList' => 'sepa_balance_snapshot.php, sepa_balance_snapshot_create.php, sepa_balance_snapshot_details.php',
     'entryURL' => 'sepa_balance_snapshot.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Update SEPA Information',
+    'precedence' => '16',
+    'category' => 'SEPA',
+    'description' => 'Parents can submit SEPA information update requests',
+    'URLList' => 'sepa_update_request.php, sepa_update_request_process.php',
+    'entryURL' => 'sepa_update_request.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'N',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'Y',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'N',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'Y',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Approve SEPA Updates',
+    'precedence' => '17',
+    'category' => 'SEPA',
+    'description' => 'Review and approve parent-submitted SEPA update requests',
+    'URLList' => 'sepa_update_approve.php, sepa_update_approve_process.php',
+    'entryURL' => 'sepa_update_approve.php',
     'entrySidebar' => 'Y',
     'menuShow' => 'Y',
     'defaultPermissionAdmin' => 'Y',
