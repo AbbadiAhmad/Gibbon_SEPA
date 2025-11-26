@@ -25,12 +25,34 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
 
     $SepaGateway = $container->get(SepaGateway::class);
 
-    // Get date range and SEPA ID from query parameters
-    // Default to current year (Jan 1 to Dec 31)
-    $currentYear = date('Y');
-    $fromDate = $_GET['fromDate'] ?? $currentYear . '-01-01';
-    $toDate = $_GET['toDate'] ?? $currentYear . '-12-31';
+    // Get year type and SEPA ID from query parameters
+    $yearType = $_GET['yearType'] ?? 'academic';
     $gibbonSEPAID = $_GET['gibbonSEPAID'] ?? '';
+
+    // Calculate date range based on year type
+    $currentYear = date('Y');
+    $currentMonth = date('n');
+
+    if ($yearType === 'financial') {
+        // Financial year: June to May
+        if ($currentMonth >= 6) {
+            // June or later: Jun this year to May next year
+            $fromDate = $currentYear . '-06-01';
+            $toDate = ($currentYear + 1) . '-05-31';
+        } else {
+            // Before June: Jun last year to May this year
+            $fromDate = ($currentYear - 1) . '-06-01';
+            $toDate = $currentYear . '-05-31';
+        }
+    } else {
+        // Academic year: Current school year from Gibbon
+        $fromDate = $session->get('gibbonSchoolYearFirstDay') ?? $currentYear . '-01-01';
+        $toDate = $session->get('gibbonSchoolYearLastDay') ?? $currentYear . '-12-31';
+    }
+
+    // For future use - commented date inputs
+    // $fromDate = $_GET['fromDate'] ?? $fromDate;
+    // $toDate = $_GET['toDate'] ?? $toDate;
 
     // Get all SEPA accounts for dropdown
     $criteria = $SepaGateway->newQueryCriteria(false)
@@ -39,27 +61,40 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
 
     // Create form for date range and SEPA selection
     $form = Form::create('dateRangeForm', $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_payment_report.php');
-    $form->setTitle(__('Select Date Range and SEPA Account'));
+    $form->setTitle(__('Select Period and SEPA Account'));
     $form->setMethod('GET');
     $form->addHiddenValue('q', '/modules/Sepa/sepa_payment_report.php');
 
     $row = $form->addRow();
-        $row->addLabel('fromDate', __('From Date'));
-        $row->addDate('fromDate')
-            ->required()
-            ->setValue($fromDate);
+        $row->addLabel('yearType', __('Period Type'));
+        $yearOptions = [
+            'academic' => __('Current Academic Year'),
+            'financial' => __('Current Financial Year (Jun-May)')
+        ];
+        $row->addSelect('yearType')
+            ->fromArray($yearOptions)
+            ->selected($yearType)
+            ->required();
 
-    $row = $form->addRow();
-        $row->addLabel('toDate', __('To Date'));
-        $row->addDate('toDate')
-            ->required()
-            ->setValue($toDate);
+    // Commented for future use - manual date selection
+    // $row = $form->addRow();
+    //     $row->addLabel('fromDate', __('From Date'));
+    //     $row->addDate('fromDate')
+    //         ->required()
+    //         ->setValue($fromDate);
+    //
+    // $row = $form->addRow();
+    //     $row->addLabel('toDate', __('To Date'));
+    //     $row->addDate('toDate')
+    //         ->required()
+    //         ->setValue($toDate);
 
     $row = $form->addRow();
         $row->addLabel('gibbonSEPAID', __('SEPA Account'));
         $sepaOptions = ['all' => __('All SEPA Accounts')];
         foreach ($sepaList as $sepa) {
-            $sepaOptions[$sepa['gibbonSEPAID']] = $sepa['payer'] . ' (' . $sepa['IBAN'] . ')';
+            // Removed IBAN from display
+            $sepaOptions[$sepa['gibbonSEPAID']] = $sepa['payer'];
         }
         $row->addSelect('gibbonSEPAID')
             ->fromArray($sepaOptions)
@@ -136,39 +171,41 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
                 }
             }
 
-            // Display summary
-            echo "<div class='linkTop'>";
+            // Display summary with RTL support
+            $textDir = ($session->get('i18n')['direction'] ?? 'ltr');
+            echo "<div class='linkTop' dir='" . $textDir . "'>";
             echo "<h3>" . __('Summary') . "</h3>";
             echo "<p><strong>" . __('From Date') . ":</strong> " . Format::date($fromDateDB) . "</p>";
             echo "<p><strong>" . __('To Date') . ":</strong> " . Format::date($toDateDB) . "</p>";
             echo "<p><strong>" . __('Total Payments') . ":</strong> " . $payments->getResultCount() . "</p>";
             echo "<p><strong>" . __('Total Amount') . ":</strong> " . number_format($totalSum, 2) . "</p>";
+            echo "</div>";
+
+            // Display family info with RTL support
             if (!empty($familyInfo)) {
+                echo "<div class='linkTop' dir='" . $textDir . "'>";
                 echo $familyInfo;
+                echo "</div>";
             }
-            echo "</div>";
 
-            // Add print button
+            // Add print button with POST form
             echo "<div class='linkTop'>";
-            $printURL = $session->get('absoluteURL') . "/index.php?q=/modules/Sepa/sepa_payment_report_print.php&fromDate=" . $fromDateDB . "&toDate=" . $toDateDB;
+            echo "<form method='POST' action='" . $session->get('absoluteURL') . "/index.php?q=/modules/Sepa/sepa_payment_report_print.php' target='_blank'>";
+            echo "<input type='hidden' name='fromDate' value='" . htmlspecialchars($fromDateDB) . "'>";
+            echo "<input type='hidden' name='toDate' value='" . htmlspecialchars($toDateDB) . "'>";
             if ($sepaFilter) {
-                $printURL .= "&gibbonSEPAID=" . $sepaFilter;
+                echo "<input type='hidden' name='gibbonSEPAID' value='" . htmlspecialchars($sepaFilter) . "'>";
             }
-            echo "<a href='" . $printURL . "' target='_blank' class='button'>" . __('Print Report') . "</a>";
+            echo "<button type='submit' class='button'>" . __('Print Report') . "</button>";
+            echo "</form>";
             echo "</div>";
 
-            // DATA TABLE
+            // DATA TABLE - Showing only Date and Amount
             $table = DataTable::createPaginated('paymentsReport', $criteria);
             $table->setTitle(__('Payment Report'));
 
             $table->addColumn('booking_date', __('Booking Date'))
                 ->sortable(['booking_date']);
-
-            $table->addColumn('payer', __('Payer'))
-                ->sortable(['payer']);
-
-            $table->addColumn('familyName', __('Family Name'))
-                ->sortable(['familyName']);
 
             $table->addColumn('amount', __('Amount'))
                 ->format(function ($row) {
@@ -176,20 +213,27 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
                 })
                 ->sortable(['amount']);
 
-            $table->addColumn('payment_method', __('Payment Method'))
-                ->sortable(['payment_method']);
-
-            $table->addColumn('transaction_message', __('Transaction Message'))
-                ->sortable(['transaction_message']);
-
-            $table->addColumn('IBAN', __('IBAN'))
-                ->sortable(['IBAN']);
-
-            $table->addColumn('transaction_reference', __('Transaction Reference'))
-                ->sortable(['transaction_reference']);
-
-            $table->addColumn('note', __('Note'))
-                ->sortable(['note']);
+            // Commented out for simplified view - uncomment if needed
+            // $table->addColumn('payer', __('Payer'))
+            //     ->sortable(['payer']);
+            //
+            // $table->addColumn('familyName', __('Family Name'))
+            //     ->sortable(['familyName']);
+            //
+            // $table->addColumn('payment_method', __('Payment Method'))
+            //     ->sortable(['payment_method']);
+            //
+            // $table->addColumn('transaction_message', __('Transaction Message'))
+            //     ->sortable(['transaction_message']);
+            //
+            // $table->addColumn('IBAN', __('IBAN'))
+            //     ->sortable(['IBAN']);
+            //
+            // $table->addColumn('transaction_reference', __('Transaction Reference'))
+            //     ->sortable(['transaction_reference']);
+            //
+            // $table->addColumn('note', __('Note'))
+            //     ->sortable(['note']);
 
             echo $table->render($payments);
             }

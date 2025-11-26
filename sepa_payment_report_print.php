@@ -11,6 +11,7 @@ use Gibbon\Data\Validator;
 use Gibbon\Domain\System\SettingGateway;
 
 $_GET = $container->get(Validator::class)->sanitize($_GET);
+$_POST = $container->get(Validator::class)->sanitize($_POST);
 
 require_once __DIR__ . '/moduleFunctions.php';
 require_once __DIR__ . '/../../gibbon.php';
@@ -26,10 +27,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report_p
 $SepaGateway = $container->get(SepaGateway::class);
 $settingGateway = $container->get(SettingGateway::class);
 
-// Get date range and SEPA ID from query parameters (already in database format Y-m-d)
-$fromDate = $_GET['fromDate'] ?? '';
-$toDate = $_GET['toDate'] ?? '';
-$gibbonSEPAID = $_GET['gibbonSEPAID'] ?? '';
+// Get date range and SEPA ID from POST parameters (secure from tampering)
+$fromDate = $_POST['fromDate'] ?? '';
+$toDate = $_POST['toDate'] ?? '';
+$gibbonSEPAID = $_POST['gibbonSEPAID'] ?? '';
 
 if (empty($fromDate) || empty($toDate)) {
     echo "<div class='error'>" . __('Please provide both from and to dates.') . "</div>";
@@ -67,7 +68,8 @@ if ($sepaFilter) {
 
     if (!empty($sepaData) && isset($sepaData[0])) {
         $sepaData = $sepaData[0];
-        $sepaAccountInfo = '<p><strong>SEPA Account:</strong> ' . htmlspecialchars($sepaData['payer']) . ' (' . htmlspecialchars($sepaData['IBAN']) . ')</p>';
+        // Removed IBAN from display for security
+        $sepaAccountInfo = '<p><strong>SEPA Account:</strong> ' . htmlspecialchars($sepaData['payer']) . '</p>';
 
         // Get family members information
         if (!empty($sepaData['gibbonFamilyID'])) {
@@ -104,19 +106,20 @@ if ($sepaFilter) {
     }
 }
 
-// Build payment table HTML
+// Build payment table HTML - Simplified to show only Date and Amount
 $paymentTableHtml = '';
 if ($payments->getResultCount() > 0) {
     $paymentTableHtml .= '<table class="payment-table">';
     $paymentTableHtml .= '<thead>';
     $paymentTableHtml .= '<tr>';
     $paymentTableHtml .= '<th>Date</th>';
-    $paymentTableHtml .= '<th>Payer</th>';
-    $paymentTableHtml .= '<th>Family</th>';
     $paymentTableHtml .= '<th>Amount</th>';
-    $paymentTableHtml .= '<th>Method</th>';
-    $paymentTableHtml .= '<th>Reference</th>';
-    $paymentTableHtml .= '<th>Message</th>';
+    // Commented out columns - uncomment if needed
+    // $paymentTableHtml .= '<th>Payer</th>';
+    // $paymentTableHtml .= '<th>Family</th>';
+    // $paymentTableHtml .= '<th>Method</th>';
+    // $paymentTableHtml .= '<th>Reference</th>';
+    // $paymentTableHtml .= '<th>Message</th>';
     $paymentTableHtml .= '</tr>';
     $paymentTableHtml .= '</thead>';
     $paymentTableHtml .= '<tbody>';
@@ -124,21 +127,21 @@ if ($payments->getResultCount() > 0) {
     foreach ($payments as $payment) {
         $paymentTableHtml .= '<tr>';
         $paymentTableHtml .= '<td>' . Format::date($payment['booking_date']) . '</td>';
-        $paymentTableHtml .= '<td>' . htmlspecialchars($payment['payer']) . '</td>';
-        $paymentTableHtml .= '<td>' . htmlspecialchars($payment['familyName'] ?? '-') . '</td>';
         $paymentTableHtml .= '<td class="amount">' . number_format($payment['amount'], 2) . '</td>';
-        $paymentTableHtml .= '<td>' . htmlspecialchars($payment['payment_method']) . '</td>';
-        $paymentTableHtml .= '<td>' . htmlspecialchars($payment['transaction_reference'] ?? '-') . '</td>';
-        $paymentTableHtml .= '<td>' . htmlspecialchars($payment['transaction_message'] ?? '-') . '</td>';
+        // Commented out columns - uncomment if needed
+        // $paymentTableHtml .= '<td>' . htmlspecialchars($payment['payer']) . '</td>';
+        // $paymentTableHtml .= '<td>' . htmlspecialchars($payment['familyName'] ?? '-') . '</td>';
+        // $paymentTableHtml .= '<td>' . htmlspecialchars($payment['payment_method']) . '</td>';
+        // $paymentTableHtml .= '<td>' . htmlspecialchars($payment['transaction_reference'] ?? '-') . '</td>';
+        // $paymentTableHtml .= '<td>' . htmlspecialchars($payment['transaction_message'] ?? '-') . '</td>';
         $paymentTableHtml .= '</tr>';
     }
 
     $paymentTableHtml .= '</tbody>';
     $paymentTableHtml .= '<tfoot>';
-    $paymentTableHtml .= '<tr>';
-    $paymentTableHtml .= '<th colspan="3">Total</th>';
+    $paymentTableHtml .= '<tr class="total-row">';
+    $paymentTableHtml .= '<th>Total</th>';
     $paymentTableHtml .= '<th class="amount">' . number_format($totalSum, 2) . '</th>';
-    $paymentTableHtml .= '<th colspan="3"></th>';
     $paymentTableHtml .= '</tr>';
     $paymentTableHtml .= '</tfoot>';
     $paymentTableHtml .= '</table>';
