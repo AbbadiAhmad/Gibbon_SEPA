@@ -688,11 +688,14 @@ class SepaGateway extends QueryableGateway
                 'gibbonFamilyChild.gibbonFamilyID',
                 'gibbonPerson.gibbonPersonID',
                 'gibbonCourse.gibbonCourseID',
+                'gibbonCourseClass.gibbonCourseClassID',
                 'gibbonPerson.preferredName as childName',
                 'gibbonCourse.name as courseName',
                 'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee',
                 'DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\') AS startDate',
                 'LAST_DAY(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay)) as lastDate',
+                'gibbonCourseClassPerson.dateEnrolled as rawDateEnrolled',
+                'gibbonCourseClassPerson.dateUnenrolled as rawDateUnenrolled',
                 $this->getEnrollmentFeesSQLstatments('enrollmentMonths') . ' as monthsEnrolled',
                 $this->getEnrollmentFeesSQLstatments('enrollmentFees') . ' as totalCost',
             ]);
@@ -784,6 +787,56 @@ class SepaGateway extends QueryableGateway
         }
 
         return $result;
+    }
+
+    /**
+     * Get enrollment details by person ID and course class ID
+     */
+    public function getEnrollmentByIDs($gibbonPersonID, $gibbonCourseClassID)
+    {
+        $query = $this
+            ->newSelect()
+            ->cols([
+                'gibbonCourseClassPerson.*',
+                'gibbonPerson.preferredName',
+                'gibbonPerson.surname',
+                'gibbonCourse.name as courseName',
+                'gibbonCourseClass.name as className'
+            ])
+            ->from('gibbonCourseClassPerson')
+            ->innerJoin('gibbonPerson', 'gibbonCourseClassPerson.gibbonPersonID = gibbonPerson.gibbonPersonID')
+            ->innerJoin('gibbonCourseClass', 'gibbonCourseClassPerson.gibbonCourseClassID = gibbonCourseClass.gibbonCourseClassID')
+            ->innerJoin('gibbonCourse', 'gibbonCourseClass.gibbonCourseID = gibbonCourse.gibbonCourseID')
+            ->where('gibbonCourseClassPerson.gibbonPersonID = :gibbonPersonID')
+            ->where('gibbonCourseClassPerson.gibbonCourseClassID = :gibbonCourseClassID')
+            ->where('gibbonCourseClassPerson.role = :role')
+            ->bindValue('gibbonPersonID', $gibbonPersonID)
+            ->bindValue('gibbonCourseClassID', $gibbonCourseClassID)
+            ->bindValue('role', 'Student');
+
+        return $this->runSelect($query)->fetch();
+    }
+
+    /**
+     * Update enrollment dates
+     */
+    public function updateEnrollmentDates($gibbonPersonID, $gibbonCourseClassID, $dateEnrolled, $dateUnenrolled)
+    {
+        $query = $this
+            ->newUpdate()
+            ->table('gibbonCourseClassPerson')
+            ->cols([
+                'dateEnrolled' => $dateEnrolled,
+                'dateUnenrolled' => $dateUnenrolled
+            ])
+            ->where('gibbonPersonID = :gibbonPersonID')
+            ->where('gibbonCourseClassID = :gibbonCourseClassID')
+            ->where('role = :role')
+            ->bindValue('gibbonPersonID', $gibbonPersonID)
+            ->bindValue('gibbonCourseClassID', $gibbonCourseClassID)
+            ->bindValue('role', 'Student');
+
+        return $this->runUpdate($query);
     }
 
 }
