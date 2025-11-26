@@ -45,6 +45,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         $FamilySEPA = $SepaGateway->getFamilySEPA($gibbonFamilyID);
         $familyInfo = $SepaGateway->getFamilyInfo($gibbonFamilyID);
 
+        // Get academic year dates for payment report button
+        $academicYearData = $SepaGateway->getSchoolYearByID($schoolYearID);
+
 
         echo '<h2>';
         echo __('Family Details');
@@ -88,6 +91,19 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         $table->addColumn('courseFee', __('Fee'));
         $table->addColumn('childName', __('Child Name'));
         $table->addColumn('courseName', __('Course'));
+
+        // Only show edit action for admin users
+        if ($session->get('gibbonRoleIDCurrentCategory') === 'Staff' &&
+            isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_enrollment_edit.php')) {
+            $table->addActionColumn()
+                ->addParam('gibbonPersonID')
+                ->addParam('gibbonCourseClassID')
+                ->addParam('gibbonFamilyID')
+                ->format(function ($values, $actions) {
+                    $actions->addAction('edit', __('Edit'))
+                        ->setURL('/modules/Sepa/sepa_enrollment_edit.php');
+                });
+        }
 
         echo $table->render($detailedFees);
 
@@ -139,6 +155,16 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
                 ->addParam('lockFamily', '1')
                 ->addParam('family_details', $gibbonFamilyID)
                 ->displayLabel();
+
+            // Add Payment Report button with academic year dates pre-filled
+            if (!empty($academicYearData)) {
+                $table2->addHeaderAction('report', __('Payment Report'))
+                    ->setURL('/modules/Sepa/sepa_payment_report.php')
+                    ->addParam('gibbonSEPAID', $FamilySEPA[0]["gibbonSEPAID"])
+                    ->addParam('fromDate', $academicYearData['firstDay'])
+                    ->addParam('toDate', $academicYearData['lastDay'])
+                    ->displayLabel();
+            }
 
             $table2->addColumn('amount', __('Amount'));
             $table2->addColumn('booking_date', __('Booking Date'));
