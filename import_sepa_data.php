@@ -333,6 +333,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                 //if ($record['__Status__'] === 'existing' && !empty($record['__ExistingData__'])) {
                 if ( !empty($record['__ExistingData__'])) {
                     $existing = $record['__ExistingData__'];
+                    $existing['payer'] = $existing['payer'] ?? '';
+                    $existing['IBAN'] = $existing['IBAN'] ?? '';
+                    $existing['BIC'] = $existing['BIC'] ?? '';
+                    $existing['SEPA_signedDate'] = $existing['SEPA_signedDate'] ?? '';
+                    $existing['note'] = $existing['note'] ?? '';
+
                     $tableHTML .= "<tr style='background-color: #f5f5f5; font-style: italic;'>";
                     $tableHTML .= "<td colspan='3' style='text-align: right; padding-right: 10px;'>" . __('Current Data:') . "</td>";
                     $tableHTML .= "<td>{$existing['payer']}</td>";

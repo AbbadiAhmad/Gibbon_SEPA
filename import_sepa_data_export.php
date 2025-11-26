@@ -40,8 +40,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             'Row' => $record['__RowNumberInExcelFile__'] ?? '',
             'Status' => $statusText,
             'Payer' => $record['payer'] ?? '',
-            'IBAN' => $record['IBAN'] ?? '',
-            'BIC' => $record['BIC'] ?? '',
+            //'IBAN' => $record['IBAN'] ?? '',
+            //'BIC' => $record['BIC'] ?? '',
             'SEPA Signed Date' => $record['SEPA_signedDate'] ?? '',
             'Note' => $record['note'] ?? ''
         ];
@@ -61,8 +61,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
     $table->addColumn('Row', __('Row'));
     $table->addColumn('Status', __('Status'));
     $table->addColumn('Payer', __('Payer'));
-    $table->addColumn('IBAN', __('IBAN'));
-    $table->addColumn('BIC', __('BIC'));
+    //$table->addColumn('IBAN', __('IBAN'));
+    //$table->addColumn('BIC', __('BIC'));
     $table->addColumn('SEPA Signed Date', __('SEPA Signed Date'));
     $table->addColumn('Note', __('Note'));
 
