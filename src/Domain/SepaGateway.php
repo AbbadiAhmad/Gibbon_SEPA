@@ -790,6 +790,21 @@ class SepaGateway extends QueryableGateway
     }
 
     /**
+     * Get school year information by ID
+     */
+    public function getSchoolYearByID($schoolYearID)
+    {
+        $query = $this
+            ->newSelect()
+            ->cols(['gibbonSchoolYearID', 'name', 'firstDay', 'lastDay'])
+            ->from('gibbonSchoolYear')
+            ->where('gibbonSchoolYearID = :schoolYearID')
+            ->bindValue('schoolYearID', $schoolYearID);
+
+        return $this->runSelect($query)->fetch();
+    }
+
+    /**
      * Get enrollment details by person ID and course class ID
      */
     public function getEnrollmentByIDs($gibbonPersonID, $gibbonCourseClassID)

@@ -46,7 +46,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         $familyInfo = $SepaGateway->getFamilyInfo($gibbonFamilyID);
 
         // Get academic year dates for payment report button
-        $academicYearData = $pdo->selectOne("SELECT firstDay, lastDay FROM gibbonSchoolYear WHERE gibbonSchoolYearID = :schoolYearID", ['schoolYearID' => $schoolYearID]);
+        $academicYearData = $SepaGateway->getSchoolYearByID($schoolYearID);
 
 
         echo '<h2>';
