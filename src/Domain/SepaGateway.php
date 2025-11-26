@@ -350,14 +350,13 @@ class SepaGateway extends QueryableGateway
             ->newSelect()
             ->cols(['gibbonSEPAPaymentEntry.gibbonSEPAPaymentRecordID'])
             ->from('gibbonSEPAPaymentEntry')
-            ->where("booking_date = :booking_date")
-            ->where("amount = :amount")
-            ->where("LOWER(REPLACE(payer, ' ', '')) = LOWER(REPLACE( :payer , ' ', ''))")
+            ->where("(transaction_reference is not Null AND transaction_reference !='' AND transaction_reference = :transaction_reference) OR (booking_date = :booking_date AND amount = :amount AND LOWER(REPLACE(payer, ' ', '')) = LOWER(REPLACE( :payer , ' ', '')))")
             ->bindValue('booking_date', $record['booking_date'])
             ->bindValue('amount', $record['amount'])
-            ->bindValue('payer', $record['payer']);
-
-        $result = count($this->runSelect($query)->fetchAll()) > 0;
+            ->bindValue('payer', $record['payer'])
+            ->bindValue('transaction_reference', $record['transaction_reference']);
+            $res = $this->runSelect($query)->fetchAll();
+        $result = count($res) > 0;
         return $result;
     }
 
