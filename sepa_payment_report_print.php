@@ -77,8 +77,8 @@ if ($sepaFilter) {
             $children = $SepaGateway->selectChildrenByFamily($sepaData['gibbonFamilyID'])->fetchAll();
 
             $familyInfoHtml = '<div class="family-info">';
-            $familyInfoHtml .= '<h3>Family Information</h3>';
-            $familyInfoHtml .= '<p><strong>Family:</strong> ' . htmlspecialchars($sepaData['payer']) . '</p>';
+            //$familyInfoHtml .= '<h3>Family Information</h3>';
+            //$familyInfoHtml .= '<p><strong>Family:</strong> ' . htmlspecialchars($sepaData['payer']) . '</p>';
 
             if (!empty($adults)) {
                 $adultCount = 0;
@@ -86,7 +86,9 @@ if ($sepaFilter) {
                     $adultCount++;
                     $adultName = $adult['preferredName'] . ' ' . $adult['surname'];
                     $adultLabel = ($adultCount === 1) ? 'First Adult' : 'Second Adult';
-                    $familyInfoHtml .= '<p><strong>' . $adultLabel . ':</strong> ' . htmlspecialchars($adultName) . '</p>';
+                    
+                    //$familyInfoHtml .= '<p><strong>' . $adultLabel . ':</strong> ' . htmlspecialchars($adultName) . '</p>';
+                    $familyInfoHtml .= htmlspecialchars($adultName) . '</p>';
                     if ($adultCount >= 2) break; // Only show first 2 adults
                 }
             }
@@ -137,13 +139,13 @@ if ($payments->getResultCount() > 0) {
         $paymentTableHtml .= '</tr>';
     }
 
-    $paymentTableHtml .= '</tbody>';
-    $paymentTableHtml .= '<tfoot>';
+    //$paymentTableHtml .= '</tbody>';
+    //$paymentTableHtml .= '<tfoot>';
     $paymentTableHtml .= '<tr class="total-row">';
     $paymentTableHtml .= '<th>Total</th>';
     $paymentTableHtml .= '<th class="amount">' . number_format($totalSum, 2) . '</th>';
     $paymentTableHtml .= '</tr>';
-    $paymentTableHtml .= '</tfoot>';
+     //$paymentTableHtml .= '</tfoot>';
     $paymentTableHtml .= '</table>';
 } else {
     $paymentTableHtml = '<p>No payments found for the selected date range.</p>';
@@ -155,7 +157,8 @@ $templateData = [
     'ORGANIZATION_ADDRESS' => !empty($organizationAddress) ? '<p>' . nl2br(htmlspecialchars($organizationAddress)) . '</p>' : '',
     'REPORT_TITLE' => 'Payment Report',
     'GENERATED_DATE' => date('Y-m-d H:i:s'),
-    'GENERATED_BY' => $session->get('preferredName') . ' ' . $session->get('surname'),
+    //'GENERATED_BY' => $session->get('preferredName') . ' ' . $session->get('surname'),
+    'GENERATED_BY' => 'Annur Schule',
     'FROM_DATE' => Format::date($fromDate),
     'TO_DATE' => Format::date($toDate),
     'TOTAL_PAYMENTS' => $payments->getResultCount(),
