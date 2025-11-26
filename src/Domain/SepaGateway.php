@@ -237,9 +237,9 @@ class SepaGateway extends QueryableGateway
     {
         $query = $this
             ->newSelect()
-            ->from($this->getTableName())
+            ->from('gibbonSEPA')
             ->cols(['*'])
-            ->where('payer LIKE :payer')
+            ->where("LOWER(REPLACE(payer, ' ', '')) = LOWER(REPLACE( :payer , ' ', '')) ")
             ->bindValue('payer', $payer);
 
         return $this->runSelect($query)->fetchAll();
@@ -325,12 +325,12 @@ class SepaGateway extends QueryableGateway
                 ->newInsert()
                 ->into('gibbonSEPA')
                 ->cols([
-                    'gibbonFamilyID' => $familyID,
-                    'payer' => $sepaData['payer'],
+                    'gibbonFamilyID' => trim($familyID),
+                    'payer' => trim($sepaData['payer']),
                     'IBAN' => $this->maskIBAN($sepaData['IBAN'] ?? null),
                     'BIC' => $this->maskBIC($sepaData['BIC'] ?? null),
                     'SEPA_signedDate' => $sepaData['SEPA_signedDate'],
-                    'note' => $sepaData['note'],
+                    'note' => trim($sepaData['note']),
                 ]);
 
             $result[] = $this->runInsert($query);
@@ -388,7 +388,7 @@ class SepaGateway extends QueryableGateway
             ->into('gibbonSEPAPaymentEntry')
             ->cols([
                 'booking_date' => $paymentData['booking_date'],
-                'payer' => $paymentData['payer'],
+                'payer' => trim($paymentData['payer']),
                 'IBAN' => $this->maskIBAN($paymentData['IBAN'] ?? null),
                 'transaction_reference' => $paymentData['transaction_reference'],
                 'transaction_message' => $paymentData['transaction_message'],
@@ -411,12 +411,12 @@ class SepaGateway extends QueryableGateway
             ->table('gibbonSEPAPaymentEntry')
             ->cols([
                 'booking_date' => $paymentData['booking_date'],
-                'payer' => $paymentData['payer'],
+                'payer' => trim($paymentData['payer']),
                 'IBAN' => $this->maskIBAN($paymentData['IBAN'] ?? null),
-                'transaction_reference' => $paymentData['transaction_reference'],
-                'transaction_message' => $paymentData['transaction_message'],
+                'transaction_reference' => trim($paymentData['transaction_reference']),
+                'transaction_message' => trim($paymentData['transaction_message']),
                 'amount' => $paymentData['amount'],
-                'note' => $paymentData['note'],
+                'note' => trim($paymentData['note']),
                 'academicYear' => $paymentData['academicYear'],
                 'gibbonSEPAID' => $paymentData['gibbonSEPAID'],
                 'payment_method' => $paymentData['payment_method']
@@ -769,11 +769,11 @@ class SepaGateway extends QueryableGateway
             ->newUpdate()
             ->table('gibbonSEPA')
             ->cols([
-                'payer' => $sepaData['payer'],
+                'payer' => trim($sepaData['payer']),
                 'IBAN' => $this->maskIBAN($sepaData['IBAN'] ?? null),
                 'BIC' => $this->maskBIC($sepaData['BIC'] ?? null),
                 'SEPA_signedDate' => $sepaData['SEPA_signedDate'],
-                'note' => $sepaData['note']
+                'note' => trim($sepaData['note'])
             ])
             ->where('gibbonFamilyID = :gibbonFamilyID')
             ->bindValue('gibbonFamilyID', $gibbonFamilyID);
@@ -787,11 +787,11 @@ public function updateSEPABySEPAID($SEPAID, $sepaData)
             ->newUpdate()
             ->table('gibbonSEPA')
             ->cols([
-                'payer' => $sepaData['payer'],
+                'payer' => trim($sepaData['payer']),
                 'IBAN' => $this->maskIBAN($sepaData['IBAN'] ?? null),
                 'BIC' => $this->maskBIC($sepaData['BIC'] ?? null),
                 'SEPA_signedDate' => $sepaData['SEPA_signedDate'],
-                'note' => $sepaData['note']
+                'note' => trim($sepaData['note'])
             ])
             ->where('gibbonSEPAID = :SEPAID')
             ->bindValue('SEPAID', $SEPAID);
