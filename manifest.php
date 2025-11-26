@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.1.0';            // Version number
+$version = '2.2.0';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -349,7 +349,7 @@ $actionRows[] = [
     'defaultPermissionStudent' => 'N',
     'defaultPermissionParent' => 'N',
     'defaultPermissionSupport' => 'N',
-    'categoryPermissionStaff' => 'N',
+    'categoryPermissionStaff' => 'Y',
     'categoryPermissionStudent' => 'N',
     'categoryPermissionParent' => 'N',
     'categoryPermissionOther' => 'N',
