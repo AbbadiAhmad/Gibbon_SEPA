@@ -272,12 +272,11 @@ class SepaGateway extends QueryableGateway
 
     }
 
-    //todo check where it is used, and if needed
     public function getUserID($personFullName)
     {
         // muliple ID can be when similar names
         $userIDs = [];
-        $whereclause = "LOWER(REPLACE(CONCAT(preferredName, surname), ' ', '')) = LOWER(REPLACE('" . $personFullName . "', ' ', ''))";
+        $whereclause = "status= 'Full' AND LOWER(REPLACE(CONCAT(preferredName, surname), ' ', '')) = LOWER(REPLACE('" . $personFullName . "', ' ', ''))";
         $query = $this
             ->newQuery()
             ->from("gibbonPerson")

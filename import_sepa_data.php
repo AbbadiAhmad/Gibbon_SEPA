@@ -199,11 +199,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                         $mappedRow['__ExistingData__'] = $existingSEPA[0];
                     } else {
                         $mappedRow['__Status__'] = 'new';
+                        $mappedRow['__ExistingData__'] = ['payer'=>'User name: '.$mappedRow['payer']];
                     }
                 } elseif (count($userID) === 0) {
                     $mappedRow['__Status__'] = 'user_not_found';
                 } else {
                     $mappedRow['__Status__'] = 'multiple_users';
+                    $mappedRow['__ExistingData__'] = ['payer'=>"User IDs: ".join(',', $userID) ];
                 }
 
                 $validData[] = $mappedRow;
@@ -306,7 +308,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                 $tableHTML .= "</tr>";
 
                 // Show existing data for comparison if status is existing
-                if ($record['__Status__'] === 'existing' && !empty($record['__ExistingData__'])) {
+                //if ($record['__Status__'] === 'existing' && !empty($record['__ExistingData__'])) {
+                if ( !empty($record['__ExistingData__'])) {
                     $existing = $record['__ExistingData__'];
                     $tableHTML .= "<tr style='background-color: #f5f5f5; font-style: italic;'>";
                     $tableHTML .= "<td colspan='3' style='text-align: right; padding-right: 10px;'>" . __('Current Data:') . "</td>";
