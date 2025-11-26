@@ -186,29 +186,45 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                 if (!empty($mappedRow['SEPA_signedDate']))
                     $mappedRow['SEPA_signedDate'] = DateTime::createFromFormat($dateFormat, $mappedRow['SEPA_signedDate'])->format('Y-m-d');
 
-                // Check if record exists
-                $userID = $SepaGateway->getUserID($mappedRow['payer']);
-                $mappedRow['__UserID__'] = $userID;
+                // init
                 $mappedRow['__Status__'] = 'error';
+                $mappedRow['__Status_ID__'] = '1';
                 $mappedRow['__ExistingData__'] = null;
+                // Check if record exists
+                $existingSEPA = $SepaGateway->getSEPAByPayer($mappedRow['payer']);
 
-                if (count($userID) === 1) {
-                    $existingSEPA = $SepaGateway->getSEPAByUserID($userID[0]);
-                    if (!empty($existingSEPA)) {
-                        $mappedRow['__Status__'] = 'existing';
-                        $mappedRow['__ExistingData__'] = $existingSEPA[0];
-                    } else {
-                        $mappedRow['__Status__'] = 'new';
-                        $mappedRow['__ExistingData__'] = ['payer'=>'User name: '.$mappedRow['payer']];
-                    }
-                } elseif (count($userID) === 0) {
-                    $mappedRow['__Status__'] = 'user_not_found';
+                if (!empty($existingSEPA)) {
+                    $mappedRow['__Status__'] = 'existing';
+                    $mappedRow['__Status_ID__'] = '5';
+                    $mappedRow['__ExistingData__'] = $existingSEPA[0];
                 } else {
-                    $mappedRow['__Status__'] = 'multiple_users';
-                    $mappedRow['__ExistingData__'] = ['payer'=>"User IDs: ".join(',', $userID) ];
+                    // try to find the Payer\'s name in usernames
+                    $userID = $SepaGateway->getUserID($mappedRow['payer']);
+                    $mappedRow['__UserID__'] = $userID;
+
+                    if (count($userID) === 1) {
+                        $existingSEPA = $SepaGateway->getSEPAByUserID($userID[0]);
+                        if (!empty($existingSEPA)) {
+                            $mappedRow['__Status__'] = 'existing SEPA. The SEPA holder may be changed!';
+                            $mappedRow['__Status_ID__'] = '2';
+                            $mappedRow['__ExistingData__'] = $existingSEPA[0];
+                        } else {
+                            $mappedRow['__Status__'] = 'new';
+                            $mappedRow['__Status_ID__'] = '1';
+                            $mappedRow['__ExistingData__'] = ['payer' => 'User name: ' . $mappedRow['payer']];
+                        }
+                    } elseif (count($userID) === 0) {
+                        $mappedRow['__Status__'] = 'user_not_found';
+                        $mappedRow['__Status_ID__'] = '4';
+                    } else {
+                        $mappedRow['__Status__'] = 'multiple_users';
+                        $mappedRow['__Status_ID__'] = '3';
+                        $mappedRow['__ExistingData__'] = ['payer' => "User IDs: " . join(',', $userID)];
+                    }
                 }
 
                 $validData[] = $mappedRow;
+
             }
 
         }
@@ -223,16 +239,16 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         }
 
         // Sort data by status in the specified order
-        $statusOrder = [
-            'multiple_users' => 1,
-            'new' => 2,
-            'user_not_found' => 3,
-            'existing' => 4
-        ];
+        // $statusOrder = [
+        //     'multiple_users' => 1,
+        //     'new' => 2,
+        //     'user_not_found' => 3,
+        //     'existing' => 4
+        // ];
 
-        usort($validData, function($a, $b) use ($statusOrder) {
-            $orderA = $statusOrder[$a['__Status__']] ?? 999;
-            $orderB = $statusOrder[$b['__Status__']] ?? 999;
+        usort($validData, function ($a, $b) {
+            $orderA = $a['__Status_ID__'] ?? 999;
+            $orderB = $b['__Status_ID__'] ?? 999;
             return $orderA - $orderB;
         });
 
@@ -300,16 +316,24 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                         $showCheckbox = true;
                         $existingCount++;
                         break;
+                    case 'existing SEPA. The SEPA holder may be changed!':
+                        $statusText = __('existing SEPA. The SEPA holder may be changed!');
+                        $statusColor = 'orange';
+                        $showCheckbox = true;
+                        $existingCount++;
+                        break;
                     case 'user_not_found':
                         $statusText = __('User Not Found');
                         $statusColor = 'red';
                         $errorCount++;
                         break;
                     case 'multiple_users':
+                    case 'error':
                         $statusText = __('Multiple Users');
                         $statusColor = 'red';
                         $errorCount++;
                         break;
+
                 }
 
                 $tableHTML .= "<tr>";
@@ -331,7 +355,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
                 // Show existing data for comparison if status is existing
                 //if ($record['__Status__'] === 'existing' && !empty($record['__ExistingData__'])) {
-                if ( !empty($record['__ExistingData__'])) {
+                if (!empty($record['__ExistingData__'])) {
                     $existing = $record['__ExistingData__'];
                     $existing['payer'] = $existing['payer'] ?? '';
                     $existing['IBAN'] = $existing['IBAN'] ?? '';
@@ -407,7 +431,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
             foreach ($data as $index => $row) {
                 $status = $row['__Status__'];
-                $userID = $row['__UserID__'];
+                $userID = $row['__UserID__'] ?? [];
+                $SEPAID = $row['__ExistingData__']['gibbonSEPAID'] ?? null;
 
                 // Process based on status
                 if ($status === 'new' && count($userID) === 1) {
@@ -419,11 +444,18 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                         $errorCount++;
                         $errorRows[] = "Row {$row['__RowNumberInExcelFile__']}: {$row['payer']} - Failed to insert";
                     }
-                } elseif ($status === 'existing' && count($userID) === 1) {
+                } elseif ($status === 'existing' || $status === 'existing SEPA. The SEPA holder may be changed!') {
                     // Check if user selected to update this record
                     if (in_array($index, $updateRecords)) {
                         // Update existing record
-                        if ($SepaGateway->updateSEPAByUserID($userID[0], $row)) {
+                        if (!empty($SEPAID)) {
+                            $res = $SepaGateway->updateSEPABySEPAID($SEPAID, $row);
+                        } elseif (count($userID) === 1) {
+                            $res = $SepaGateway->updateSEPAByUserID($userID[0], $row);
+                        } else {
+                            $res = 0;
+                        }
+                        if ($res) {
                             $updatedCount++;
                             $updatedRows[] = "Row {$row['__RowNumberInExcelFile__']}: {$row['payer']}";
                         } else {

@@ -233,6 +233,19 @@ class SepaGateway extends QueryableGateway
 
     }
 
+    public function getSEPAByPayer($payer)
+    {
+        $query = $this
+            ->newSelect()
+            ->from($this->getTableName())
+            ->cols(['*'])
+            ->where('payer LIKE :payer')
+            ->bindValue('payer', $payer);
+
+        return $this->runSelect($query)->fetchAll();
+
+    }
+
     public function getfamilyPerPerson($userID)
     {
         $familyIDs = [];
@@ -265,12 +278,21 @@ class SepaGateway extends QueryableGateway
 
     }
 
-    public function getSEPAPerPerson($userID)
+        public function getSEPAByUserID($userID)
     {
         $familyIDs = $this->getfamilyPerPerson($userID);
-        return $this->getFamilySEPA($familyIDs);
+        $result = [];
 
+        foreach ($familyIDs as $familyID) {
+            $sepaData = $this->getFamilySEPA($familyID);
+            if (!empty($sepaData)) {
+                $result = array_merge($result, $sepaData);
+            }
+        }
+
+        return $result;
     }
+
 
     public function getUserID($personFullName)
     {
@@ -741,21 +763,6 @@ class SepaGateway extends QueryableGateway
         return $result['totalPayments'] ?? 0;
     }
 
-    public function getSEPAByUserID($userID)
-    {
-        $familyIDs = $this->getfamilyPerPerson($userID);
-        $result = [];
-
-        foreach ($familyIDs as $familyID) {
-            $sepaData = $this->getFamilySEPA($familyID);
-            if (!empty($sepaData)) {
-                $result = array_merge($result, $sepaData);
-            }
-        }
-
-        return $result;
-    }
-
     public function updateSEPAByFamilyID($gibbonFamilyID, $sepaData)
     {
         $query = $this
@@ -770,6 +777,24 @@ class SepaGateway extends QueryableGateway
             ])
             ->where('gibbonFamilyID = :gibbonFamilyID')
             ->bindValue('gibbonFamilyID', $gibbonFamilyID);
+
+        return $this->runUpdate($query);
+    }
+
+public function updateSEPABySEPAID($SEPAID, $sepaData)
+    {
+        $query = $this
+            ->newUpdate()
+            ->table('gibbonSEPA')
+            ->cols([
+                'payer' => $sepaData['payer'],
+                'IBAN' => $this->maskIBAN($sepaData['IBAN'] ?? null),
+                'BIC' => $this->maskBIC($sepaData['BIC'] ?? null),
+                'SEPA_signedDate' => $sepaData['SEPA_signedDate'],
+                'note' => $sepaData['note']
+            ])
+            ->where('gibbonSEPAID = :SEPAID')
+            ->bindValue('SEPAID', $SEPAID);
 
         return $this->runUpdate($query);
     }
