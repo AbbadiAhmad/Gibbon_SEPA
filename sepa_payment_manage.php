@@ -28,7 +28,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.p
 
     // CRITERIA
     $criteria = $SepaGateway->newQueryCriteria(true)
-        ->searchBy(['payer', 'booking_date', 'amount', 'transaction_message', 'IBAN', 'transaction_reference', 'note'], $search)
+        ->searchBy(['gibbonSEPAPaymentEntry.payer', 'gibbonSEPAPaymentEntry.booking_date', 'gibbonSEPAPaymentEntry.amount', 'gibbonSEPAPaymentEntry.transaction_message', 'gibbonSEPAPaymentEntry.IBAN', 'gibbonSEPAPaymentEntry.transaction_reference', 'gibbonSEPAPaymentEntry.note'], $search)
         ->sortBy(['timestamp'])
         ->fromPOST();
 

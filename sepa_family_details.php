@@ -108,6 +108,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
             $table3->addColumn('description', __('Description'));
             $table3->addColumn('note', __('Note'));
             $table3->addColumn('timestamp', __('Timestamp'));
+            $table3->addColumn('gibbonPersonID', __('user'));
+            
 
             $table3->addActionColumn()
                 ->addParam('gibbonSEPAPaymentAdjustmentID')

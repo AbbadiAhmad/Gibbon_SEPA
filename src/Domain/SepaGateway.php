@@ -455,6 +455,11 @@ class SepaGateway extends QueryableGateway
                     ->bindValue('payment_method', $payment_method);
             },
         ]);
+        $search = $criteria->getSearchText();
+        if (!empty($search)) {
+            $query->where('(gibbonSEPAPaymentEntry.transaction_reference LIKE :search OR gibbonSEPAPaymentEntry.IBAN LIKE :search OR gibbonSEPAPaymentEntry.payer LIKE :search OR gibbonSEPAPaymentEntry.booking_date LIKE :search OR gibbonSEPAPaymentEntry.amount LIKE :search)')
+                ->bindValue('search', '%' . $search . '%');
+        }
 
         return $this->runQuery($query, $criteria);
     }
