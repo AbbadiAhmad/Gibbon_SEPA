@@ -180,6 +180,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
 
         // Perform dry run validation
         $processedData = [];
+        $validData = [];
+        $otherData = [];
         $validDataCount = 0;
 
         foreach ($data as $rowIndex => $row) {
@@ -215,13 +217,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
                     // covert date to mysql format
                     $mappedRow['booking_date'] = DateTime::createFromFormat($dateFormat, $mappedRow['booking_date'])->format('Y-m-d');
 
-                    // convert to mysql decimal format 
+                    // convert to mysql decimal format
                     $mappedRow['amount'] = convertToFloat($mappedRow['amount'], $decimalSeparator);
-                    
+
                     // search of already exist
 
                     if ($SepaGateway->paymentRecordExist($mappedRow)) {
-                        $mappedRow['__RowStatusInImportProcess__'] = 'Step3. Already record, will not be imported.';
+                        $mappedRow['__RowStatusInImportProcess__'] = 'Step3. Already exist. Will not be imported.';
                         $mappedRow['__RowCanBeImported__'] = false;
 
                     } else {
@@ -232,7 +234,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
                         if ($result && count($result)==1) {
                             $mappedRow['gibbonSEPAID'] = $result[0]['gibbonSEPAID'];
                         }
-                        
+
                         $validDataCount++;
                     }
 
@@ -241,8 +243,14 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
                     $mappedRow['__RowCanBeImported__'] = false;
                 }
             }
-            $processedData[] = $mappedRow;
+            if ($mappedRow['__RowStatusInImportProcess__'] == 'Step3. ValidData') {
+                $validData[] = $mappedRow;
+            } else {
+                $otherData[] = $mappedRow;
+            }
         }
+
+        $processedData = array_merge($validData, $otherData);
 
         // Display validation results
         if (!empty($validDataCount)) {
