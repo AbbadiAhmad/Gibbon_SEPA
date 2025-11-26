@@ -13,9 +13,6 @@ use Gibbon\Domain\System\SettingGateway;
 $_GET = $container->get(Validator::class)->sanitize($_GET);
 
 require_once __DIR__ . '/moduleFunctions.php';
-
-// For standalone page, we need minimal Gibbon setup
-$_SESSION[$guid]['pageLoads'] = null; // Prevent page tracking
 require_once __DIR__ . '/../../gibbon.php';
 
 // Check access
@@ -25,10 +22,6 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report_p
     echo "</body></html>";
     exit;
 }
-
-// Disable page header and footer for clean print
-$page->setOptions(['showHeader' => false, 'showSidebar' => false, 'showFooter' => false]);
-$page->setTitle('');
 
 $SepaGateway = $container->get(SepaGateway::class);
 $settingGateway = $container->get(SettingGateway::class);
