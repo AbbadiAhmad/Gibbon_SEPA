@@ -119,7 +119,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
                             $adultCount++;
                             $adultName = $adult['preferredName'] . ' ' . $adult['surname'];
                             $adultLabel = ($adultCount === 1) ? __('First Adult') : __('Second Adult');
-                            $familyInfo .= "<p><strong>" . $adultLabel . ":</strong> " . htmlspecialchars($adultName) . " (" . htmlspecialchars($adult['email']) . ")</p>";
+                            $familyInfo .= "<p><strong>" . $adultLabel . ":</strong> " . htmlspecialchars($adultName) . "</p>";
                             if ($adultCount >= 2) break; // Only show first 2 adults
                         }
                     }

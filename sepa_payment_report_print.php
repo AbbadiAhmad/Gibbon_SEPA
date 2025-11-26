@@ -13,13 +13,22 @@ use Gibbon\Domain\System\SettingGateway;
 $_GET = $container->get(Validator::class)->sanitize($_GET);
 
 require_once __DIR__ . '/moduleFunctions.php';
+
+// For standalone page, we need minimal Gibbon setup
+$_SESSION[$guid]['pageLoads'] = null; // Prevent page tracking
 require_once __DIR__ . '/../../gibbon.php';
 
+// Check access
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report_print.php") == false) {
-    // Access denied
-    echo "<div class='error'>" . __('You do not have access to this action.') . "</div>";
+    echo "<!DOCTYPE html><html><head><meta charset='UTF-8'></head><body>";
+    echo "<div class='error'>You do not have access to this action.</div>";
+    echo "</body></html>";
     exit;
 }
+
+// Disable page header and footer for clean print
+$page->setOptions(['showHeader' => false, 'showSidebar' => false, 'showFooter' => false]);
+$page->setTitle('');
 
 $SepaGateway = $container->get(SepaGateway::class);
 $settingGateway = $container->get(SettingGateway::class);
@@ -82,7 +91,7 @@ if ($sepaFilter) {
                     $adultCount++;
                     $adultName = $adult['preferredName'] . ' ' . $adult['surname'];
                     $adultLabel = ($adultCount === 1) ? 'First Adult' : 'Second Adult';
-                    $familyInfoHtml .= '<p><strong>' . $adultLabel . ':</strong> ' . htmlspecialchars($adultName) . ' (' . htmlspecialchars($adult['email']) . ')</p>';
+                    $familyInfoHtml .= '<p><strong>' . $adultLabel . ':</strong> ' . htmlspecialchars($adultName) . '</p>';
                     if ($adultCount >= 2) break; // Only show first 2 adults
                 }
             }
@@ -163,5 +172,10 @@ $templateData = [
 // Path to template file
 $templatePath = __DIR__ . '/templates/payment_report_template.html';
 
-// Render and output the template
-echo renderTemplate($templatePath, $templateData, true);
+// Render the template
+$htmlOutput = renderTemplate($templatePath, $templateData, true);
+
+// Output directly as standalone HTML (bypass Gibbon's page wrapper)
+header('Content-Type: text/html; charset=utf-8');
+echo $htmlOutput;
+exit; // Important: exit to prevent Gibbon from adding its layout
