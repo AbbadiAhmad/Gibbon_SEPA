@@ -92,14 +92,18 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         $table->addColumn('childName', __('Child Name'));
         $table->addColumn('courseName', __('Course'));
 
-        $table->addActionColumn()
-            ->addParam('gibbonPersonID')
-            ->addParam('gibbonCourseClassID')
-            ->addParam('gibbonFamilyID')
-            ->format(function ($values, $actions) {
-                $actions->addAction('edit', __('Edit'))
-                    ->setURL('/modules/Sepa/sepa_enrollment_edit.php');
-            });
+        // Only show edit action for admin users
+        if ($session->get('gibbonRoleIDCurrentCategory') === 'Staff' &&
+            isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_enrollment_edit.php')) {
+            $table->addActionColumn()
+                ->addParam('gibbonPersonID')
+                ->addParam('gibbonCourseClassID')
+                ->addParam('gibbonFamilyID')
+                ->format(function ($values, $actions) {
+                    $actions->addAction('edit', __('Edit'))
+                        ->setURL('/modules/Sepa/sepa_enrollment_edit.php');
+                });
+        }
 
         echo $table->render($detailedFees);
 
