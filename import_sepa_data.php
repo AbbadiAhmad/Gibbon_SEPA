@@ -191,7 +191,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                 $mappedRow['__Status_ID__'] = '1';
                 $mappedRow['__ExistingData__'] = null;
                 // Check if record exists
-                $existingSEPA = $SepaGateway->getSEPAByPayer($mappedRow['payer']);
+                $existingSEPA = $SepaGateway->getSEPAByPayer(trim($mappedRow['payer']));
 
                 if (!empty($existingSEPA)) {
                     $mappedRow['__Status__'] = 'existing';
