@@ -222,6 +222,20 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             echo "</div>";
         }
 
+        // Sort data by status in the specified order
+        $statusOrder = [
+            'multiple_users' => 1,
+            'new' => 2,
+            'user_not_found' => 3,
+            'existing' => 4
+        ];
+
+        usort($validData, function($a, $b) use ($statusOrder) {
+            $orderA = $statusOrder[$a['__Status__']] ?? 999;
+            $orderB = $statusOrder[$b['__Status__']] ?? 999;
+            return $orderA - $orderB;
+        });
+
         // Store valid data for final step
         $_SESSION[$guid]['sepaValidData'] = $validData;
 
@@ -232,6 +246,14 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             echo "<div class='warning' style='margin-bottom: 15px;'>";
             echo "<strong>" . __('Security Notice:') . "</strong> ";
             echo __('IBANs will be automatically masked before storage (format: XX****XXX). Full IBAN data shown below will NOT be saved to the database. BIC codes will NOT be stored.');
+            echo "</div>";
+
+            // Add export button
+            echo "<div style='margin-bottom: 15px;'>";
+            echo "<a href='" . $session->get('absoluteURL') . "/modules/Sepa/import_sepa_data_export.php' class='button' style='text-decoration: none;'>";
+            echo "<img src='./themes/Default/img/download.png' title='" . __('Export') . "' style='margin-right: 5px;' />";
+            echo __('Export to Excel');
+            echo "</a>";
             echo "</div>";
 
             // Start form
@@ -311,6 +333,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                 //if ($record['__Status__'] === 'existing' && !empty($record['__ExistingData__'])) {
                 if ( !empty($record['__ExistingData__'])) {
                     $existing = $record['__ExistingData__'];
+                    $existing['payer'] = $existing['payer'] ?? '';
+                    $existing['IBAN'] = $existing['IBAN'] ?? '';
+                    $existing['BIC'] = $existing['BIC'] ?? '';
+                    $existing['SEPA_signedDate'] = $existing['SEPA_signedDate'] ?? '';
+                    $existing['note'] = $existing['note'] ?? '';
+
                     $tableHTML .= "<tr style='background-color: #f5f5f5; font-style: italic;'>";
                     $tableHTML .= "<td colspan='3' style='text-align: right; padding-right: 10px;'>" . __('Current Data:') . "</td>";
                     $tableHTML .= "<td>{$existing['payer']}</td>";
