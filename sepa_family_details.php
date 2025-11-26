@@ -45,6 +45,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         $FamilySEPA = $SepaGateway->getFamilySEPA($gibbonFamilyID);
         $familyInfo = $SepaGateway->getFamilyInfo($gibbonFamilyID);
 
+        // Get academic year dates for payment report button
+        $academicYearData = $pdo->selectOne("SELECT firstDay, lastDay FROM gibbonSchoolYear WHERE gibbonSchoolYearID = :schoolYearID", ['schoolYearID' => $schoolYearID]);
+
 
         echo '<h2>';
         echo __('Family Details');
@@ -148,6 +151,16 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
                 ->addParam('lockFamily', '1')
                 ->addParam('family_details', $gibbonFamilyID)
                 ->displayLabel();
+
+            // Add Payment Report button with academic year dates pre-filled
+            if (!empty($academicYearData)) {
+                $table2->addHeaderAction('report', __('Payment Report'))
+                    ->setURL('/modules/Sepa/sepa_payment_report.php')
+                    ->addParam('gibbonSEPAID', $FamilySEPA[0]["gibbonSEPAID"])
+                    ->addParam('fromDate', $academicYearData['firstDay'])
+                    ->addParam('toDate', $academicYearData['lastDay'])
+                    ->displayLabel();
+            }
 
             $table2->addColumn('amount', __('Amount'));
             $table2->addColumn('booking_date', __('Booking Date'));
