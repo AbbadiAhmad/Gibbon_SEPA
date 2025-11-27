@@ -557,11 +557,23 @@ class SepaGateway extends QueryableGateway
     {
         $query = $this
             ->newSelect()
-            ->cols(['gibbonSchoolYearID', 'name'])
+            ->cols(['gibbonSchoolYearID', 'name', 'status'])
             ->from('gibbonSchoolYear')
             ->orderBy(['sequenceNumber DESC']);
 
-        return $this->runSelect($query)->fetchAll(\PDO::FETCH_KEY_PAIR);
+        $years = $this->runSelect($query)->fetchAll();
+
+        // Format the array with (current) marker for the current year
+        $result = [];
+        foreach ($years as $year) {
+            $name = $year['name'];
+            if ($year['status'] == 'Current') {
+                $name .= ' (current)';
+            }
+            $result[$year['gibbonSchoolYearID']] = $name;
+        }
+
+        return $result;
     }
 
     public function getChildEnrollmentDetails($schoolYearID, $criteria)
