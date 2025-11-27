@@ -576,8 +576,19 @@ class SepaGateway extends QueryableGateway
         return $result;
     }
 
+    /**
+     * Get child enrollment details for a school year
+     * Refactored to use simpler SQL and PHP calculations
+     */
     public function getChildEnrollmentDetails($schoolYearID, $criteria)
     {
+        // Get school year information for calculations
+        $schoolYear = $this->getSchoolYearByID($schoolYearID);
+        if (!$schoolYear) {
+            return $this->runQuery($this->newQuery()->from('gibbonPerson')->cols(['*'])->where('1=0'), $criteria);
+        }
+
+        // Simplified query - just fetch basic data, no complex calculations
         $query = $this
             ->newQuery()
             ->cols([
@@ -590,12 +601,7 @@ class SepaGateway extends QueryableGateway
                 'gibbonCourse.nameShort as shortName',
                 'gibbonCourseClassPerson.dateEnrolled',
                 'gibbonCourseClassPerson.dateUnenrolled',
-                //'GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay) as startDate',
-                'DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\') AS startDate',
-                'LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay))) as lastDate',
-                'GREATEST(0, TIMESTAMPDIFF(MONTH, GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay))))) as monthsEnrolled',
-                'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee',
-                'COALESCE(gibbonSepaCoursesFees.fees, 0) * GREATEST(0, TIMESTAMPDIFF(MONTH, GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay))))) as total'
+                'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee'
             ])
             ->from('gibbonPerson')
             ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonPersonID = gibbonPerson.gibbonPersonID')
@@ -618,23 +624,45 @@ class SepaGateway extends QueryableGateway
         }
 
         $res = $this->runQuery($query, $criteria);
-        return $res;
 
+        // Enhance each row with calculated fields using centralized logic
+        foreach ($res as &$row) {
+            $effectiveDates = $this->calculateEffectiveDates(
+                $row['dateEnrolled'],
+                $row['dateUnenrolled'],
+                $row['personDateEnd'],
+                $schoolYear['firstDay'],
+                $schoolYear['lastDay']
+            );
+
+            $monthsEnrolled = $this->calculateEnrollmentMonths(
+                $effectiveDates['startDate'],
+                $effectiveDates['endDate']
+            );
+
+            $row['startDate'] = $effectiveDates['startDate'];
+            $row['lastDate'] = $effectiveDates['endDate'];
+            $row['monthsEnrolled'] = $monthsEnrolled;
+            $row['total'] = $row['courseFee'] * $monthsEnrolled;
+        }
+
+        return $res;
     }
 
+    /**
+     * Get family totals (debt, payments, balance) for a school year
+     * Refactored to use centralized calculation methods
+     */
     public function getFamilyTotals($schoolYearID, $criteria, $search = '')
     {
+        // First, get all families with enrollments for this school year (simplified query)
         $query = $this
             ->newQuery()
             ->cols([
                 'gibbonFamily.gibbonFamilyID',
                 'gibbonFamily.name as familyName',
                 'gibbonSEPA.payer as payer',
-                'gibbonSEPA.gibbonSEPAID as gibbonSEPAID',
-                'SUM(COALESCE(gibbonSepaCoursesFees.fees, 0) * GREATEST(0, TIMESTAMPDIFF(MONTH,  DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\'), LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay)))))) as totalDept',
-                '(SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentEntry WHERE gibbonSEPAPaymentEntry.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentEntry.academicYear = :schoolYearID) as payments',
-                '(SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentAdjustment WHERE gibbonSEPAPaymentAdjustment.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentAdjustment.academicYear = :schoolYearID) as paymentsAdjustment',
-                '((SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentEntry WHERE gibbonSEPAPaymentEntry.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentEntry.academicYear = :schoolYearID) + (SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentAdjustment WHERE gibbonSEPAPaymentAdjustment.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentAdjustment.academicYear = :schoolYearID) - SUM(COALESCE(gibbonSepaCoursesFees.fees, 0) * GREATEST(0, TIMESTAMPDIFF(MONTH, DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\'), LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay))))))) as balance'
+                'gibbonSEPA.gibbonSEPAID as gibbonSEPAID'
             ])
             ->from('gibbonFamily')
             ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonFamilyID = gibbonFamily.gibbonFamilyID')
@@ -642,10 +670,8 @@ class SepaGateway extends QueryableGateway
             ->innerJoin('gibbonCourseClassPerson', 'gibbonCourseClassPerson.gibbonPersonID = gibbonPerson.gibbonPersonID')
             ->innerJoin('gibbonCourseClass', 'gibbonCourseClass.gibbonCourseClassID = gibbonCourseClassPerson.gibbonCourseClassID')
             ->innerJoin('gibbonCourse', 'gibbonCourse.gibbonCourseID = gibbonCourseClass.gibbonCourseID')
-            ->innerJoin('gibbonSchoolYear', 'gibbonSchoolYear.gibbonSchoolYearID = gibbonCourse.gibbonSchoolYearID')
-            ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
             ->leftJoin('gibbonSEPA', 'gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID')
-            ->where('gibbonSchoolYear.gibbonSchoolYearID = :schoolYearID')
+            ->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
             ->where('gibbonCourseClassPerson.role = :role')
             ->bindValue('schoolYearID', $schoolYearID)
             ->bindValue('role', 'Student')
@@ -657,7 +683,56 @@ class SepaGateway extends QueryableGateway
                 ->bindValue('search', '%' . $search . '%');
         }
 
-        return $this->runQuery($query, $criteria);
+        $result = $this->runQuery($query, $criteria);
+
+        // Enhance each row with calculated totals using centralized logic
+        foreach ($result as &$row) {
+            $gibbonFamilyID = $row['gibbonFamilyID'];
+            $gibbonSEPAID = $row['gibbonSEPAID'];
+
+            // Calculate total debt using centralized method
+            $totalDept = $this->calculateFamilyTotalFees($gibbonFamilyID, $schoolYearID);
+
+            // Get payments
+            $payments = 0;
+            if ($gibbonSEPAID) {
+                $paymentsQuery = $this
+                    ->newSelect()
+                    ->cols(['COALESCE(SUM(amount), 0) as total'])
+                    ->from('gibbonSEPAPaymentEntry')
+                    ->where('gibbonSEPAID = :gibbonSEPAID')
+                    ->where('academicYear = :schoolYearID')
+                    ->bindValue('gibbonSEPAID', $gibbonSEPAID)
+                    ->bindValue('schoolYearID', $schoolYearID);
+                $paymentsResult = $this->runSelect($paymentsQuery)->fetch();
+                $payments = $paymentsResult['total'] ?? 0;
+            }
+
+            // Get payment adjustments
+            $paymentsAdjustment = 0;
+            if ($gibbonSEPAID) {
+                $adjustmentsQuery = $this
+                    ->newSelect()
+                    ->cols(['COALESCE(SUM(amount), 0) as total'])
+                    ->from('gibbonSEPAPaymentAdjustment')
+                    ->where('gibbonSEPAID = :gibbonSEPAID')
+                    ->where('academicYear = :schoolYearID')
+                    ->bindValue('gibbonSEPAID', $gibbonSEPAID)
+                    ->bindValue('schoolYearID', $schoolYearID);
+                $adjustmentsResult = $this->runSelect($adjustmentsQuery)->fetch();
+                $paymentsAdjustment = $adjustmentsResult['total'] ?? 0;
+            }
+
+            // Calculate balance
+            $balance = $payments + $paymentsAdjustment - $totalDept;
+
+            $row['totalDept'] = $totalDept;
+            $row['payments'] = $payments;
+            $row['paymentsAdjustment'] = $paymentsAdjustment;
+            $row['balance'] = $balance;
+        }
+
+        return $result;
     }
 
     public function getFamilyInfo($gibbonFamilyID)
@@ -672,42 +747,10 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query)->fetchAll();
     }
 
-    private function getEnrollmentFeesSQLstatments($statement)
-    {
-        switch ($statement) {
-            case 'enrollmentMonths':
-                return 'GREATEST(0, TIMESTAMPDIFF(MONTH, DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\'), LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay)))))';
-            case 'enrollmentFees':
-                return 'COALESCE(gibbonSepaCoursesFees.fees, 0) * ' . $this->getEnrollmentFeesSQLstatments('enrollmentMonths');
-            case 'totalFees':
-                return 'SUM(' . $this->getEnrollmentFeesSQLstatments('enrollmentFees') . ')';
-        }
-    }
-
-    private function getEnrollmentFeesBaseQuery($schoolYearID, $gibbonFamilyID = null)
-    {
-        $query = $this
-            ->newQuery()
-            ->from('gibbonPerson')
-            ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonPersonID = gibbonPerson.gibbonPersonID')
-            ->innerJoin('gibbonCourseClassPerson', 'gibbonCourseClassPerson.gibbonPersonID = gibbonPerson.gibbonPersonID')
-            ->innerJoin('gibbonCourseClass', 'gibbonCourseClass.gibbonCourseClassID = gibbonCourseClassPerson.gibbonCourseClassID')
-            ->innerJoin('gibbonCourse', 'gibbonCourse.gibbonCourseID = gibbonCourseClass.gibbonCourseID')
-            ->innerJoin('gibbonSchoolYear', 'gibbonSchoolYear.gibbonSchoolYearID = gibbonCourse.gibbonSchoolYearID')
-            ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
-            ->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
-            ->where('gibbonCourseClassPerson.role = :role')
-            ->bindValue('schoolYearID', $schoolYearID)
-            ->bindValue('role', 'Student');
-
-        if ($gibbonFamilyID) {
-            $query->where('gibbonFamilyChild.gibbonFamilyID = :gibbonFamilyID')
-                ->bindValue('gibbonFamilyID', $gibbonFamilyID);
-        }
-
-        return $query;
-    }
-
+    /**
+     * Build base query for payment data
+     * Used by getFamilyTotalPayments
+     */
     private function getPaymentBaseQuery($schoolYearID = null, $gibbonFamilyID = null, $gibbonSEPAID = null)
     {
         $query = $this
@@ -732,30 +775,18 @@ class SepaGateway extends QueryableGateway
 
         return $query;
     }
+    /**
+     * Get enrollment fees for all children in a family
+     * Now uses centralized calculation methods
+     */
     public function getChildrenEnrollmentFees($gibbonFamilyID, $schoolYearID)
     {
-        $query = $this->getEnrollmentFeesBaseQuery($schoolYearID, $gibbonFamilyID)
-            ->cols([
-                'gibbonFamilyChild.gibbonFamilyID',
-                'gibbonPerson.gibbonPersonID',
-                'gibbonPerson.dateEnd as personDateEnd',
-                'gibbonCourse.gibbonCourseID',
-                'gibbonCourseClass.gibbonCourseClassID',
-                'gibbonPerson.preferredName as childName',
-                'gibbonCourse.name as courseName',
-                'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee',
-                'DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\') AS startDate',
-                'LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay))) as lastDate',
-                'gibbonCourseClassPerson.dateEnrolled as rawDateEnrolled',
-                'gibbonCourseClassPerson.dateUnenrolled as rawDateUnenrolled',
-                $this->getEnrollmentFeesSQLstatments('enrollmentMonths') . ' as monthsEnrolled',
-                $this->getEnrollmentFeesSQLstatments('enrollmentFees') . ' as totalCost',
-            ]);
-
-        $criteria = $this->newQueryCriteria(false);
-        return $this->runQuery($query, $criteria);
+        return $this->getRawEnrollmentData($gibbonFamilyID, $schoolYearID);
     }
 
+    /**
+     * Get enrollment fees for a family (alias for getChildrenEnrollmentFees)
+     */
     public function getFamilyEnrollmentFees($gibbonFamilyID, $schoolYearID)
     {
         if (empty($gibbonFamilyID) || is_array($gibbonFamilyID)) {
@@ -764,18 +795,34 @@ class SepaGateway extends QueryableGateway
         return $this->getChildrenEnrollmentFees($gibbonFamilyID, $schoolYearID);
     }
 
+    /**
+     * Get fees summary for families
+     * Now uses centralized calculation methods
+     */
     public function getFamiliesFeesSummary($gibbonFamilyID, $schoolYearID)
     {
-        $query = $this->getEnrollmentFeesBaseQuery($schoolYearID, $gibbonFamilyID)
-            ->cols([
-                'gibbonFamilyChild.gibbonFamilyID',
-                $this->getEnrollmentFeesSQLstatments('totalFees') . ' as totalFees'
-            ])
-            ->groupBy(['gibbonFamilyChild.gibbonFamilyID']);
+        if (empty($gibbonFamilyID)) {
+            return [];
+        }
 
-        return $this->runSelect($query)->fetchAll();
+        // Handle both single ID and array of IDs
+        $familyIDs = is_array($gibbonFamilyID) ? $gibbonFamilyID : [$gibbonFamilyID];
+        $results = [];
+
+        foreach ($familyIDs as $famID) {
+            $totalFees = $this->calculateFamilyTotalFees($famID, $schoolYearID);
+            $results[] = [
+                'gibbonFamilyID' => $famID,
+                'totalFees' => $totalFees
+            ];
+        }
+
+        return $results;
     }
 
+    /**
+     * Get fees summary for a single family
+     */
     public function getFamilyFeesSummary($gibbonFamilyID, $schoolYearID)
     {
         if (empty($gibbonFamilyID)) {
@@ -920,6 +967,281 @@ public function updateSEPABySEPAID($SEPAID, $sepaData)
             ->bindValue('role', 'Student');
 
         return $this->runUpdate($query);
+    }
+
+    // ========================================================================
+    // CENTRALIZED FEE CALCULATION METHODS (Single Point of Truth)
+    // ========================================================================
+
+    /**
+     * Calculate the number of billable months based on enrollment period
+     *
+     * NEW LOGIC: If the enrollment period contains at least one weekend day
+     * of a month, then the full month will be paid.
+     *
+     * @param string $startDate Start date of enrollment (YYYY-MM-DD)
+     * @param string $endDate End date of enrollment (YYYY-MM-DD)
+     * @return int Number of months to bill
+     */
+    private function calculateEnrollmentMonths($startDate, $endDate)
+    {
+        if (empty($startDate) || empty($endDate)) {
+            return 0;
+        }
+
+        $start = new \DateTime($startDate);
+        $end = new \DateTime($endDate);
+
+        // If end date is before start date, return 0
+        if ($end < $start) {
+            return 0;
+        }
+
+        $billableMonths = 0;
+        $currentMonth = clone $start;
+        $currentMonth->modify('first day of this month');
+
+        // Iterate through each month in the period
+        while ($currentMonth <= $end) {
+            $monthStart = clone $currentMonth;
+            $monthEnd = clone $currentMonth;
+            $monthEnd->modify('last day of this month');
+
+            // Check if this month has any overlap with the enrollment period
+            $periodStart = max($start, $monthStart);
+            $periodEnd = min($end, $monthEnd);
+
+            if ($periodStart <= $periodEnd) {
+                // Check if any weekend day falls within this month's enrollment period
+                if ($this->hasWeekendInPeriod($periodStart, $periodEnd)) {
+                    $billableMonths++;
+                }
+            }
+
+            // Move to next month
+            $currentMonth->modify('first day of next month');
+        }
+
+        return $billableMonths;
+    }
+
+    /**
+     * Check if a period contains at least one weekend day (Saturday or Sunday)
+     *
+     * @param \DateTime $start Start date
+     * @param \DateTime $end End date
+     * @return bool True if period contains at least one weekend day
+     */
+    private function hasWeekendInPeriod($start, $end)
+    {
+        $current = clone $start;
+
+        while ($current <= $end) {
+            $dayOfWeek = (int)$current->format('N'); // 1 (Monday) to 7 (Sunday)
+            if ($dayOfWeek >= 6) { // 6 = Saturday, 7 = Sunday
+                return true;
+            }
+            $current->modify('+1 day');
+        }
+
+        return false;
+    }
+
+    /**
+     * Calculate effective enrollment dates based on school year and person dates
+     *
+     * @param string $dateEnrolled Raw enrollment date
+     * @param string|null $dateUnenrolled Raw unenrollment date (null if still enrolled)
+     * @param string|null $personDateEnd Person's end date (e.g., student leaving)
+     * @param string $schoolYearFirstDay School year's first day
+     * @param string $schoolYearLastDay School year's last day
+     * @return array ['startDate' => string, 'endDate' => string]
+     */
+    private function calculateEffectiveDates($dateEnrolled, $dateUnenrolled, $personDateEnd, $schoolYearFirstDay, $schoolYearLastDay)
+    {
+        // Start date: later of enrollment date or school year start
+        $startDate = max($dateEnrolled, $schoolYearFirstDay);
+
+        // End date: earliest of unenrollment date, person end date, or school year end
+        $possibleEndDates = array_filter([
+            $dateUnenrolled,
+            $personDateEnd,
+            $schoolYearLastDay
+        ]);
+        $endDate = min($possibleEndDates);
+
+        return [
+            'startDate' => $startDate,
+            'endDate' => $endDate
+        ];
+    }
+
+    /**
+     * Get raw enrollment data for a family (without complex calculations)
+     * Uses simple queries and joinColumn pattern per getSEPAData() example
+     *
+     * @param int $gibbonFamilyID Family ID
+     * @param int $schoolYearID School year ID
+     * @return array Array of enrollment records with basic data
+     */
+    private function getRawEnrollmentData($gibbonFamilyID, $schoolYearID)
+    {
+        // Get school year information
+        $schoolYear = $this->getSchoolYearByID($schoolYearID);
+        if (!$schoolYear) {
+            return [];
+        }
+
+        // Get students in the family
+        $studentsQuery = $this
+            ->newSelect()
+            ->cols([
+                'gibbonPerson.gibbonPersonID',
+                'gibbonPerson.preferredName',
+                'gibbonPerson.surname',
+                'gibbonPerson.dateEnd',
+                'gibbonFamilyChild.gibbonFamilyID'
+            ])
+            ->from('gibbonFamilyChild')
+            ->innerJoin('gibbonPerson', 'gibbonFamilyChild.gibbonPersonID = gibbonPerson.gibbonPersonID')
+            ->where('gibbonFamilyChild.gibbonFamilyID = :gibbonFamilyID')
+            ->bindValue('gibbonFamilyID', $gibbonFamilyID);
+
+        $students = $this->runSelect($studentsQuery)->fetchAll();
+
+        if (empty($students)) {
+            return [];
+        }
+
+        $personIDs = array_column($students, 'gibbonPersonID');
+        $personIDList = implode(',', $personIDs);
+
+        // Get enrollments for these students
+        $enrollmentsQuery = $this
+            ->newSelect()
+            ->cols([
+                'gibbonCourseClassPerson.gibbonPersonID',
+                'gibbonCourseClassPerson.gibbonCourseClassID',
+                'gibbonCourseClassPerson.dateEnrolled',
+                'gibbonCourseClassPerson.dateUnenrolled',
+                'gibbonCourse.gibbonCourseID',
+                'gibbonCourse.name as courseName',
+                'gibbonCourse.nameShort as courseShortName'
+            ])
+            ->from('gibbonCourseClassPerson')
+            ->innerJoin('gibbonCourseClass', 'gibbonCourseClassPerson.gibbonCourseClassID = gibbonCourseClass.gibbonCourseClassID')
+            ->innerJoin('gibbonCourse', 'gibbonCourseClass.gibbonCourseID = gibbonCourse.gibbonCourseID')
+            ->where('FIND_IN_SET(gibbonCourseClassPerson.gibbonPersonID, :personIDList)')
+            ->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
+            ->where('gibbonCourseClassPerson.role = :role')
+            ->bindValue('personIDList', $personIDList)
+            ->bindValue('schoolYearID', $schoolYearID)
+            ->bindValue('role', 'Student');
+
+        $enrollments = $this->runSelect($enrollmentsQuery)->fetchAll();
+
+        if (empty($enrollments)) {
+            return [];
+        }
+
+        // Get course fees
+        $courseIDs = array_unique(array_column($enrollments, 'gibbonCourseID'));
+        $courseIDList = implode(',', $courseIDs);
+
+        $feesQuery = $this
+            ->newSelect()
+            ->cols([
+                'gibbonSepaCoursesFees.gibbonCourseID',
+                'gibbonSepaCoursesFees.fees'
+            ])
+            ->from('gibbonSepaCoursesFees')
+            ->where('FIND_IN_SET(gibbonSepaCoursesFees.gibbonCourseID, :courseIDList)')
+            ->bindValue('courseIDList', $courseIDList);
+
+        $fees = $this->runSelect($feesQuery)->fetchKeyPair();
+
+        // Combine all data in PHP
+        $results = [];
+        foreach ($enrollments as $enrollment) {
+            $personID = $enrollment['gibbonPersonID'];
+
+            // Find the student
+            $student = null;
+            foreach ($students as $s) {
+                if ($s['gibbonPersonID'] == $personID) {
+                    $student = $s;
+                    break;
+                }
+            }
+
+            if (!$student) {
+                continue;
+            }
+
+            // Calculate effective dates
+            $effectiveDates = $this->calculateEffectiveDates(
+                $enrollment['dateEnrolled'],
+                $enrollment['dateUnenrolled'],
+                $student['dateEnd'],
+                $schoolYear['firstDay'],
+                $schoolYear['lastDay']
+            );
+
+            // Calculate months using new weekend logic
+            $monthsEnrolled = $this->calculateEnrollmentMonths(
+                $effectiveDates['startDate'],
+                $effectiveDates['endDate']
+            );
+
+            // Get course fee
+            $courseFee = $fees[$enrollment['gibbonCourseID']] ?? 0;
+
+            $results[] = [
+                'gibbonFamilyID' => $student['gibbonFamilyID'],
+                'gibbonPersonID' => $personID,
+                'childID' => $personID,
+                'student_name' => $student['preferredName'] . ' ' . $student['surname'],
+                'childName' => $student['preferredName'],
+                'gibbonCourseID' => $enrollment['gibbonCourseID'],
+                'gibbonCourseClassID' => $enrollment['gibbonCourseClassID'],
+                'courseName' => $enrollment['courseName'],
+                'shortName' => $enrollment['courseShortName'],
+                'rawDateEnrolled' => $enrollment['dateEnrolled'],
+                'rawDateUnenrolled' => $enrollment['dateUnenrolled'],
+                'personDateEnd' => $student['dateEnd'],
+                'dateEnrolled' => $enrollment['dateEnrolled'],
+                'dateUnenrolled' => $enrollment['dateUnenrolled'],
+                'startDate' => $effectiveDates['startDate'],
+                'lastDate' => $effectiveDates['endDate'],
+                'courseFee' => $courseFee,
+                'monthsEnrolled' => $monthsEnrolled,
+                'totalCost' => $courseFee * $monthsEnrolled,
+                'total' => $courseFee * $monthsEnrolled,
+                'familyName' => null // Will be filled by caller if needed
+            ];
+        }
+
+        return $results;
+    }
+
+    /**
+     * Calculate total fees for a family
+     * Single point of truth for fee calculations
+     *
+     * @param int $gibbonFamilyID Family ID
+     * @param int $schoolYearID School year ID
+     * @return float Total fees for the family
+     */
+    private function calculateFamilyTotalFees($gibbonFamilyID, $schoolYearID)
+    {
+        $enrollments = $this->getRawEnrollmentData($gibbonFamilyID, $schoolYearID);
+        $total = 0;
+
+        foreach ($enrollments as $enrollment) {
+            $total += $enrollment['totalCost'];
+        }
+
+        return $total;
     }
 
 }
