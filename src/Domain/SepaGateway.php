@@ -553,6 +553,17 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query)->fetchAll(\PDO::FETCH_KEY_PAIR);
     }
 
+    public function getAllSchoolYears()
+    {
+        $query = $this
+            ->newSelect()
+            ->cols(['gibbonSchoolYearID', 'name'])
+            ->from('gibbonSchoolYear')
+            ->orderBy(['sequenceNumber DESC']);
+
+        return $this->runSelect($query)->fetchAll(\PDO::FETCH_KEY_PAIR);
+    }
+
     public function getChildEnrollmentDetails($schoolYearID, $criteria)
     {
         $query = $this

@@ -55,11 +55,15 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $SepaGateway = $container->get(SepaGateway::class);
     $criteria = $SepaGateway->newQueryCriteria(false)->sortBy(['payer']);
     $gibbonSEPAID = $payment_adjustment['gibbonSEPAID'] ?? null;
+    $schoolYears = $SepaGateway->getAllSchoolYears();
 
     $row = $form->addRow();
     $row->addLabel('academicYear', __('Academic Year'));
-    $row->addSelect('academicYear')->fromArray([$_SESSION[$guid]["gibbonSchoolYearID"] => $_SESSION[$guid]["gibbonSchoolYearName"]])->selected($_SESSION[$guid]["gibbonSchoolYearID"])->disabled();
-    $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearID"]);
+    $row->addSelect('academicYear')
+        ->fromArray($schoolYears)
+        ->required()
+        ->selected($payment_adjustment['academicYear'])
+        ->placeholder(__('Please select...'));
 
     $sepaList = $SepaGateway->getSEPAList($criteria, null);
     $row = $form->addRow();
