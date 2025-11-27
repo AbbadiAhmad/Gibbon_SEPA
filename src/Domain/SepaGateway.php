@@ -588,7 +588,7 @@ class SepaGateway extends QueryableGateway
             return $this->runQuery($this->newQuery()->from('gibbonPerson')->cols(['*'])->where('1=0'), $criteria);
         }
 
-        // Simplified query - just fetch basic data, no complex calculations
+        // Simplified query - just fetch basic data, plus placeholder columns for calculated fields
         $query = $this
             ->newQuery()
             ->cols([
@@ -601,7 +601,12 @@ class SepaGateway extends QueryableGateway
                 'gibbonCourse.nameShort as shortName',
                 'gibbonCourseClassPerson.dateEnrolled',
                 'gibbonCourseClassPerson.dateUnenrolled',
-                'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee'
+                'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee',
+                // Placeholder columns for calculated fields (will be replaced in PHP)
+                'gibbonCourseClassPerson.dateEnrolled as startDate',
+                'gibbonCourseClassPerson.dateEnrolled as lastDate',
+                '0 as monthsEnrolled',
+                '0 as total'
             ])
             ->from('gibbonPerson')
             ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonPersonID = gibbonPerson.gibbonPersonID')
@@ -623,15 +628,7 @@ class SepaGateway extends QueryableGateway
                 ->bindValue('search', '%' . $search . '%');
         }
 
-        // Store original sort order for later use with calculated fields
-        $sortBy = $criteria->getSortBy();
-        $sortOrder = $criteria->getSortOrder();
-
-        // Create a modified criteria without sorting (we'll sort in PHP after calculations)
-        $modifiedCriteria = clone $criteria;
-        $modifiedCriteria->sortBy = null;
-
-        $res = $this->runQuery($query, $modifiedCriteria);
+        $res = $this->runQuery($query, $criteria);
 
         // Enhance each row with calculated fields using centralized logic
         $data = [];
@@ -657,26 +654,7 @@ class SepaGateway extends QueryableGateway
             $data[] = $row;
         }
 
-        // Apply sorting in PHP if needed for calculated fields
-        if (!empty($sortBy) && in_array($sortBy, ['startDate', 'lastDate', 'monthsEnrolled', 'total'])) {
-            usort($data, function($a, $b) use ($sortBy, $sortOrder) {
-                $aVal = $a[$sortBy] ?? '';
-                $bVal = $b[$sortBy] ?? '';
-
-                // Handle numeric/date comparisons
-                if (in_array($sortBy, ['monthsEnrolled', 'total'])) {
-                    $aVal = (float)$aVal;
-                    $bVal = (float)$bVal;
-                    $cmp = $aVal <=> $bVal;
-                } else {
-                    $cmp = strcmp($aVal, $bVal);
-                }
-
-                return ($sortOrder === 'DESC') ? -$cmp : $cmp;
-            });
-        }
-
-        // Replace result data with sorted data
+        // Replace result data with calculated data
         $res->data = $data;
 
         return $res;
@@ -689,13 +667,19 @@ class SepaGateway extends QueryableGateway
     public function getFamilyTotals($schoolYearID, $criteria, $search = '')
     {
         // First, get all families with enrollments for this school year (simplified query)
+        // Include placeholder columns for calculated fields so ORDER BY won't fail
         $query = $this
             ->newQuery()
             ->cols([
                 'gibbonFamily.gibbonFamilyID',
                 'gibbonFamily.name as familyName',
                 'gibbonSEPA.payer as payer',
-                'gibbonSEPA.gibbonSEPAID as gibbonSEPAID'
+                'gibbonSEPA.gibbonSEPAID as gibbonSEPAID',
+                // Placeholder columns for calculated fields (will be replaced in PHP)
+                '0 as totalDept',
+                '0 as payments',
+                '0 as paymentsAdjustment',
+                '0 as balance'
             ])
             ->from('gibbonFamily')
             ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonFamilyID = gibbonFamily.gibbonFamilyID')
@@ -716,15 +700,7 @@ class SepaGateway extends QueryableGateway
                 ->bindValue('search', '%' . $search . '%');
         }
 
-        // Store original sort order for later use with calculated fields
-        $sortBy = $criteria->getSortBy();
-        $sortOrder = $criteria->getSortOrder();
-
-        // Create a modified criteria without sorting (we'll sort in PHP after calculations)
-        $modifiedCriteria = clone $criteria;
-        $modifiedCriteria->sortBy = null;
-
-        $result = $this->runQuery($query, $modifiedCriteria);
+        $result = $this->runQuery($query, $criteria);
 
         // Enhance each row with calculated totals using centralized logic
         $data = [];
@@ -776,26 +752,7 @@ class SepaGateway extends QueryableGateway
             $data[] = $row;
         }
 
-        // Apply sorting in PHP if needed
-        if (!empty($sortBy)) {
-            usort($data, function($a, $b) use ($sortBy, $sortOrder) {
-                $aVal = $a[$sortBy] ?? '';
-                $bVal = $b[$sortBy] ?? '';
-
-                // Handle numeric comparisons for calculated fields
-                if (in_array($sortBy, ['totalDept', 'payments', 'paymentsAdjustment', 'balance'])) {
-                    $aVal = (float)$aVal;
-                    $bVal = (float)$bVal;
-                    $cmp = $aVal <=> $bVal;
-                } else {
-                    $cmp = strcasecmp($aVal, $bVal);
-                }
-
-                return ($sortOrder === 'DESC') ? -$cmp : $cmp;
-            });
-        }
-
-        // Replace result data with sorted data
+        // Replace result data with calculated data
         $result->data = $data;
 
         return $result;
