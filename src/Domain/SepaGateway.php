@@ -623,10 +623,19 @@ class SepaGateway extends QueryableGateway
                 ->bindValue('search', '%' . $search . '%');
         }
 
-        $res = $this->runQuery($query, $criteria);
+        // Store original sort order for later use with calculated fields
+        $sortBy = $criteria->getSortBy();
+        $sortOrder = $criteria->getSortOrder();
+
+        // Create a modified criteria without sorting (we'll sort in PHP after calculations)
+        $modifiedCriteria = clone $criteria;
+        $modifiedCriteria->sortBy = null;
+
+        $res = $this->runQuery($query, $modifiedCriteria);
 
         // Enhance each row with calculated fields using centralized logic
-        foreach ($res as &$row) {
+        $data = [];
+        foreach ($res as $row) {
             $effectiveDates = $this->calculateEffectiveDates(
                 $row['dateEnrolled'],
                 $row['dateUnenrolled'],
@@ -644,7 +653,31 @@ class SepaGateway extends QueryableGateway
             $row['lastDate'] = $effectiveDates['endDate'];
             $row['monthsEnrolled'] = $monthsEnrolled;
             $row['total'] = $row['courseFee'] * $monthsEnrolled;
+
+            $data[] = $row;
         }
+
+        // Apply sorting in PHP if needed for calculated fields
+        if (!empty($sortBy) && in_array($sortBy, ['startDate', 'lastDate', 'monthsEnrolled', 'total'])) {
+            usort($data, function($a, $b) use ($sortBy, $sortOrder) {
+                $aVal = $a[$sortBy] ?? '';
+                $bVal = $b[$sortBy] ?? '';
+
+                // Handle numeric/date comparisons
+                if (in_array($sortBy, ['monthsEnrolled', 'total'])) {
+                    $aVal = (float)$aVal;
+                    $bVal = (float)$bVal;
+                    $cmp = $aVal <=> $bVal;
+                } else {
+                    $cmp = strcmp($aVal, $bVal);
+                }
+
+                return ($sortOrder === 'DESC') ? -$cmp : $cmp;
+            });
+        }
+
+        // Replace result data with sorted data
+        $res->data = $data;
 
         return $res;
     }
@@ -683,10 +716,19 @@ class SepaGateway extends QueryableGateway
                 ->bindValue('search', '%' . $search . '%');
         }
 
-        $result = $this->runQuery($query, $criteria);
+        // Store original sort order for later use with calculated fields
+        $sortBy = $criteria->getSortBy();
+        $sortOrder = $criteria->getSortOrder();
+
+        // Create a modified criteria without sorting (we'll sort in PHP after calculations)
+        $modifiedCriteria = clone $criteria;
+        $modifiedCriteria->sortBy = null;
+
+        $result = $this->runQuery($query, $modifiedCriteria);
 
         // Enhance each row with calculated totals using centralized logic
-        foreach ($result as &$row) {
+        $data = [];
+        foreach ($result as $row) {
             $gibbonFamilyID = $row['gibbonFamilyID'];
             $gibbonSEPAID = $row['gibbonSEPAID'];
 
@@ -730,7 +772,31 @@ class SepaGateway extends QueryableGateway
             $row['payments'] = $payments;
             $row['paymentsAdjustment'] = $paymentsAdjustment;
             $row['balance'] = $balance;
+
+            $data[] = $row;
         }
+
+        // Apply sorting in PHP if needed
+        if (!empty($sortBy)) {
+            usort($data, function($a, $b) use ($sortBy, $sortOrder) {
+                $aVal = $a[$sortBy] ?? '';
+                $bVal = $b[$sortBy] ?? '';
+
+                // Handle numeric comparisons for calculated fields
+                if (in_array($sortBy, ['totalDept', 'payments', 'paymentsAdjustment', 'balance'])) {
+                    $aVal = (float)$aVal;
+                    $bVal = (float)$bVal;
+                    $cmp = $aVal <=> $bVal;
+                } else {
+                    $cmp = strcasecmp($aVal, $bVal);
+                }
+
+                return ($sortOrder === 'DESC') ? -$cmp : $cmp;
+            });
+        }
+
+        // Replace result data with sorted data
+        $result->data = $data;
 
         return $result;
     }
