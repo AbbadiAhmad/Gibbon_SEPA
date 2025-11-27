@@ -125,10 +125,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
             $row = $form->addRow();
             $row->addLabel("Academic Year", __("Academic Year"));
             $row->addTextField("academicYear")
-                ->placeholder($_SESSION[$guid]["gibbonSchoolYearNameCurrent"])
+                ->placeholder($_SESSION[$guid]["gibbonSchoolYearName"])
                 ->disabled();
             $form->addHiddenValue('academicYearID', $_SESSION[$guid]["gibbonSchoolYearID"]);
-            $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearNameCurrent"]);  
+            $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearName"]);  
             // add date formate in the paymentlist file
             $row = $form->addRow();
             $row->addLabel("Date format", __("Date format"));
