@@ -64,7 +64,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_child_enrollmen
 
 
    // $table->addColumn('childID', __('Child ID'));
-    $table->addColumn('student_name', __('Student Name'));
+    $table->addColumn('student_name', __('Student Name'))->format(function ($row) {
+        $name = htmlspecialchars($row['student_name'], ENT_QUOTES, 'UTF-8');
+        if (!empty($row['personDateEnd'])) {
+            $name .= ' <span style="color: red;">(Left on ' . htmlspecialchars($row['personDateEnd'], ENT_QUOTES, 'UTF-8') . ')</span>';
+        }
+        return $name;
+    });
     $table->addColumn('familyName', __('Family'));
     //$table->addColumn('gibbonCourseClassID', __('ClassID'));
     $table->addColumn('shortName', __('Course'));

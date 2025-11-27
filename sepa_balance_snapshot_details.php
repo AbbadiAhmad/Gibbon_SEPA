@@ -180,7 +180,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     $feesData = new \Gibbon\Domain\DataSet($currentData['fees']);
     $feesTable = DataTable::create('feesDetails');
 
-    $feesTable->addColumn('childName', __('Child Name'));
+    $feesTable->addColumn('childName', __('Child Name'))->format(function ($row) {
+        $name = htmlspecialchars($row['childName'], ENT_QUOTES, 'UTF-8');
+        if (!empty($row['personDateEnd'])) {
+            $name .= ' <span style="color: red;">(Left on ' . htmlspecialchars($row['personDateEnd'], ENT_QUOTES, 'UTF-8') . ')</span>';
+        }
+        return $name;
+    });
     $feesTable->addColumn('courseName', __('Course'));
     $feesTable->addColumn('courseFee', __('Fee'))->format(function ($row) {
         return number_format($row['courseFee'], 2) . ' €';
@@ -198,7 +204,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         $prevFeesData = new \Gibbon\Domain\DataSet($previousData['fees']);
         $prevFeesTable = DataTable::create('prevFeesDetails');
 
-        $prevFeesTable->addColumn('childName', __('Child Name'));
+        $prevFeesTable->addColumn('childName', __('Child Name'))->format(function ($row) {
+            $name = htmlspecialchars($row['childName'], ENT_QUOTES, 'UTF-8');
+            if (!empty($row['personDateEnd'])) {
+                $name .= ' <span style="color: red;">(Left on ' . htmlspecialchars($row['personDateEnd'], ENT_QUOTES, 'UTF-8') . ')</span>';
+            }
+            return $name;
+        });
         $prevFeesTable->addColumn('courseName', __('Course'));
         $prevFeesTable->addColumn('courseFee', __('Fee'))->format(function ($row) {
             return number_format($row['courseFee'], 2) . ' €';
