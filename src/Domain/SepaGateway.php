@@ -560,6 +560,7 @@ class SepaGateway extends QueryableGateway
             ->cols([
                 'gibbonPerson.gibbonPersonID as childID',
                 'CONCAT(gibbonPerson.preferredName," ",  gibbonPerson.surname) as student_name',
+                'gibbonPerson.dateEnd as personDateEnd',
                 'gibbonFamilyChild.gibbonFamilyID',
                 'gibbonFamily.name as familyName',
                 'gibbonCourseClass.gibbonCourseClassID',
@@ -708,6 +709,7 @@ class SepaGateway extends QueryableGateway
             ->cols([
                 'gibbonFamilyChild.gibbonFamilyID',
                 'gibbonPerson.gibbonPersonID',
+                'gibbonPerson.dateEnd as personDateEnd',
                 'gibbonCourse.gibbonCourseID',
                 'gibbonCourseClass.gibbonCourseClassID',
                 'gibbonPerson.preferredName as childName',
