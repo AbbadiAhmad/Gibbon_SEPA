@@ -631,7 +631,9 @@ class SepaGateway extends QueryableGateway
         $res = $this->runQuery($query, $criteria);
 
         // Enhance each row with calculated fields using centralized logic
-        foreach ($res as &$row) {
+        // Collect all rows, modify them, then update the result
+        $modifiedRows = [];
+        foreach ($res as $row) {
             $effectiveDates = $this->calculateEffectiveDates(
                 $row['dateEnrolled'],
                 $row['dateUnenrolled'],
@@ -649,9 +651,12 @@ class SepaGateway extends QueryableGateway
             $row['lastDate'] = $effectiveDates['endDate'];
             $row['monthsEnrolled'] = $monthsEnrolled;
             $row['total'] = $row['courseFee'] * $monthsEnrolled;
+
+            $modifiedRows[] = $row;
         }
 
-        return $res;
+        // Use setData to update the DataSet with modified rows
+        return $res->setData($modifiedRows);
     }
 
     /**
@@ -697,7 +702,9 @@ class SepaGateway extends QueryableGateway
         $result = $this->runQuery($query, $criteria);
 
         // Enhance each row with calculated totals using centralized logic
-        foreach ($result as &$row) {
+        // Collect all rows, modify them, then update the result
+        $modifiedRows = [];
+        foreach ($result as $row) {
             $gibbonFamilyID = $row['gibbonFamilyID'];
             $gibbonSEPAID = $row['gibbonSEPAID'];
 
@@ -741,9 +748,12 @@ class SepaGateway extends QueryableGateway
             $row['payments'] = $payments;
             $row['paymentsAdjustment'] = $paymentsAdjustment;
             $row['balance'] = $balance;
+
+            $modifiedRows[] = $row;
         }
 
-        return $result;
+        // Use setData to update the DataSet with modified rows
+        return $result->setData($modifiedRows);
     }
 
     public function getFamilyInfo($gibbonFamilyID)
