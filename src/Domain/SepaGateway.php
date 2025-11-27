@@ -601,7 +601,12 @@ class SepaGateway extends QueryableGateway
                 'gibbonCourse.nameShort as shortName',
                 'gibbonCourseClassPerson.dateEnrolled',
                 'gibbonCourseClassPerson.dateUnenrolled',
-                'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee'
+                'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee',
+                // Placeholder columns for calculated values (will be replaced in PHP)
+                'NULL as startDate',
+                'NULL as lastDate',
+                '0 as monthsEnrolled',
+                '0 as total'
             ])
             ->from('gibbonPerson')
             ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonPersonID = gibbonPerson.gibbonPersonID')
@@ -673,7 +678,12 @@ class SepaGateway extends QueryableGateway
                 'gibbonFamily.gibbonFamilyID',
                 'gibbonFamily.name as familyName',
                 'gibbonSEPA.payer as payer',
-                'gibbonSEPA.gibbonSEPAID as gibbonSEPAID'
+                'gibbonSEPA.gibbonSEPAID as gibbonSEPAID',
+                // Placeholder columns for calculated values (will be replaced in PHP)
+                '0 as totalDept',
+                '0 as payments',
+                '0 as paymentsAdjustment',
+                '0 as balance'
             ])
             ->from('gibbonFamily')
             ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonFamilyID = gibbonFamily.gibbonFamilyID')
