@@ -89,7 +89,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         $table->addColumn('totalCost', __('Total Cost'));
         $table->addColumn('monthsEnrolled', __('Months Enrolled'));
         $table->addColumn('courseFee', __('Fee'));
-        $table->addColumn('childName', __('Child Name'));
+        $table->addColumn('childName', __('Child Name'))->format(function ($row) {
+            $name = htmlspecialchars($row['childName'], ENT_QUOTES, 'UTF-8');
+            if (!empty($row['personDateEnd'])) {
+                $name .= ' <span style="color: red;">(Left on ' . htmlspecialchars($row['personDateEnd'], ENT_QUOTES, 'UTF-8') . ')</span>';
+            }
+            return $name;
+        });
         $table->addColumn('courseName', __('Course'));
 
         // Only show edit action for admin users

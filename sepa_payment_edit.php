@@ -40,6 +40,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
     $criteria = $SepaGateway->newQueryCriteria(false)->sortBy(['payer']);
 
     $sepaList = $SepaGateway->getSEPAList($criteria, null);
+    $schoolYears = $SepaGateway->getAllSchoolYears();
 
     if (!$payment) {
         $page->addError(__('Payment entry not found.'));
@@ -59,8 +60,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
 
     $row = $form->addRow();
     $row->addLabel('academicYear', __('Academic Year'));
-    $row->addSelect('academicYear')->fromArray([$_SESSION[$guid]["gibbonSchoolYearID"] => $_SESSION[$guid]["gibbonSchoolYearName"]])->selected($_SESSION[$guid]["gibbonSchoolYearID"])->disabled();
-    $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearID"]);
+    $row->addSelect('academicYear')
+        ->fromArray($schoolYears)
+        ->required()
+        ->selected($payment['academicYear'])
+        ->placeholder(__('Please select...'));
 
     $row = $form->addRow();
     $row->addLabel('gibbonSEPAID', __('SEPA Account'));

@@ -36,6 +36,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
         ->sortBy(['payer'])
     ;
     $sepaList = $SepaGateway->getSEPAList($criteria, null);
+    $schoolYears = $SepaGateway->getAllSchoolYears();
 
 
     $form = Form::create('paymentAdd', $session->get('absoluteURL') . '/modules/Sepa/sepa_payment_addProcess.php');
@@ -48,9 +49,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
 
     $row = $form->addRow();
     $row->addLabel('academicYear', __('Academic Year'));
-    $row->addSelect('academicYear')->fromArray([$_SESSION[$guid]["gibbonSchoolYearID"] => $_SESSION[$guid]["gibbonSchoolYearName"]])->selected($_SESSION[$guid]["gibbonSchoolYearID"])->disabled();
-    $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearID"]);
-    
+    $row->addSelect('academicYear')
+        ->fromArray($schoolYears)
+        ->required()
+        ->selected($_SESSION[$guid]["gibbonSchoolYearID"])
+        ->placeholder(__('Please select...'));
+
     $form->addHiddenValue('family_details', $family_details);
 
     $row = $form->addRow();
