@@ -763,6 +763,19 @@ class SepaGateway extends QueryableGateway
         return $result['totalPayments'] ?? 0;
     }
 
+    public function getPaymentsBySEPAID($SEPAID)
+    {
+        $query = $this
+            ->newSelect()
+            ->cols(['*'])
+            ->from('gibbonSEPAPaymentEntry')
+            ->where('gibbonSEPAID = :gibbonSEPAID')
+            ->bindValue('gibbonSEPAID', $SEPAID);
+
+        $result = $this->runSelect($query)->fetchAll();
+        return $result;
+    }
+
     public function updateSEPAByFamilyID($gibbonFamilyID, $sepaData)
     {
         $query = $this

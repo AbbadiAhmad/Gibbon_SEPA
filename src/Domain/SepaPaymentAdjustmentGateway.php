@@ -137,7 +137,7 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
         return $result['totalAdjustments'] ?? 0;
     }
 
-    public function getFamilyAdjustments($gibbonSEPAID, $schoolYearID)
+    public function getFamilyAdjustments($gibbonSEPAID, $schoolYearID=null)
     {
         $query = $this
             ->newSelect()
@@ -152,4 +152,5 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
 
         return $this->runSelect($query)->fetchAll();
     }
+
 }

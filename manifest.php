@@ -254,11 +254,32 @@ $actionRows[] = [
 
 
 $actionRows[] = [
-    'name' => 'Edit/delete SEPA', // The name of the action (appears to user in the right hand side module menu)
+    'name' => 'delete SEPA', // The name of the action (appears to user in the right hand side module menu)
     'precedence' => '9',// If it is a grouped action, the precedence controls which is highest action in group
     'category' => 'hidden', // Optional: subgroups for the right hand side module menu
     'description' => 'Add SEPA to a family', // Text description
-    'URLList' => 'sepa_family_edit.php,sepa_family_delete.php', // List of pages included in this action
+    'URLList' => 'sepa_family_delete.php', // List of pages included in this action
+    'entryURL' => 'sepa_family_delete.php', // The landing action for the page.
+    'entrySidebar' => 'N', // Whether or not there's a sidebar on entry to the action
+    'menuShow' => 'N', // Whether or not this action shows up in menus or if it's hidden
+    'defaultPermissionAdmin' => 'Y', // Default permission for built in role Admin
+    'defaultPermissionTeacher' => 'N', // Default permission for built in role Teacher
+    'defaultPermissionStudent' => 'N', // Default permission for built in role Student
+    'defaultPermissionParent' => 'N', // Default permission for built in role Parent
+    'defaultPermissionSupport' => 'N', // Default permission for built in role Support
+    'categoryPermissionStaff' => 'Y', // Should this action be available to user roles in the Staff category?
+    'categoryPermissionStudent' => 'N', // Should this action be available to user roles in the Student category?
+    'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
+    'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
+];
+
+
+$actionRows[] = [
+    'name' => 'Edit SEPA', // The name of the action (appears to user in the right hand side module menu)
+    'precedence' => '9',// If it is a grouped action, the precedence controls which is highest action in group
+    'category' => 'hidden', // Optional: subgroups for the right hand side module menu
+    'description' => 'Edit SEPA', // Text description
+    'URLList' => 'sepa_family_edit.php', // List of pages included in this action
     'entryURL' => 'sepa_family_edit.php', // The landing action for the page.
     'entrySidebar' => 'N', // Whether or not there's a sidebar on entry to the action
     'menuShow' => 'N', // Whether or not this action shows up in menus or if it's hidden
@@ -272,6 +293,7 @@ $actionRows[] = [
     'categoryPermissionParent' => 'N', // Should this action be available to user roles in the Parent category?
     'categoryPermissionOther' => 'N', // Should this action be available to user roles in the Other category?
 ];
+
 
 // Action rows
 $actionRows[] = [

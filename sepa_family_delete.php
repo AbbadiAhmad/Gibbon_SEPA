@@ -19,6 +19,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Prefab\DeleteForm;
 use Gibbon\Data\Validator;
+use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Module\Sepa\Domain\SepaPaymentAdjustmentGateway;
+
 
 $_GET = $container->get(Validator::class)->sanitize($_GET);
 
@@ -41,6 +44,21 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_delete.p
             $page->addError(__('The specified record cannot be found.'));
             return;
         } else {
+            $SepaGateway = $container->get(SepaGateway::class);
+            $payment = $SepaGateway->getPaymentsBySEPAID($gibbonSEPAID);
+            if (count($payment) > 0) {
+                $page->addError(__('The SEPA has linked payments. Can not be deleted'));
+                return;
+            } else {
+                $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
+                $paymentAdjustment = $adjustmentGateway->getFamilyAdjustments($gibbonSEPAID);
+                if (count($paymentAdjustment) > 0) {
+                    $page->addError(__('The SEPA has linked Adjustments. Can not be deleted'));
+                    return;
+                }
+
+            }
+
             $form = DeleteForm::createForm($session->get('absoluteURL') . '/modules/' . $session->get('module') . "/sepa_family_deleteProcess.php?gibbonSEPAID=" . $gibbonSEPAID);
             echo $form->getOutput();
         }
