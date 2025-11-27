@@ -583,7 +583,9 @@ class SepaGateway extends QueryableGateway
             ->innerJoin('gibbonSchoolYear', 'gibbonSchoolYear.gibbonSchoolYearID = gibbonCourse.gibbonSchoolYearID')
             ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
             ->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
-            ->bindValue('schoolYearID', $schoolYearID);
+            ->where('gibbonCourseClassPerson.role = :role')
+            ->bindValue('schoolYearID', $schoolYearID)
+            ->bindValue('role', 'Student');
 
         // Apply search for student name if search term is provided
         $search = $criteria->getSearchText();
@@ -621,7 +623,9 @@ class SepaGateway extends QueryableGateway
             ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
             ->leftJoin('gibbonSEPA', 'gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID')
             ->where('gibbonSchoolYear.gibbonSchoolYearID = :schoolYearID')
+            ->where('gibbonCourseClassPerson.role = :role')
             ->bindValue('schoolYearID', $schoolYearID)
+            ->bindValue('role', 'Student')
             ->groupBy(['gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonSEPA.payer', 'gibbonSEPA.gibbonSEPAID']);
 
         // Apply search for family name and payer if search term is provided
@@ -669,7 +673,9 @@ class SepaGateway extends QueryableGateway
             ->innerJoin('gibbonSchoolYear', 'gibbonSchoolYear.gibbonSchoolYearID = gibbonCourse.gibbonSchoolYearID')
             ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
             ->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
-            ->bindValue('schoolYearID', $schoolYearID);
+            ->where('gibbonCourseClassPerson.role = :role')
+            ->bindValue('schoolYearID', $schoolYearID)
+            ->bindValue('role', 'Student');
 
         if ($gibbonFamilyID) {
             $query->where('gibbonFamilyChild.gibbonFamilyID = :gibbonFamilyID')
