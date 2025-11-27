@@ -578,7 +578,7 @@ class SepaGateway extends QueryableGateway
 
     /**
      * Get child enrollment details for a school year
-     * Refactored to use simpler SQL and PHP calculations
+     * Calculates fees using weekend-based billing logic in PHP
      */
     public function getChildEnrollmentDetails($schoolYearID, $criteria)
     {
@@ -588,10 +588,9 @@ class SepaGateway extends QueryableGateway
             return $this->runQuery($this->newQuery()->from('gibbonPerson')->cols(['*'])->where('1=0'), $criteria);
         }
 
-        // Query to fetch enrollment data
-        // Note: monthsEnrolled and total use SQL approximation (will be recalculated with weekend logic)
+        // Fetch basic enrollment data without pagination first
         $query = $this
-            ->newQuery()
+            ->newSelect()
             ->cols([
                 'gibbonPerson.gibbonPersonID as childID',
                 'CONCAT(gibbonPerson.preferredName," ",  gibbonPerson.surname) as student_name',
@@ -602,13 +601,7 @@ class SepaGateway extends QueryableGateway
                 'gibbonCourse.nameShort as shortName',
                 'gibbonCourseClassPerson.dateEnrolled',
                 'gibbonCourseClassPerson.dateUnenrolled',
-                'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee',
-                // Calculate effective dates in SQL
-                'GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay) as startDate',
-                'LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay)) as lastDate',
-                // Approximate months (will be corrected with weekend logic in DataTable)
-                '1 as monthsEnrolled',
-                'COALESCE(gibbonSepaCoursesFees.fees, 0) as total'
+                'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee'
             ])
             ->from('gibbonPerson')
             ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonPersonID = gibbonPerson.gibbonPersonID')
@@ -623,43 +616,58 @@ class SepaGateway extends QueryableGateway
             ->bindValue('schoolYearID', $schoolYearID)
             ->bindValue('role', 'Student');
 
-        // Apply search for student name if search term is provided
+        // Apply search filter
         $search = $criteria->getSearchText();
         if (!empty($search)) {
             $query->where('(gibbonPerson.preferredName LIKE :search OR gibbonPerson.surname LIKE :search OR CONCAT(gibbonPerson.preferredName, " ", gibbonPerson.surname) LIKE :search)')
                 ->bindValue('search', '%' . $search . '%');
         }
 
-        // Return the query result
-        // Note: The SQL provides startDate/lastDate correctly
-        // monthsEnrolled and total are approximations that need weekend-based recalculation
-        return $this->runQuery($query, $criteria);
+        // Get all rows and calculate with weekend logic
+        $allRows = $this->runSelect($query)->fetchAll();
+        $calculatedRows = [];
+
+        foreach ($allRows as $row) {
+            $effectiveDates = $this->calculateEffectiveDates(
+                $row['dateEnrolled'],
+                $row['dateUnenrolled'],
+                $row['personDateEnd'],
+                $schoolYear['firstDay'],
+                $schoolYear['lastDay']
+            );
+
+            $monthsEnrolled = $this->calculateEnrollmentMonths(
+                $effectiveDates['startDate'],
+                $effectiveDates['endDate']
+            );
+
+            $row['startDate'] = $effectiveDates['startDate'];
+            $row['lastDate'] = $effectiveDates['endDate'];
+            $row['monthsEnrolled'] = $monthsEnrolled;
+            $row['total'] = $row['courseFee'] * $monthsEnrolled;
+
+            $calculatedRows[] = $row;
+        }
+
+        // Create a DataSet from calculated rows
+        // Use the parent class method to wrap data properly
+        return \Gibbon\Domain\DataSet::createPaginated($calculatedRows, $criteria);
     }
 
     /**
      * Get family totals (debt, payments, balance) for a school year
-     * Refactored to use centralized calculation methods
+     * Calculates fees using weekend-based billing logic in PHP
      */
     public function getFamilyTotals($schoolYearID, $criteria, $search = '')
     {
-        // Get families with calculated totals
-        // Note: This uses SQL for calculations. Weekend-based billing logic still
-        // applies via the getRawEnrollmentData method used elsewhere.
+        // Get families with students enrolled
         $query = $this
-            ->newQuery()
+            ->newSelect()
             ->cols([
                 'gibbonFamily.gibbonFamilyID',
                 'gibbonFamily.name as familyName',
                 'gibbonSEPA.payer as payer',
-                'gibbonSEPA.gibbonSEPAID as gibbonSEPAID',
-                // Calculate totalDept (approximation - actual uses weekend logic)
-                'SUM(COALESCE(gibbonSepaCoursesFees.fees, 0)) as totalDept',
-                // Get payments from subquery
-                '(SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentEntry WHERE gibbonSEPAPaymentEntry.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentEntry.academicYear = :schoolYearID2) as payments',
-                // Get payment adjustments from subquery
-                '(SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentAdjustment WHERE gibbonSEPAPaymentAdjustment.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentAdjustment.academicYear = :schoolYearID3) as paymentsAdjustment',
-                // Calculate balance
-                '((SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentEntry WHERE gibbonSEPAPaymentEntry.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentEntry.academicYear = :schoolYearID4) + (SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentAdjustment WHERE gibbonSEPAPaymentAdjustment.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentAdjustment.academicYear = :schoolYearID5) - SUM(COALESCE(gibbonSepaCoursesFees.fees, 0))) as balance'
+                'gibbonSEPA.gibbonSEPAID as gibbonSEPAID'
             ])
             ->from('gibbonFamily')
             ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonFamilyID = gibbonFamily.gibbonFamilyID')
@@ -667,27 +675,73 @@ class SepaGateway extends QueryableGateway
             ->innerJoin('gibbonCourseClassPerson', 'gibbonCourseClassPerson.gibbonPersonID = gibbonPerson.gibbonPersonID')
             ->innerJoin('gibbonCourseClass', 'gibbonCourseClass.gibbonCourseClassID = gibbonCourseClassPerson.gibbonCourseClassID')
             ->innerJoin('gibbonCourse', 'gibbonCourse.gibbonCourseID = gibbonCourseClass.gibbonCourseID')
-            ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
             ->leftJoin('gibbonSEPA', 'gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID')
             ->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
             ->where('gibbonCourseClassPerson.role = :role')
             ->bindValue('schoolYearID', $schoolYearID)
-            ->bindValue('schoolYearID2', $schoolYearID)
-            ->bindValue('schoolYearID3', $schoolYearID)
-            ->bindValue('schoolYearID4', $schoolYearID)
-            ->bindValue('schoolYearID5', $schoolYearID)
             ->bindValue('role', 'Student')
             ->groupBy(['gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonSEPA.payer', 'gibbonSEPA.gibbonSEPAID']);
 
-        // Apply search for family name and payer if search term is provided
+        // Apply search filter
         if (!empty($search)) {
             $query->where('(gibbonFamily.name LIKE :search OR gibbonSEPA.payer LIKE :search)')
                 ->bindValue('search', '%' . $search . '%');
         }
 
-        // Return the query result with SQL-calculated placeholders
-        // Note: These values use SQL placeholders and would need  recalculation for weekend-based logic
-        return $this->runQuery($query, $criteria);
+        // Get all families and calculate with weekend logic
+        $allRows = $this->runSelect($query)->fetchAll();
+        $calculatedRows = [];
+
+        foreach ($allRows as $row) {
+            $gibbonFamilyID = $row['gibbonFamilyID'];
+            $gibbonSEPAID = $row['gibbonSEPAID'];
+
+            // Calculate total debt using centralized method with weekend logic
+            $totalDept = $this->calculateFamilyTotalFees($gibbonFamilyID, $schoolYearID);
+
+            // Get payments
+            $payments = 0;
+            if ($gibbonSEPAID) {
+                $paymentsQuery = $this
+                    ->newSelect()
+                    ->cols(['COALESCE(SUM(amount), 0) as total'])
+                    ->from('gibbonSEPAPaymentEntry')
+                    ->where('gibbonSEPAID = :gibbonSEPAID')
+                    ->where('academicYear = :schoolYearID')
+                    ->bindValue('gibbonSEPAID', $gibbonSEPAID)
+                    ->bindValue('schoolYearID', $schoolYearID);
+                $paymentsResult = $this->runSelect($paymentsQuery)->fetch();
+                $payments = $paymentsResult['total'] ?? 0;
+            }
+
+            // Get payment adjustments
+            $paymentsAdjustment = 0;
+            if ($gibbonSEPAID) {
+                $adjustmentsQuery = $this
+                    ->newSelect()
+                    ->cols(['COALESCE(SUM(amount), 0) as total'])
+                    ->from('gibbonSEPAPaymentAdjustment')
+                    ->where('gibbonSEPAID = :gibbonSEPAID')
+                    ->where('academicYear = :schoolYearID')
+                    ->bindValue('gibbonSEPAID', $gibbonSEPAID)
+                    ->bindValue('schoolYearID', $schoolYearID);
+                $adjustmentsResult = $this->runSelect($adjustmentsQuery)->fetch();
+                $paymentsAdjustment = $adjustmentsResult['total'] ?? 0;
+            }
+
+            // Calculate balance
+            $balance = $payments + $paymentsAdjustment - $totalDept;
+
+            $row['totalDept'] = $totalDept;
+            $row['payments'] = $payments;
+            $row['paymentsAdjustment'] = $paymentsAdjustment;
+            $row['balance'] = $balance;
+
+            $calculatedRows[] = $row;
+        }
+
+        // Create a DataSet from calculated rows
+        return \Gibbon\Domain\DataSet::createPaginated($calculatedRows, $criteria);
     }
 
     public function getFamilyInfo($gibbonFamilyID)
