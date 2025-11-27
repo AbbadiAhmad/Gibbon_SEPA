@@ -623,11 +623,13 @@ class SepaGateway extends QueryableGateway
                 ->bindValue('search', '%' . $search . '%');
         }
 
-        // Get all rows and calculate with weekend logic
-        $allRows = $this->runSelect($query)->fetchAll();
-        $calculatedRows = [];
+        // Execute query with pagination
+        $result = $this->runQuery($query, $criteria);
 
-        foreach ($allRows as $row) {
+        // Calculate weekend-based values for each row in the result
+        // Using array iteration since DataSet provides ArrayAccess
+        $processedData = [];
+        foreach ($result as $row) {
             $effectiveDates = $this->calculateEffectiveDates(
                 $row['dateEnrolled'],
                 $row['dateUnenrolled'],
@@ -646,12 +648,16 @@ class SepaGateway extends QueryableGateway
             $row['monthsEnrolled'] = $monthsEnrolled;
             $row['total'] = $row['courseFee'] * $monthsEnrolled;
 
-            $calculatedRows[] = $row;
+            $processedData[] = $row;
         }
 
-        // Create a DataSet from calculated rows
-        // Use the parent class method to wrap data properly
-        return \Gibbon\Domain\DataSet::createPaginated($calculatedRows, $criteria);
+        // Replace the result's data using reflection since no setter exists
+        $reflector = new \ReflectionClass($result);
+        $property = $reflector->getProperty('data');
+        $property->setAccessible(true);
+        $property->setValue($result, $processedData);
+
+        return $result;
     }
 
     /**
@@ -688,11 +694,12 @@ class SepaGateway extends QueryableGateway
                 ->bindValue('search', '%' . $search . '%');
         }
 
-        // Get all families and calculate with weekend logic
-        $allRows = $this->runSelect($query)->fetchAll();
-        $calculatedRows = [];
+        // Execute query with pagination
+        $result = $this->runQuery($query, $criteria);
 
-        foreach ($allRows as $row) {
+        // Calculate weekend-based values for each row in the result
+        $processedData = [];
+        foreach ($result as $row) {
             $gibbonFamilyID = $row['gibbonFamilyID'];
             $gibbonSEPAID = $row['gibbonSEPAID'];
 
@@ -737,11 +744,16 @@ class SepaGateway extends QueryableGateway
             $row['paymentsAdjustment'] = $paymentsAdjustment;
             $row['balance'] = $balance;
 
-            $calculatedRows[] = $row;
+            $processedData[] = $row;
         }
 
-        // Create a DataSet from calculated rows
-        return \Gibbon\Domain\DataSet::createPaginated($calculatedRows, $criteria);
+        // Replace the result's data using reflection since no setter exists
+        $reflector = new \ReflectionClass($result);
+        $property = $reflector->getProperty('data');
+        $property->setAccessible(true);
+        $property->setValue($result, $processedData);
+
+        return $result;
     }
 
     public function getFamilyInfo($gibbonFamilyID)
