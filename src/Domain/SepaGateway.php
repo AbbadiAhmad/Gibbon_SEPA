@@ -631,8 +631,8 @@ class SepaGateway extends QueryableGateway
         $res = $this->runQuery($query, $criteria);
 
         // Enhance each row with calculated fields using centralized logic
-        $data = [];
-        foreach ($res as $row) {
+        // Transform the result using the transform method
+        return $res->transform(function ($row) use ($schoolYear) {
             $effectiveDates = $this->calculateEffectiveDates(
                 $row['dateEnrolled'],
                 $row['dateUnenrolled'],
@@ -651,13 +651,8 @@ class SepaGateway extends QueryableGateway
             $row['monthsEnrolled'] = $monthsEnrolled;
             $row['total'] = $row['courseFee'] * $monthsEnrolled;
 
-            $data[] = $row;
-        }
-
-        // Replace result data with calculated data
-        $res->data = $data;
-
-        return $res;
+            return $row;
+        });
     }
 
     /**
@@ -703,8 +698,8 @@ class SepaGateway extends QueryableGateway
         $result = $this->runQuery($query, $criteria);
 
         // Enhance each row with calculated totals using centralized logic
-        $data = [];
-        foreach ($result as $row) {
+        // Transform the result using the transform method
+        return $result->transform(function ($row) use ($schoolYearID) {
             $gibbonFamilyID = $row['gibbonFamilyID'];
             $gibbonSEPAID = $row['gibbonSEPAID'];
 
@@ -749,13 +744,8 @@ class SepaGateway extends QueryableGateway
             $row['paymentsAdjustment'] = $paymentsAdjustment;
             $row['balance'] = $balance;
 
-            $data[] = $row;
-        }
-
-        // Replace result data with calculated data
-        $result->data = $data;
-
-        return $result;
+            return $row;
+        });
     }
 
     public function getFamilyInfo($gibbonFamilyID)
