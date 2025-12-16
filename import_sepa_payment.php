@@ -56,8 +56,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         'amount',
         'payment_method',
     ];
-    $requiredField = ['booking_date', 'payer', 'amount','academicYear'];
-    $availableDataFormat = ["d.m.Y", "d/m/Y", "d-m-Y", "Y-m-d"];
+    $requiredField = ['booking_date', 'payer', 'amount', 'academicYear'];
+    $availableDataFormat = ["d.m.Y", "d/m/Y", "m/d/Y", "d-m-Y", "Y-m-d"];
     $DecSepFormat = [',', '.'];
 
     // STEP 1: SELECT FILE
@@ -128,13 +128,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
                 ->placeholder($_SESSION[$guid]["gibbonSchoolYearName"])
                 ->disabled();
             $form->addHiddenValue('academicYearID', $_SESSION[$guid]["gibbonSchoolYearID"]);
-            $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearName"]);  
+            $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearName"]);
             // add date formate in the paymentlist file
             $row = $form->addRow();
             $row->addLabel("Date format", __("Date format"));
             $row->addSelect("dateFormat")
                 ->fromArray($availableDataFormat);
-            
+
             // add decimal separator
             $row = $form->addRow();
             $row->addLabel("decimalSeparator", __("Decimal Separator"));
@@ -160,17 +160,17 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
             $page->addError(__('Invalid data'));
             return;
         }
-        
+
         $academicYear = $_POST['academicYear'] ?? null;
         $academicYearID = $_POST['academicYearID'] ?? null;
- 
+
         if (in_array($_POST['dateFormat'], $availableDataFormat)) {
             $dateFormat = $_POST['dateFormat'];
         } else {
             echo 'Unsupported date format';
             return;
         }
-        
+
         if (in_array($_POST['decimalSeparator'], $DecSepFormat)) {
             $decimalSeparator = $_POST['decimalSeparator'];
         } else {
@@ -199,7 +199,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
             }
             $mappedRow['academicYear'] = $academicYearID;
             $mappedRow['academicYearName'] = $academicYear;
-            $mappedRow['payment_method'] = $mappedRow['payment_method']? $mappedRow['payment_method'] : 'SEPA';
+            $mappedRow['payment_method'] = $mappedRow['payment_method'] ? $mappedRow['payment_method'] : 'SEPA';
 
             $mappedRow['__RowCanBeImported__'] = true;
             $mappedRow['__RowStatusInImportProcess__'] = 'Step3. In process';
@@ -215,7 +215,27 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
                     $SepaGateway = $container->get(SepaGateway::class);
 
                     // covert date to mysql format
-                    $mappedRow['booking_date'] = DateTime::createFromFormat($dateFormat, $mappedRow['booking_date'])->format('Y-m-d');
+                    // Trim whitespace first
+                    $dateString = trim($mappedRow['booking_date']);
+
+                    // Handle empty dates
+                    if (empty($dateString)) {
+                        throw new Exception("Booking date is empty");
+                    }
+
+                    // Try to create DateTime object
+                    $dateObject = DateTime::createFromFormat($dateFormat, $dateString);
+
+                    // Check if parsing failed
+                    if ($dateObject === false) {
+                        // Get detailed error info
+                        $errors = DateTime::getLastErrors();
+                        throw new Exception("Invalid date format. you chose the format: {$dateFormat}, which is not suitable for: {$dateString}.");
+                    }
+
+                    // Convert to MySQL format
+                    $mappedRow['booking_date'] = $dateObject->format('Y-m-d');
+
 
                     // convert to mysql decimal format
                     $mappedRow['amount'] = convertToFloat($mappedRow['amount'], $decimalSeparator);
@@ -231,7 +251,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
                         $mappedRow['__RowCanBeImported__'] = true;
                         // try to match the entry with a family
                         $result = $SepaGateway->getSEPAForPaymentEntry($mappedRow);
-                        if ($result && count($result)==1) {
+                        if ($result && count($result) == 1) {
                             $mappedRow['gibbonSEPAID'] = $result[0]['gibbonSEPAID'];
                         }
 
@@ -324,7 +344,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
 
         }
 
-        echo "<div class=success> (". $count. __(") Rows inserted sucessfully.")."</div>";
+        echo "<div class=success> (" . $count . __(") Rows inserted sucessfully.") . "</div>";
         echo "Download the the excel export for more details.";
 
         $criteria = $SepaGateway->newQueryCriteria(true);
@@ -353,7 +373,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         echo $table->render($unprocessedRows);
 
         $_SESSION[$guid]['sepaProcessedData'] = $data;
-        
+
 
         $form = Form::create('importStep4', $StepLink . '5');
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
