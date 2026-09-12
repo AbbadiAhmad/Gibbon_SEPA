@@ -590,12 +590,11 @@ class SepaGateway extends QueryableGateway
                 'gibbonCourse.nameShort as shortName',
                 'gibbonCourseClassPerson.dateEnrolled',
                 'gibbonCourseClassPerson.dateUnenrolled',
-                //'GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay) as startDate',
-                'DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\') AS startDate',
-                'LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay))) as lastDate',
-                'GREATEST(0, TIMESTAMPDIFF(MONTH, GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay))))) as monthsEnrolled',
+                $this->getEnrollmentFeesSQLstatments('startDate') . ' AS startDate',
+                $this->getEnrollmentFeesSQLstatments('lastDate') . ' as lastDate',
+                $this->getEnrollmentFeesSQLstatments('enrollmentMonths') . ' as monthsEnrolled',
                 'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee',
-                'COALESCE(gibbonSepaCoursesFees.fees, 0) * GREATEST(0, TIMESTAMPDIFF(MONTH, GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay))))) as total'
+                $this->getEnrollmentFeesSQLstatments('enrollmentFees') . ' as total'
             ])
             ->from('gibbonPerson')
             ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonPersonID = gibbonPerson.gibbonPersonID')
@@ -631,10 +630,10 @@ class SepaGateway extends QueryableGateway
                 'gibbonFamily.name as familyName',
                 'gibbonSEPA.payer as payer',
                 'gibbonSEPA.gibbonSEPAID as gibbonSEPAID',
-                'SUM(COALESCE(gibbonSepaCoursesFees.fees, 0) * GREATEST(0, TIMESTAMPDIFF(MONTH,  DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\'), LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay)))))) as totalDept',
+                $this->getEnrollmentFeesSQLstatments('totalFees') . ' as totalDept',
                 '(SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentEntry WHERE gibbonSEPAPaymentEntry.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentEntry.academicYear = :schoolYearID) as payments',
                 '(SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentAdjustment WHERE gibbonSEPAPaymentAdjustment.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentAdjustment.academicYear = :schoolYearID) as paymentsAdjustment',
-                '((SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentEntry WHERE gibbonSEPAPaymentEntry.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentEntry.academicYear = :schoolYearID) + (SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentAdjustment WHERE gibbonSEPAPaymentAdjustment.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentAdjustment.academicYear = :schoolYearID) - SUM(COALESCE(gibbonSepaCoursesFees.fees, 0) * GREATEST(0, TIMESTAMPDIFF(MONTH, DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\'), LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay))))))) as balance'
+                '((SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentEntry WHERE gibbonSEPAPaymentEntry.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentEntry.academicYear = :schoolYearID) + (SELECT COALESCE(SUM(amount), 0) FROM gibbonSEPAPaymentAdjustment WHERE gibbonSEPAPaymentAdjustment.gibbonSEPAID = gibbonSEPA.gibbonSEPAID AND gibbonSEPAPaymentAdjustment.academicYear = :schoolYearID) - ' . $this->getEnrollmentFeesSQLstatments('totalFees') . ') as balance'
             ])
             ->from('gibbonFamily')
             ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonFamilyID = gibbonFamily.gibbonFamilyID')
@@ -672,11 +671,40 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query)->fetchAll();
     }
 
+    /**
+     * Single source of truth for the SEPA billing-period SQL fragments.
+     *
+     * Billing rules (per stakeholder agreement):
+     *  - Billing never starts before October 1st of the school year: enrollment
+     *    that happens in September (the intake/orientation month) or earlier is
+     *    not billed at all, regardless of the day it happened on.
+     *  - From October onward, a month is billed in full only if the student
+     *    enrolled with at least 7 days left in that month; otherwise billing
+     *    starts the following month.
+     *  - The unenrollment month is always billed in full, whatever day within
+     *    it the student left, cancellation or the person's dateEnd occurred on.
+     */
     private function getEnrollmentFeesSQLstatments($statement)
     {
+        // Enrollment date clamped to not precede the school year's start.
+        $enrolled = 'GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay)';
+        // October 1st of the school year's starting calendar year - billing never starts earlier.
+        $octoberFirst = 'DATE(CONCAT(YEAR(gibbonSchoolYear.firstDay), \'-10-01\'))';
+        // Last billable day, clamped to the school year end, unenrollment and the person's leave date.
+        $effectiveEnd = 'LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay))';
+
         switch ($statement) {
+            case 'startDate':
+                return 'CASE '
+                    . 'WHEN ' . $enrolled . ' < ' . $octoberFirst . ' THEN ' . $octoberFirst . ' '
+                    . 'WHEN DAY(' . $enrolled . ') <= (DAY(LAST_DAY(' . $enrolled . ')) - 7) THEN DATE_FORMAT(' . $enrolled . ', \'%Y-%m-01\') '
+                    . 'ELSE DATE_FORMAT(DATE_ADD(' . $enrolled . ', INTERVAL 1 MONTH), \'%Y-%m-01\') '
+                    . 'END';
+            case 'lastDate':
+                return 'LAST_DAY(' . $effectiveEnd . ')';
             case 'enrollmentMonths':
-                return 'GREATEST(0, TIMESTAMPDIFF(MONTH, DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\'), LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay)))))';
+                $start = $this->getEnrollmentFeesSQLstatments('startDate');
+                return 'GREATEST(0, (YEAR(' . $effectiveEnd . ') - YEAR(' . $start . ')) * 12 + (MONTH(' . $effectiveEnd . ') - MONTH(' . $start . ')) + 1)';
             case 'enrollmentFees':
                 return 'COALESCE(gibbonSepaCoursesFees.fees, 0) * ' . $this->getEnrollmentFeesSQLstatments('enrollmentMonths');
             case 'totalFees':
@@ -744,8 +772,8 @@ class SepaGateway extends QueryableGateway
                 'gibbonPerson.preferredName as childName',
                 'gibbonCourse.name as courseName',
                 'COALESCE(gibbonSepaCoursesFees.fees, 0) as courseFee',
-                'DATE_FORMAT(GREATEST(gibbonCourseClassPerson.dateEnrolled, gibbonSchoolYear.firstDay), \'%Y-%m-01\') AS startDate',
-                'LAST_DAY(LEAST(COALESCE(gibbonCourseClassPerson.dateUnenrolled, gibbonSchoolYear.lastDay), gibbonSchoolYear.lastDay, COALESCE(gibbonPerson.dateEnd, gibbonSchoolYear.lastDay))) as lastDate',
+                $this->getEnrollmentFeesSQLstatments('startDate') . ' AS startDate',
+                $this->getEnrollmentFeesSQLstatments('lastDate') . ' as lastDate',
                 'gibbonCourseClassPerson.dateEnrolled as rawDateEnrolled',
                 'gibbonCourseClassPerson.dateUnenrolled as rawDateUnenrolled',
                 $this->getEnrollmentFeesSQLstatments('enrollmentMonths') . ' as monthsEnrolled',
