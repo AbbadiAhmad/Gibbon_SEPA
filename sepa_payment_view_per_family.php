@@ -63,6 +63,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_pe
     if (!empty($familyInfo)) {
         echo '<h3>' . __('Family: ') . htmlspecialchars($familyInfo[0]['name'] ?? '', ENT_QUOTES, 'UTF-8') . '</h3>';
     }
+    
+    echo '<hr><span style="color: red;">' . __('Dieses Modul befindet sich in der Entwicklung. Wenn Sie Unstimmigkeiten feststellen, helfen Sie uns bitte, indem Sie die Schulverwaltung informieren.') . '</span> </br> <span style="color: red;">' . __('هذا الموديول قيد التطوير. إذا لاحظتم أي خطأ، يرجى مساعدتنا بإبلاغ إدارة المدرسة') . '</span><hr></p>';
 
     // Fees Summary
     $feesSummary = $SepaGateway->getFamilyFeesSummary($gibbonFamilyID, $schoolYearID);
