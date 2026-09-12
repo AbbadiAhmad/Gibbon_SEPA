@@ -703,8 +703,12 @@ class SepaGateway extends QueryableGateway
             case 'lastDate':
                 return 'LAST_DAY(' . $effectiveEnd . ')';
             case 'enrollmentMonths':
+                // TIMESTAMPDIFF is used (rather than YEAR()/MONTH() subtraction) because MySQL flags
+                // YEAR()/MONTH() results as UNSIGNED; subtracting them when the result is negative
+                // underflows to a huge unsigned number and overflows BIGINT UNSIGNED once multiplied.
                 $start = $this->getEnrollmentFeesSQLstatments('startDate');
-                return 'GREATEST(0, (YEAR(' . $effectiveEnd . ') - YEAR(' . $start . ')) * 12 + (MONTH(' . $effectiveEnd . ') - MONTH(' . $start . ')) + 1)';
+                $endMonthStart = 'DATE_FORMAT(' . $effectiveEnd . ', \'%Y-%m-01\')';
+                return 'GREATEST(0, TIMESTAMPDIFF(MONTH, ' . $start . ', ' . $endMonthStart . ') + 1)';
             case 'enrollmentFees':
                 return 'COALESCE(gibbonSepaCoursesFees.fees, 0) * ' . $this->getEnrollmentFeesSQLstatments('enrollmentMonths');
             case 'totalFees':
