@@ -22,10 +22,16 @@ use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Module\Sepa\Security\IbanCipher;
 include '../../gibbon.php';
+include './moduleFunctions.php';
 
 $_POST = $container->get(Validator::class)->sanitize($_POST);
 $URL = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/sepa_family_edit.php';
 $URLSuccess = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/sepa_family_view.php';
+$checkReturn = getSepaCheckReturnParams($_POST);
+if (!empty($checkReturn)) {
+    unset($checkReturn['returnTo']);
+    $URLSuccess = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/sepa_check.php&' . http_build_query($checkReturn);
+}
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php')) {
     // Access denied
@@ -84,8 +90,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
             }
         }
 
-        $URL .= "&return=success0";
-        header("Location: {$URLSuccess}");
+        header("Location: {$URLSuccess}&return=success0");
 
     }
 }

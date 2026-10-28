@@ -57,6 +57,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
 
             $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonSEPAID', $SEPA['gibbonSEPAID']);
+            foreach (getSepaCheckReturnParams($_GET) as $name => $value) {
+                $form->addHiddenValue($name, $value);
+            }
 
             // BASIC INFORMATION
             $form->addRow()->addHeading('SEPA Information', __('SEPA Information'));

@@ -29,6 +29,11 @@ use Gibbon\Module\Sepa\Security\IbanCipher;
 $_POST = $container->get(Validator::class)->sanitize($_POST);
 $URL = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/sepa_family_add.php';
 $URLSuccess = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/sepa_family_view.php';
+$checkReturn = getSepaCheckReturnParams($_POST);
+if (!empty($checkReturn)) {
+    unset($checkReturn['returnTo']);
+    $URLSuccess = $gibbon->session->get('absoluteURL') . '/index.php?q=/modules/' . $gibbon->session->get('module') . '/sepa_check.php&' . http_build_query($checkReturn);
+}
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_add.php')) {
     // Access denied

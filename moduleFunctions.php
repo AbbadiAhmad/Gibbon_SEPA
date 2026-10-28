@@ -70,3 +70,24 @@ function renderTemplate($templatePath, $data, $escapeHtml = true)
 
     return $template;
 }
+
+/**
+ * The SEPA check page can open the SEPA add / edit pages; these values bring the user back
+ * to the check page (with the same filters) after saving. Only known parameters are accepted.
+ *
+ * @param array $source $_GET or $_POST
+ * @return array parameters to carry along, empty when the user did not come from the check page
+ */
+function getSepaCheckReturnParams($source)
+{
+    if (($source['returnTo'] ?? '') !== 'check') {
+        return [];
+    }
+    $params = ['returnTo' => 'check'];
+    foreach (['schoolYearID', 'balanceFilter', 'severity', 'problem', 'search'] as $name) {
+        if (isset($source[$name]) && is_scalar($source[$name]) && $source[$name] !== '') {
+            $params[$name] = (string) $source[$name];
+        }
+    }
+    return $params;
+}

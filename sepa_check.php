@@ -104,12 +104,19 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
             return number_format($row['balance'], 2);
         });
         $table->addColumn('problem', __('Problem'));
-        $table->addActionColumn()->format(function ($row, $actions) {
+        $table->addActionColumn()->format(function ($row, $actions) use ($schoolYearID, $balanceFilter, $severity, $problem, $search) {
             $action = $actions->addAction($row['link'][0], $row['link'][0] === 'add' ? __('Add SEPA') : __('Edit'))
                 ->setURL($row['link'][1]);
             foreach ($row['link'][2] as $name => $value) {
                 $action->addParam($name, $value);
             }
+            // come back to this page (same filters) after saving
+            $action->addParam('returnTo', 'check')
+                ->addParam('schoolYearID', $schoolYearID)
+                ->addParam('balanceFilter', $balanceFilter)
+                ->addParam('severity', $severity)
+                ->addParam('problem', $problem)
+                ->addParam('search', $search);
         });
 
         echo $table->render($issues);

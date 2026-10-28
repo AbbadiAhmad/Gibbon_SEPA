@@ -61,6 +61,9 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
 
    $form = Form::create('addSEPA', $session->get('absoluteURL') . '/modules/' . $session->get('module') . '/sepa_family_addProcess.php');
    $form->addHiddenValue('address', $session->get('address'));
+   foreach (getSepaCheckReturnParams($_GET) as $name => $value) {
+       $form->addHiddenValue($name, $value);
+   }
 
    // BASIC INFORMATION
    $form->addRow()->addHeading('SEPA Information', __('SEPA Information'));
