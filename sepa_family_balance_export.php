@@ -46,6 +46,20 @@ $familyTotals = $SepaGateway->getFamilyTotals($schoolYearID, $criteria, $search,
 $cadences = SepaGateway::getWithdrawCadenceOptions();
 
 $onlyWithdraw = !empty($_GET['onlyWithdraw']);
+
+// Children names per family, used as comment for the withdrawals
+$childrenByFamily = [];
+if ($periodFrom !== null) {
+    $familyIDs = [];
+    foreach ($familyTotals as $row) {
+        $familyIDs[] = $row['gibbonFamilyID'];
+    }
+    if (!empty($familyIDs)) {
+        foreach ($SepaGateway->selectChildrenByFamily($familyIDs)->fetchAll() as $child) {
+            $childrenByFamily[$child['gibbonFamilyID']][] = trim($child['preferredName'] . ' ' . $child['surname']) . ($child['status'] === 'Left' ? ' (left)' : '');
+        }
+    }
+}
 $exportData = [];
 foreach ($familyTotals as $row) {
     $line = [
@@ -82,6 +96,7 @@ foreach ($familyTotals as $row) {
         $line['Mandate Date'] = $row['SEPA_signedDate'] ?? '';
         $line['Mandate Reference'] = $row['gibbonSEPAID'] ?? '';
         $line['Check'] = $check;
+        $line['Comments'] = implode(', ', $childrenByFamily[$row['gibbonFamilyID']] ?? []);
     }
     $exportData[] = $line;
 }
