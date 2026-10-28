@@ -105,7 +105,7 @@ class IbanCipher
     }
 
     /**
-     * Half hidden IBAN for lists / exports: first four and last four characters, the rest hidden.
+     * Half hidden IBAN for lists / exports: first six and last four characters, the rest hidden (DE1001********2568).
      */
     public static function maskForDisplay($iban)
     {
@@ -114,10 +114,10 @@ class IbanCipher
         if ($length === 0) {
             return '';
         }
-        if ($length <= 8) {
+        if ($length <= 10) {
             return substr($iban, 0, 2) . str_repeat('*', $length - 2);
         }
-        return substr($iban, 0, 4) . str_repeat('*', $length - 8) . substr($iban, -4);
+        return substr($iban, 0, 6) . str_repeat('*', $length - 10) . substr($iban, -4);
     }
 
     /**
