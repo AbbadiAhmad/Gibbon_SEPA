@@ -111,7 +111,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
         ->directLink()
         ->displayLabel();
 
-    $table->addHeaderAction('exportWithdraw', __('Export Withdrawals'))
+    $table->addHeaderAction('exportWithdraw', __('Export Withdrawals (incl. missing SEPA)'))
         ->setURL('/modules/Sepa/sepa_family_balance_export.php')
         ->addParam('schoolYearID', $schoolYearID)
         ->addParam('periodFrom', Format::date($periodFrom))

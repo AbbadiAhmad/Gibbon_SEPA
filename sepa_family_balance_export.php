@@ -58,18 +58,30 @@ foreach ($familyTotals as $row) {
     ];
     if ($periodFrom !== null) {
         $withdrawAmount = SepaGateway::calculateWithdrawAmount($row['balance'], $row['dueInPeriod']);
-        // withdrawals only: skip families with nothing to withdraw or without usable bank data
-        if ($onlyWithdraw && ($withdrawAmount <= 0 || empty($row['IBAN']))) {
+        // Families without SEPA or IBAN are kept in the withdrawal export, flagged in the "Check" column
+        $iban = IbanCipher::normalize(IbanCipher::decrypt($row['IBAN'] ?? '') ?? '');
+        if (empty($row['gibbonSEPAID'])) {
+            $check = 'No SEPA';
+        } elseif ($iban === '') {
+            $check = 'IBAN missing';
+        } elseif (!IbanCipher::isValid($iban)) {
+            $check = 'IBAN invalid';
+        } else {
+            $check = 'OK';
+        }
+        // withdrawals only: skip families with nothing to withdraw
+        if ($onlyWithdraw && $withdrawAmount <= 0) {
             continue;
         }
         $line['Due in Period'] = number_format($row['dueInPeriod'], 2, '.', '');
         $line['Withdraw Amount'] = number_format($withdrawAmount, 2, '.', '');
         $line['Withdraw Cadence'] = $cadences[$row['withdrawCadence']] ?? '';
         $line['Withdraw Day'] = $row['withdrawDay'] ?? '';
-        $line['IBAN'] = IbanCipher::normalize(IbanCipher::decrypt($row['IBAN'] ?? '') ?? '');
+        $line['IBAN'] = $iban;
         $line['BIC'] = $row['BIC'] ?? '';
         $line['Mandate Date'] = $row['SEPA_signedDate'] ?? '';
         $line['Mandate Reference'] = $row['gibbonSEPAID'] ?? '';
+        $line['Check'] = $check;
     }
     $exportData[] = $line;
 }

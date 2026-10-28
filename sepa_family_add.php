@@ -102,10 +102,13 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
 
    $row = $form->addRow();
    $row->addLabel('Family', __('Family'))->description('Only families without a SEPA account can be selected.');
-   $row->addSelect('gibbonFamilyID')
+   $select = $row->addSelect('gibbonFamilyID')
       ->fromResults($Families)
       ->required()
       ->placeholder();
+   if (!empty($_GET['gibbonFamilyID'])) {
+      $select->selected($_GET['gibbonFamilyID']);
+   }
    
 
    $row = $form->addRow();

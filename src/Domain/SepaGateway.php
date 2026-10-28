@@ -756,6 +756,34 @@ class SepaGateway extends QueryableGateway
         return $this->runQuery($query, $criteria);
     }
 
+    /**
+     * All SEPA records with the family name, for the SEPA data check.
+     */
+    public function getAllSEPAWithFamily()
+    {
+        $query = $this
+            ->newSelect()
+            ->cols(['gibbonSEPA.*', 'gibbonFamily.name as familyName'])
+            ->from('gibbonSEPA')
+            ->leftJoin('gibbonFamily', 'gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID')
+            ->orderBy(['gibbonFamily.name', 'gibbonSEPA.gibbonSEPAID']);
+
+        return $this->runSelect($query)->fetchAll();
+    }
+
+    /**
+     * Families with at least one enrolled student in the school year (keyed by family ID).
+     */
+    public function getFamiliesWithEnrolledChildren($schoolYearID)
+    {
+        $query = $this->getEnrollmentFeesBaseQuery($schoolYearID)
+            ->cols(['DISTINCT gibbonFamilyChild.gibbonFamilyID', 'gibbonFamily.name as familyName'])
+            ->innerJoin('gibbonFamily', 'gibbonFamily.gibbonFamilyID = gibbonFamilyChild.gibbonFamilyID')
+            ->orderBy(['gibbonFamily.name']);
+
+        return $this->runSelect($query)->fetchAll(\PDO::FETCH_KEY_PAIR);
+    }
+
     public function getFamilyInfo($gibbonFamilyID)
     {
         $query = $this

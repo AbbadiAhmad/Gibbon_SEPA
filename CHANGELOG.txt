@@ -24,3 +24,4 @@ Remove test_masking.php.
 Add Export to Excel of the family balance (with the due-in-period column on the Family Due page).
 Family Due: calculate the withdraw amount (amount due in the period, capped at the open balance) and export it with IBAN, BIC, mandate date and cadence; add a withdrawals-only export.
 v2.3.1: the import from registration forms is its own action in the Entry menu.
+v2.3.2: Check SEPA Data page; the withdrawal export also lists families without SEPA / IBAN with a Check column.
