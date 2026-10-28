@@ -39,6 +39,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
     ];
     $StepLink = $session->get('absoluteURL') . '/index.php?q=' . $_SESSION[$guid]['address'] . '&step=';
 
+    // Import directly from the accepted registration forms (shown at the top of the first step)
+    if ($step == 1) {
+        echo "<p><a href='" . $session->get('absoluteURL') . "/index.php?q=/modules/Sepa/import_sepa_from_form.php' class='button' style='text-decoration: none;'>";
+        echo __('Import from registration forms');
+        echo "</a></p>";
+    }
+
     // Display steps progress
     echo "<ul class='multiPartForm'>";
     foreach ($steps as $stepNumber => $stepName) {
@@ -79,11 +86,6 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         $row->addSubmit();
 
         echo $form->getOutput();
-
-        // Import directly from the accepted registration forms
-        echo "<p><a href='" . $session->get('absoluteURL') . "/index.php?q=/modules/Sepa/import_sepa_from_form.php' class='button' style='text-decoration: none;'>";
-        echo __('Import from registration forms');
-        echo "</a></p>";
 
     }
     // STEP 2: CONFIRM DATA
