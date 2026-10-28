@@ -4,6 +4,7 @@ namespace Gibbon\Module\Sepa\Domain; //Replace ModuleName with your module's nam
 use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
+use Gibbon\Module\Sepa\Security\IbanCipher;
 
 /**
  * SEPA Gateway
@@ -17,43 +18,129 @@ class SepaGateway extends QueryableGateway
 
     private static $tableName = 'gibbonSEPA'; //The name of the table you will primarily be querying
     private static $primaryKey = 'gibbonSEPAID'; //The primaryKey of said table
-    private static $searchableColumns = ['payer', 'IBAN', 'customData']; // Optional: Array of Columns to be searched when using the search filter
+    private static $searchableColumns = ['payer', 'customData']; // Optional: Array of Columns to be searched when using the search filter
+
+    const WITHDRAW_CADENCES = ['Monthly', 'HalfYearly', 'Yearly'];
+    const DEFAULT_WITHDRAW_CADENCE = 'Monthly';
+    const DEFAULT_WITHDRAW_DAY = 5;
 
     /**
-     * Mask IBAN to show only first 2 characters + 4 asterisks + last 3 characters
-     * Returns NULL if IBAN is too short (less than 5 characters) or empty
+     * Encrypt an IBAN for storage (AES-256-GCM, see IbanCipher). Returns NULL for an empty IBAN.
      *
-     * @param string|null $iban The IBAN to mask
-     * @return string|null Masked IBAN (e.g., "DE****678") or NULL
+     * @throws \RuntimeException when no encryption key is configured
      */
-    public function maskIBAN($iban)
+    public function encryptIBAN($iban)
     {
-        if (empty($iban)) {
-            return null;
-        }
-
-        // Remove spaces and convert to uppercase
-        $iban = strtoupper(str_replace(' ', '', $iban));
-
-        // If IBAN is too short (less than 5 characters), return NULL
-        if (strlen($iban) < 5) {
-            return null;
-        }
-
-        // Return first 2 + 4 asterisks + last 3
-        return substr($iban, 0, 2) . '****' . substr($iban, -3);
+        return IbanCipher::encrypt($iban);
     }
 
     /**
-     * Mask BIC - always returns NULL as per security requirements
-     * BIC will not be stored in the database
-     *
-     * @param string|null $bic The BIC code (ignored)
-     * @return null Always returns NULL
+     * Clear IBAN of a stored value (legacy unencrypted values are returned unchanged).
      */
-    public function maskBIC($bic)
+    public function decryptIBAN($storedIban)
     {
+        return IbanCipher::decrypt($storedIban);
+    }
+
+    /**
+     * Cadence names for forms / display.
+     */
+    public static function getWithdrawCadenceOptions()
+    {
+        return [
+            'Monthly' => __('Monthly'),
+            'HalfYearly' => __('Half-yearly'),
+            'Yearly' => __('Yearly'),
+        ];
+    }
+
+    /**
+     * Preferred withdrawal days (1-31).
+     */
+    public static function getWithdrawDayOptions()
+    {
+        return array_combine(range(1, 31), range(1, 31));
+    }
+
+    /**
+     * Map free text (English / German, e.g. "monthly", "Halbjährlich", "jährlich", "6") to a cadence.
+     * Returns NULL when the text is not recognised.
+     */
+    public static function normalizeCadence($text)
+    {
+        $text = mb_strtolower(trim((string) $text));
+        if ($text === '') {
+            return null;
+        }
+        if (in_array($text, self::WITHDRAW_CADENCES, true) || in_array(ucfirst($text), self::WITHDRAW_CADENCES, true)) {
+            return ucfirst($text);
+        }
+        // half-yearly has to be tested before yearly ("halbjährlich" contains "jährlich")
+        if (preg_match('/halb|half|semi|6\s*(monat|month)|^6$|2\s*x|2\s*(mal|times)/u', $text)) {
+            return 'HalfYearly';
+        }
+        if (preg_match('/monat|month|^1$/u', $text)) {
+            return 'Monthly';
+        }
+        if (preg_match('/j[aä]hr|year|annual|12\s*(monat|month)|^12$/u', $text)) {
+            return 'Yearly';
+        }
         return null;
+    }
+
+    /**
+     * First number 1-31 found in the text ("15", "15.", "am 15."), or NULL.
+     */
+    public static function normalizeDay($text)
+    {
+        if (preg_match('/\d{1,2}/', (string) $text, $m) && $m[0] >= 1 && $m[0] <= 31) {
+            return (int) $m[0];
+        }
+        return null;
+    }
+
+    /**
+     * Writable gibbonSEPA columns for the given form / import data.
+     * The IBAN is encrypted here, so every insert / update goes through the same path.
+     */
+    private function getSEPAColumns($sepaData)
+    {
+        $columns = [
+            'payer' => trim($sepaData['payer']),
+            'IBAN' => $this->encryptIBAN($sepaData['IBAN'] ?? null),
+            'BIC' => !empty($sepaData['BIC']) ? strtoupper(preg_replace('/\s+/', '', $sepaData['BIC'])) : null,
+            'SEPA_signedDate' => !empty($sepaData['SEPA_signedDate']) ? $sepaData['SEPA_signedDate'] : null,
+            'note' => trim($sepaData['note'] ?? ''),
+        ];
+
+        // Cadence and day are only written when a valid value is given, so an import (or update)
+        // that does not carry them leaves the stored values untouched.
+        if (in_array($sepaData['withdrawCadence'] ?? null, self::WITHDRAW_CADENCES, true)) {
+            $columns['withdrawCadence'] = $sepaData['withdrawCadence'];
+        }
+        $day = $sepaData['withdrawDay'] ?? '';
+        if ($day !== '' && (int) $day >= 1 && (int) $day <= 31) {
+            $columns['withdrawDay'] = (int) $day;
+        }
+
+        return $columns;
+    }
+
+    /**
+     * Insert a SEPA record for a family (all fields, IBAN encrypted).
+     */
+    public function insertSEPA($gibbonFamilyID, $sepaData, $customData = null)
+    {
+        $query = $this
+            ->newInsert()
+            ->into('gibbonSEPA')
+            ->cols(array_merge(
+                ['gibbonFamilyID' => $gibbonFamilyID, 'withdrawCadence' => self::DEFAULT_WITHDRAW_CADENCE, 'withdrawDay' => self::DEFAULT_WITHDRAW_DAY],
+                $this->getSEPAColumns($sepaData),
+                ['customData' => $customData]
+            ));
+
+        return $this->runInsert($query);
     }
 
     public function getSEPAList(QueryCriteria $criteria, $gibbonSEPAIDs)
@@ -183,29 +270,6 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query)->fetchAll();
     }
 
-    /**
-     * Get SEPA records by IBAN
-     *
-     * IMPORTANT: Since IBANs are now stored in masked format (XX****XXX),
-     * this method searches for masked IBANs. Multiple different full IBANs
-     * may have the same masked format, so this can return multiple results.
-     *
-     * Recommendation: Use in combination with payer name matching for better accuracy.
-     *
-     * @param string $iban The IBAN to search for (will be masked before comparison)
-     * @return array Array of matching SEPA records (may be multiple)
-     */
-    public function getSEPAByIBAN($iban)
-    {
-        $query = $this->newSelect()
-            ->cols(['gibbonSEPA.*'])
-            ->from('gibbonSEPA')
-            ->where("REPLACE(gibbonSEPA.IBAN, ' ', '') = REPLACE(:iban, ' ', '')")
-            ->bindValue('iban', $iban);
-
-        return $this->runSelect($query)->fetchAll();
-    }
-
     public function getFamiliesWithoutBankDetails()
     {
         // "SELECT gibbonFamily.gibbonFamilyID as value, name FROM gibbonFamily LEFT JOIN gibbonSEPA ON gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID WHERE gibbonSEPA.gibbonFamilyID is NULL order by name";
@@ -324,14 +388,7 @@ class SepaGateway extends QueryableGateway
             $query = $this
                 ->newInsert()
                 ->into('gibbonSEPA')
-                ->cols([
-                    'gibbonFamilyID' => trim($familyID),
-                    'payer' => trim($sepaData['payer']),
-                    'IBAN' => $this->maskIBAN($sepaData['IBAN'] ?? null),
-                    'BIC' => $this->maskBIC($sepaData['BIC'] ?? null),
-                    'SEPA_signedDate' => $sepaData['SEPA_signedDate'],
-                    'note' => trim($sepaData['note']),
-                ]);
+                ->cols(array_merge(['gibbonFamilyID' => trim($familyID)], $this->getSEPAColumns($sepaData)));
 
             $result[] = $this->runInsert($query);
 
@@ -389,7 +446,7 @@ class SepaGateway extends QueryableGateway
             ->cols([
                 'booking_date' => $paymentData['booking_date'],
                 'payer' => trim($paymentData['payer']),
-                'IBAN' => $this->maskIBAN($paymentData['IBAN'] ?? null),
+                'IBAN' => $this->encryptIBAN($paymentData['IBAN'] ?? null),
                 'transaction_reference' => $paymentData['transaction_reference'],
                 'transaction_message' => $paymentData['transaction_message'],
                 'amount' => $paymentData['amount'],
@@ -412,7 +469,7 @@ class SepaGateway extends QueryableGateway
             ->cols([
                 'booking_date' => $paymentData['booking_date'],
                 'payer' => trim($paymentData['payer']),
-                'IBAN' => $this->maskIBAN($paymentData['IBAN'] ?? null),
+                'IBAN' => $this->encryptIBAN($paymentData['IBAN'] ?? null),
                 'transaction_reference' => trim($paymentData['transaction_reference']),
                 'transaction_message' => trim($paymentData['transaction_message']),
                 'amount' => $paymentData['amount'],
@@ -477,7 +534,7 @@ class SepaGateway extends QueryableGateway
         ]);
         $search = $criteria->getSearchText();
         if (!empty($search)) {
-            $query->where('(gibbonSEPAPaymentEntry.transaction_reference LIKE :search OR gibbonSEPAPaymentEntry.IBAN LIKE :search OR gibbonSEPAPaymentEntry.payer LIKE :search OR gibbonSEPAPaymentEntry.booking_date LIKE :search OR gibbonSEPAPaymentEntry.amount LIKE :search)')
+            $query->where('(gibbonSEPAPaymentEntry.transaction_reference LIKE :search OR gibbonSEPAPaymentEntry.payer LIKE :search OR gibbonSEPAPaymentEntry.booking_date LIKE :search OR gibbonSEPAPaymentEntry.amount LIKE :search)')
                 ->bindValue('search', '%' . $search . '%');
         }
 
@@ -621,7 +678,12 @@ class SepaGateway extends QueryableGateway
 
     }
 
-    public function getFamilyTotals($schoolYearID, $criteria, $search = '')
+    /**
+     * Family totals. When $periodStart / $periodEnd (any day inside the first / last month) are given,
+     * the result also holds `dueInPeriod`: the fees of the months of that period, plus the withdrawal
+     * cadence / day of the family's SEPA.
+     */
+    public function getFamilyTotals($schoolYearID, $criteria, $search = '', $periodStart = null, $periodEnd = null)
     {
         $query = $this
             ->newQuery()
@@ -648,7 +710,17 @@ class SepaGateway extends QueryableGateway
             ->where('gibbonCourseClassPerson.role = :role')
             ->bindValue('schoolYearID', $schoolYearID)
             ->bindValue('role', 'Student')
-            ->groupBy(['gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonSEPA.payer', 'gibbonSEPA.gibbonSEPAID']);
+            ->groupBy(['gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonSEPA.payer', 'gibbonSEPA.gibbonSEPAID', 'gibbonSEPA.withdrawCadence', 'gibbonSEPA.withdrawDay']);
+
+        if ($periodStart !== null && $periodEnd !== null) {
+            $query->cols([
+                $this->getEnrollmentFeesSQLstatments('periodFees') . ' as dueInPeriod',
+                'gibbonSEPA.withdrawCadence',
+                'gibbonSEPA.withdrawDay',
+            ])
+                ->bindValue('periodStart', date('Y-m-01', strtotime($periodStart)))
+                ->bindValue('periodEnd', date('Y-m-01', strtotime($periodEnd)));
+        }
 
         // Apply search for family name and payer if search term is provided
         if (!empty($search)) {
@@ -713,6 +785,13 @@ class SepaGateway extends QueryableGateway
                 return 'COALESCE(gibbonSepaCoursesFees.fees, 0) * ' . $this->getEnrollmentFeesSQLstatments('enrollmentMonths');
             case 'totalFees':
                 return 'SUM(' . $this->getEnrollmentFeesSQLstatments('enrollmentFees') . ')';
+            case 'periodMonths':
+                // Billable months that fall inside [:periodStart, :periodEnd] (both are first-of-month dates).
+                $start = $this->getEnrollmentFeesSQLstatments('startDate');
+                $endMonthStart = 'DATE_FORMAT(' . $effectiveEnd . ', \'%Y-%m-01\')';
+                return 'GREATEST(0, TIMESTAMPDIFF(MONTH, GREATEST(' . $start . ', CAST(:periodStart AS DATE)), LEAST(' . $endMonthStart . ', CAST(:periodEnd AS DATE))) + 1)';
+            case 'periodFees':
+                return 'SUM(COALESCE(gibbonSepaCoursesFees.fees, 0) * ' . $this->getEnrollmentFeesSQLstatments('periodMonths') . ')';
         }
     }
 
@@ -844,13 +923,7 @@ class SepaGateway extends QueryableGateway
         $query = $this
             ->newUpdate()
             ->table('gibbonSEPA')
-            ->cols([
-                'payer' => trim($sepaData['payer']),
-                'IBAN' => $this->maskIBAN($sepaData['IBAN'] ?? null),
-                'BIC' => $this->maskBIC($sepaData['BIC'] ?? null),
-                'SEPA_signedDate' => $sepaData['SEPA_signedDate'],
-                'note' => trim($sepaData['note'])
-            ])
+            ->cols($this->getSEPAColumns($sepaData))
             ->where('gibbonFamilyID = :gibbonFamilyID')
             ->bindValue('gibbonFamilyID', $gibbonFamilyID);
 
@@ -862,13 +935,7 @@ public function updateSEPABySEPAID($SEPAID, $sepaData)
         $query = $this
             ->newUpdate()
             ->table('gibbonSEPA')
-            ->cols([
-                'payer' => trim($sepaData['payer']),
-                'IBAN' => $this->maskIBAN($sepaData['IBAN'] ?? null),
-                'BIC' => $this->maskBIC($sepaData['BIC'] ?? null),
-                'SEPA_signedDate' => $sepaData['SEPA_signedDate'],
-                'note' => trim($sepaData['note'])
-            ])
+            ->cols($this->getSEPAColumns($sepaData))
             ->where('gibbonSEPAID = :SEPAID')
             ->bindValue('SEPAID', $SEPAID);
 

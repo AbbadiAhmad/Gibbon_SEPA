@@ -83,7 +83,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php"
 
     $row = $form->addRow();
     $row->addLabel('IBAN', __('IBAN'));
-    $row->addTextField('IBAN')->maxLength(34);
+    $row->addTextField('IBAN')->maxLength(50);
 
     $row = $form->addRow();
     $row->addLabel('transaction_reference', __('Transaction Reference'));

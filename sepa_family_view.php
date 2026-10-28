@@ -23,6 +23,7 @@ use Gibbon\Tables\DataTable;
 //use Gibbon\Domain\DataSet;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
+use Gibbon\Module\Sepa\Security\IbanCipher;
 use Gibbon\Data\Validator;
 
 
@@ -44,7 +45,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
     $CustomFieldsGateway = $container->get(CustomFieldsGateway::class);
     
     $criteria = $SepaGateway->newQueryCriteria(true)
-        ->searchBy(['payer','IBAN', 'customData'], $search)
+        ->searchBy(['payer', 'customData'], $search)
         ->sortBy(['SEPA_signedDate'])
         ->fromPOST();
 
@@ -58,7 +59,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
 
     $row = $form->addRow();
         $row->addLabel('search', __('Search For'))
-            ->description(__('Payer, IBAN'));
+            ->description(__('Payer, custom fields'));
         $row->addTextField('search')->setValue($criteria->getSearchText());
 
     $form->addRow()->addSearchSubmit('', __('Clear Search'));
@@ -82,8 +83,11 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
             function ($row) use ($CustomFieldsGateway) {
                 $customFields = $CustomFieldsGateway->getCustomFields();
                 $output_text = '';
-                $output_text .= "<p>SEPA IBAN: " . htmlspecialchars($row['IBAN'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+                $cadences = SepaGateway::getWithdrawCadenceOptions();
+                $output_text .= "<p>SEPA IBAN: " . htmlspecialchars(IbanCipher::format(IbanCipher::decryptForDisplay($row['IBAN'] ?? '')), ENT_QUOTES, 'UTF-8') . "</p>";
                 $output_text .= "<p>SEPA BIC: " . htmlspecialchars($row['BIC'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+                $output_text .= "<p>" . __('Withdrawal cadence') . ": " . htmlspecialchars($cadences[$row['withdrawCadence']] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+                $output_text .= "<p>" . __('Preferred withdrawal day') . ": " . htmlspecialchars($row['withdrawDay'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
                 $output_text .= "<p>Note: " . htmlspecialchars($row['note'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
 
                 $jsonData = [];
@@ -132,6 +136,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
                 }
             });
             return Format::nameList($row['children'], 'Student');
+        });
+
+    $table->addColumn('withdrawCadence', __('Withdrawal'))
+        ->format(function ($row) {
+            $cadences = SepaGateway::getWithdrawCadenceOptions();
+            $text = $cadences[$row['withdrawCadence']] ?? '';
+            return $row['withdrawDay'] ? $text . ' (' . __('day') . ' ' . (int) $row['withdrawDay'] . ')' : $text;
         });
 
     $table->addColumn('SEPA_signedDate', __('Date'));

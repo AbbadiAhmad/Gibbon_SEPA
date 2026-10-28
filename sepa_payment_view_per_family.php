@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 // use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Module\Sepa\Security\IbanCipher;
 use Gibbon\Module\Sepa\Domain\SepaPaymentAdjustmentGateway;
 use Gibbon\Data\Validator;
 
@@ -135,7 +136,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_pe
         $table2->addColumn('booking_date', __('Booking Date'));
         $table2->addColumn('payer', __('Payer'));
         $table2->addColumn('transaction_message', __('Transaction Message'));
-        $table2->addColumn('IBAN', __('IBAN'));
+        $table2->addColumn('IBAN', __('IBAN'))->format(function ($row) {
+            return htmlspecialchars(IbanCipher::format(IbanCipher::decryptForDisplay($row['IBAN'])), ENT_QUOTES, 'UTF-8');
+        });
         $table2->addColumn('transaction_reference', __('Transaction Reference'));
         $table2->addColumn('note', __('Note'));
 

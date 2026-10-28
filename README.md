@@ -34,6 +34,20 @@ It allows importing payment data, applying adjustments, calculating fees based o
 
 ---
 
+## IBAN encryption
+
+IBANs (SEPA records and payment entries) are stored encrypted (AES-256-GCM) and shown in clear text to users with access. The key is **not** stored in the database:
+
+1. Generate a key: `php -r 'echo base64_encode(random_bytes(32)), PHP_EOL;'`
+2. Copy `.env.example` to `.env` in the module folder (or the Gibbon root folder) and set `SEPA_IBAN_ENCRYPTION_KEY=<key>`. Alternatively set it as a real environment variable of the web server / PHP-FPM, which is the safest option. `.env` is git-ignored and the module ships an `.htaccess` that denies web access to it (for nginx, add a rule denying `.env`).
+3. Back the key up separately from the database backups. Without it the stored IBANs can not be decrypted.
+
+Values written before the encryption was introduced (plain or masked `DE****000` values) are shown as they are and are encrypted the next time the record is saved. Because of the encryption the IBAN can no longer be searched or sorted in the lists.
+
+## Import from registration forms
+
+*Import Family SEPA > Import from registration forms* reads the SEPA data from the registration (admissions) forms of an academic year: choose the forms, map the (configurable) form fields to the SEPA fields, review and edit every row, then import the selected rows. The signature date defaults to the creation date of the form and the note records the form ID. Missing cadence defaults to monthly and the missing withdrawal day to the 5th.
+
 ## Installation
 
 1. Download or clone this module into your Gibbon modules directory.

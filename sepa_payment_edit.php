@@ -8,6 +8,7 @@ Copyright © 2010, Gibbon Foundation
 use Gibbon\Forms\Form;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Module\Sepa\Security\IbanCipher;
 use Gibbon\Data\Validator;
 
 require_once __DIR__ . '/moduleFunctions.php';
@@ -99,7 +100,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
 
     $row = $form->addRow();
     $row->addLabel('IBAN', __('IBAN'));
-    $row->addTextField('IBAN')->maxLength(34)->setValue($payment['IBAN']);
+    $row->addTextField('IBAN')->maxLength(50)->setValue(IbanCipher::format(IbanCipher::decrypt($payment['IBAN'])));
 
     $row = $form->addRow();
     $row->addLabel('transaction_reference', __('Transaction Reference'));

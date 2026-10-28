@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Module\Sepa\Security\IbanCipher;
 use Gibbon\Data\Validator;
 
 
@@ -54,6 +55,10 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
       $IBAN = preg_replace('/[^A-Za-z0-9]/', '', $_GET['IBAN']);
    }
 
+   if (!IbanCipher::hasKey()) {
+      $page->addError(__('The IBAN encryption key is not configured, the IBAN can not be saved. See README.md.'));
+   }
+
    $form = Form::create('addSEPA', $session->get('absoluteURL') . '/modules/' . $session->get('module') . '/sepa_family_addProcess.php');
    $form->addHiddenValue('address', $session->get('address'));
 
@@ -70,14 +75,22 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
 
    $row = $form->addRow();
    $row->addLabel('SEPAIBAN', __('SEPA IBAN'))->description(__('IBAN of the bank account, The money will be withdrawn from this account.'));
-   $textField = $row->addTextField('IBAN')->maxLength(22);
+   $textField = $row->addTextField('IBAN')->maxLength(40);
    if($IBAN){
       $textField->setValue($IBAN);
    }
 
    $row = $form->addRow();
-   $row->addLabel('SEPABIC', __('BIC'))->description(__('IBAN of the bank account.'));
+   $row->addLabel('SEPABIC', __('BIC'))->description(__('BIC of the bank.'));
    $row->addTextField('BIC')->maxLength(11);
+
+   $row = $form->addRow();
+   $row->addLabel('withdrawCadence', __('Withdrawal cadence'))->description(__('How often the money is withdrawn.'));
+   $row->addSelect('withdrawCadence')->fromArray(SepaGateway::getWithdrawCadenceOptions())->required()->selected('Monthly');
+
+   $row = $form->addRow();
+   $row->addLabel('withdrawDay', __('Preferred withdrawal day'))->description(__('Preferred day of the month for the withdrawal.'));
+   $row->addSelect('withdrawDay')->fromArray(SepaGateway::getWithdrawDayOptions())->selected(SepaGateway::DEFAULT_WITHDRAW_DAY);
 
 
    $FamiliesName = "SELECT gibbonFamily.gibbonFamilyID as value, name FROM gibbonFamily LEFT JOIN gibbonSEPA ON gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID WHERE gibbonSEPA.gibbonFamilyID is NULL order by name";

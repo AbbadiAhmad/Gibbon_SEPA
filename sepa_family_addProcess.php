@@ -23,6 +23,7 @@ include '../../gibbon.php';
 include './moduleFunctions.php';
 use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Module\Sepa\Security\IbanCipher;
 
 
 $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -36,8 +37,11 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_add.php'
 } else {
     // Proceed!
     $payer = htmlspecialchars($_POST['payer'] ?? '', ENT_QUOTES, 'UTF-8');
-    $IBAN = htmlspecialchars($_POST['IBAN'] ?? '', ENT_QUOTES, 'UTF-8');
-    $BIC = htmlspecialchars($_POST['BIC'] ?? '', ENT_QUOTES, 'UTF-8');
+    $IBAN = IbanCipher::normalize($_POST['IBAN'] ?? '');
+    $BIC = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $_POST['BIC'] ?? ''));
+    $withdrawCadence = in_array($_POST['withdrawCadence'] ?? '', SepaGateway::WITHDRAW_CADENCES, true) ? $_POST['withdrawCadence'] : 'Monthly';
+    $withdrawDay = (int) ($_POST['withdrawDay'] ?? 0);
+    $withdrawDay = ($withdrawDay >= 1 && $withdrawDay <= 31) ? $withdrawDay : SepaGateway::DEFAULT_WITHDRAW_DAY;
     $gibbonFamilyID = htmlspecialchars($_POST['gibbonFamilyID'] ?? '', ENT_QUOTES, 'UTF-8');
     $note = htmlspecialchars($_POST['note'] ?? '', ENT_QUOTES, 'UTF-8');
     $SEPA_signedDate = !empty($_POST['SEPA_signedDate']) ? Format::dateConvert($_POST['SEPA_signedDate']) : null;
@@ -62,16 +66,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_add.php'
         exit;
     } else {
         try {
-            // Mask IBAN and BIC before storage
+            // The IBAN is encrypted before storage
             $sepaGateway = $container->get(SepaGateway::class);
-            $maskedIBAN = $sepaGateway->maskIBAN($IBAN);
-            $maskedBIC = $sepaGateway->maskBIC($BIC);
+                $encryptedIBAN = $sepaGateway->encryptIBAN($IBAN);
 
-            $data = array('gibbonFamilyID' => $gibbonFamilyID, 'payer' => $payer, 'IBAN' => $maskedIBAN, 'BIC' => $maskedBIC, 'SEPA_signedDate' => $SEPA_signedDate, 'note' => $note, 'customData' => $customData);
-            $sql = "INSERT INTO gibbonSEPA SET gibbonFamilyID=:gibbonFamilyID, payer=:payer, IBAN=:IBAN, BIC=:BIC, SEPA_signedDate=:SEPA_signedDate, note=:note, customData=:customData";
+            $data = array('gibbonFamilyID' => $gibbonFamilyID, 'payer' => $payer, 'IBAN' => $encryptedIBAN, 'BIC' => $BIC ?: null, 'withdrawCadence' => $withdrawCadence, 'withdrawDay' => $withdrawDay, 'SEPA_signedDate' => $SEPA_signedDate, 'note' => $note, 'customData' => $customData);
+            $sql = "INSERT INTO gibbonSEPA SET gibbonFamilyID=:gibbonFamilyID, payer=:payer, IBAN=:IBAN, BIC=:BIC, withdrawCadence=:withdrawCadence, withdrawDay=:withdrawDay, SEPA_signedDate=:SEPA_signedDate, note=:note, customData=:customData";
             $result = $connection2->prepare($sql);
             $result->execute($data);
-        } catch (PDOException $e) {
+        } catch (PDOException | \RuntimeException $e) {
             $URL .= '&return=error2';
             header("Location: {$URL}");
             exit();
