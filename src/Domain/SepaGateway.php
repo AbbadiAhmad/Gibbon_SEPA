@@ -777,8 +777,9 @@ class SepaGateway extends QueryableGateway
     public function getFamiliesWithEnrolledChildren($schoolYearID)
     {
         $query = $this->getEnrollmentFeesBaseQuery($schoolYearID)
-            ->cols(['DISTINCT gibbonFamilyChild.gibbonFamilyID', 'gibbonFamily.name as familyName'])
+            ->cols(['gibbonFamilyChild.gibbonFamilyID', 'gibbonFamily.name as familyName'])
             ->innerJoin('gibbonFamily', 'gibbonFamily.gibbonFamilyID = gibbonFamilyChild.gibbonFamilyID')
+            ->groupBy(['gibbonFamilyChild.gibbonFamilyID', 'gibbonFamily.name'])
             ->orderBy(['gibbonFamily.name']);
 
         return $this->runSelect($query)->fetchAll(\PDO::FETCH_KEY_PAIR);
