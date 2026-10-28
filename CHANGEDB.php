@@ -115,3 +115,8 @@ INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbon
 $count++;
 $sql[$count][0] = "2.3.3";
 $sql[$count][1] = "UPDATE gibbonAction SET category='SEPA' WHERE name='Check SEPA Data' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.3.4 - SEPA check export
+$count++;
+$sql[$count][0] = "2.3.4";
+$sql[$count][1] = "UPDATE gibbonAction SET URLList='sepa_check.php, sepa_check_export.php' WHERE name='Check SEPA Data' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";

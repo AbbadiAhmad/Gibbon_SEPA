@@ -19,7 +19,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
-use Gibbon\Module\Sepa\Security\IbanCipher;
 use Gibbon\Data\Validator;
 
 // Module includes
@@ -33,127 +32,31 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $SepaGateway = $container->get(SepaGateway::class);
     $schoolYearID = !empty($_GET['schoolYearID']) ? $_GET['schoolYearID'] : $_SESSION[$guid]['gibbonSchoolYearID'];
+    $balanceFilter = ($_GET['balanceFilter'] ?? 'nonzero') === 'all' ? 'all' : 'nonzero';
 
     $form = Form::create('checkFilter', $session->get('absoluteURL') . '/index.php', 'get');
     $form->setClass('noIntBorder fullWidth');
     $form->addHiddenValue('q', '/modules/Sepa/sepa_check.php');
+
     $row = $form->addRow();
     $row->addLabel('schoolYearID', __('Academic Year'))->description(__('Families with enrolled students in this year must have a SEPA.'));
     $row->addSelect('schoolYearID')->fromArray($SepaGateway->getAllSchoolYears())->selected($schoolYearID);
+
+    $row = $form->addRow();
+    $row->addLabel('balanceFilter', __('Check'))->description(__('The balance is the balance of the selected academic year.'));
+    $row->addSelect('balanceFilter')
+        ->fromArray(['nonzero' => __('Only SEPAs with a balance not zero'), 'all' => __('All SEPAs')])
+        ->selected($balanceFilter);
+
     $row = $form->addRow();
     $row->addSubmit(__('Check'));
     echo $form->getOutput();
 
-    $sepas = $SepaGateway->getAllSEPAWithFamily();
-    $enrolledFamilies = $SepaGateway->getFamiliesWithEnrolledChildren($schoolYearID);
+    $issues = $SepaGateway->getSEPAIssues($schoolYearID, $balanceFilter === 'nonzero');
 
-    $sepasByFamily = [];
-    foreach ($sepas as $sepa) {
-        $sepasByFamily[$sepa['gibbonFamilyID']][] = $sepa;
-    }
-    $adultsByFamily = $SepaGateway->selectAdultsByFamily(array_unique(array_column($sepas, 'gibbonFamilyID')))->fetchGrouped();
-
-    // Clear IBANs of all records, to find IBANs used by several records
-    $ibans = [];
-    $ibanUsers = [];
-    foreach ($sepas as $sepa) {
-        $iban = IbanCipher::decrypt($sepa['IBAN'] ?? '');
-        $ibans[$sepa['gibbonSEPAID']] = $iban;
-        if (!empty($iban) && IbanCipher::isValid($iban)) {
-            $ibanUsers[IbanCipher::normalize($iban)][] = $sepa['familyName'];
-        }
-    }
-
-    $issues = [];
-    $add = function ($severity, $familyName, $payer, $problem, $link) use (&$issues) {
-        $issues[] = ['severity' => $severity, 'familyName' => $familyName, 'payer' => $payer, 'problem' => $problem, 'link' => $link];
-    };
-    $editLink = function ($sepa) {
-        return ['edit', '/modules/Sepa/sepa_family_edit.php', ['gibbonSEPAID' => $sepa['gibbonSEPAID']]];
-    };
-
-    // Enrolled families without SEPA
-    foreach ($enrolledFamilies as $familyID => $familyName) {
-        if (empty($sepasByFamily[$familyID])) {
-            $add('Error', $familyName, '', __('No SEPA for a family with enrolled students'), ['add', '/modules/Sepa/sepa_family_add.php', ['gibbonFamilyID' => $familyID]]);
-        }
-    }
-
-    foreach ($sepasByFamily as $familyID => $familySepas) {
-        if (count($familySepas) > 1) {
-            $add('Error', $familySepas[0]['familyName'], '', sprintf(__('%d SEPA records for one family'), count($familySepas)), $editLink($familySepas[0]));
-        }
-    }
-
-    foreach ($sepas as $sepa) {
-        $familyName = $sepa['familyName'] ?? '';
-        $payer = trim($sepa['payer'] ?? '');
-        $link = $editLink($sepa);
-        $stored = $sepa['IBAN'] ?? '';
-        $iban = $ibans[$sepa['gibbonSEPAID']];
-
-        // IBAN
-        if ($iban === null) {
-            $add('Error', $familyName, $payer, __('The IBAN can not be decrypted (wrong key or damaged data)'), $link);
-        } elseif ($iban === '') {
-            $add('Error', $familyName, $payer, __('IBAN is missing'), $link);
-        } elseif (strpos($iban, '*') !== false) {
-            $add('Error', $familyName, $payer, __('Only a masked IBAN is stored, the full IBAN has to be entered again'), $link);
-        } else {
-            $clean = IbanCipher::normalize($iban);
-            if (strlen($clean) <= 4) {
-                $add('Error', $familyName, $payer, __('IBAN is incomplete (only the country code or a few characters)'), $link);
-            } elseif (!IbanCipher::isValid($clean)) {
-                $add('Error', $familyName, $payer, __('IBAN is not valid (format or checksum)'), $link);
-            } else {
-                $others = array_diff_key(array_count_values($ibanUsers[$clean] ?? []), [$familyName => 1]);
-                if (!empty($others)) {
-                    $add('Error', $familyName, $payer, sprintf(__('The same IBAN is used by: %s'), implode(', ', array_keys($others))), $link);
-                }
-                if (!IbanCipher::isEncrypted($stored)) {
-                    $add('Warning', $familyName, $payer, __('The IBAN is not encrypted yet (it is encrypted when the record is saved)'), $link);
-                }
-            }
-        }
-
-        // Account holder
-        if ($payer === '') {
-            $add('Error', $familyName, $payer, __('Account holder is missing'), $link);
-        } else {
-            if (preg_match('/\d/', $payer) || mb_strlen($payer) < 4 || strpos($payer, ' ') === false) {
-                $add('Warning', $familyName, $payer, __('The account holder looks incomplete or wrong (needs first and last name, no digits)'), $link);
-            }
-            $adults = $adultsByFamily[$sepa['gibbonFamilyID']] ?? [];
-            $matches = empty($adults);
-            foreach ($adults as $adult) {
-                if ($adult['surname'] !== '' && mb_strpos(mb_strtolower($payer), mb_strtolower($adult['surname'])) !== false) {
-                    $matches = true;
-                    break;
-                }
-            }
-            if (!$matches) {
-                $add('Warning', $familyName, $payer, __('The account holder does not match the surname of any parent'), $link);
-            }
-        }
-
-        // Mandate and withdrawal data
-        if (empty($sepa['SEPA_signedDate'])) {
-            $add('Warning', $familyName, $payer, __('Date of SEPA signature is missing'), $link);
-        }
-        if (empty($sepa['withdrawDay'])) {
-            $add('Warning', $familyName, $payer, __('Preferred withdrawal day is missing'), $link);
-        }
-        if (!isset($enrolledFamilies[$sepa['gibbonFamilyID']])) {
-            $add('Warning', $familyName, $payer, __('The family has no enrolled students in the selected academic year'), $link);
-        }
-    }
-
-    // Errors first
-    usort($issues, function ($a, $b) {
-        return [$a['severity'] !== 'Error', $a['familyName']] <=> [$b['severity'] !== 'Error', $b['familyName']];
-    });
-
-    $errors = count(array_filter($issues, function ($i) { return $i['severity'] === 'Error'; }));
+    $errors = count(array_filter($issues, function ($i) {
+        return $i['severity'] === 'Error';
+    }));
     echo '<h2>' . __('Check SEPA Data') . '</h2>';
     if (empty($issues)) {
         echo "<div class='success'>" . __('No problems found.') . '</div>';
@@ -161,6 +64,12 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
         echo "<div class='" . ($errors ? 'error' : 'warning') . "'>" . sprintf(__('%1$d errors and %2$d warnings found.'), $errors, count($issues) - $errors) . '</div>';
 
         $table = DataTable::create('sepaCheck');
+        $table->addHeaderAction('export', __('Export to Excel'))
+            ->setURL('/modules/Sepa/sepa_check_export.php')
+            ->addParam('schoolYearID', $schoolYearID)
+            ->addParam('balanceFilter', $balanceFilter)
+            ->directLink()
+            ->displayLabel();
         $table->addColumn('severity', __('Type'))->format(function ($row) {
             return $row['severity'] === 'Error'
                 ? '<span style="color: red; font-weight: bold;">' . __('Error') . '</span>'
@@ -168,6 +77,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
         });
         $table->addColumn('familyName', __('Family'));
         $table->addColumn('payer', __('Payer'));
+        $table->addColumn('balance', __('Balance'))->format(function ($row) {
+            return number_format($row['balance'], 2);
+        });
         $table->addColumn('problem', __('Problem'));
         $table->addActionColumn()->format(function ($row, $actions) {
             $action = $actions->addAction($row['link'][0], $row['link'][0] === 'add' ? __('Add SEPA') : __('Edit'))

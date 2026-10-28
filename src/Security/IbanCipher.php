@@ -105,6 +105,22 @@ class IbanCipher
     }
 
     /**
+     * Half hidden IBAN for lists / exports: first four and last four characters, the rest hidden.
+     */
+    public static function maskForDisplay($iban)
+    {
+        $iban = self::normalize($iban);
+        $length = strlen($iban);
+        if ($length === 0) {
+            return '';
+        }
+        if ($length <= 8) {
+            return substr($iban, 0, 2) . str_repeat('*', $length - 2);
+        }
+        return substr($iban, 0, 4) . str_repeat('*', $length - 8) . substr($iban, -4);
+    }
+
+    /**
      * Validates length, characters and the ISO 13616 mod-97 checksum.
      */
     public static function isValid($iban)

@@ -785,6 +785,151 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query)->fetchAll(\PDO::FETCH_KEY_PAIR);
     }
 
+    /**
+     * Problems of the SEPA data, for the SEPA check page and its Excel export.
+     *
+     * @param int  $schoolYearID  families with enrolled students in this year must have a SEPA
+     * @param bool $onlyNonZero   only families whose balance of the year is not zero
+     * @return array list of ['severity', 'problem', 'familyID', 'familyName', 'payer', 'sepa', 'balance', 'link']
+     */
+    public function getSEPAIssues($schoolYearID, $onlyNonZero = true)
+    {
+        $sepas = $this->getAllSEPAWithFamily();
+        $enrolledFamilies = $this->getFamiliesWithEnrolledChildren($schoolYearID);
+
+        $balances = [];
+        foreach ($this->getFamilyTotals($schoolYearID, $this->newQueryCriteria(false)) as $total) {
+            $balances[$total['gibbonFamilyID']] = (float) $total['balance'];
+        }
+        $isIncluded = function ($familyID) use ($onlyNonZero, $balances) {
+            return !$onlyNonZero || abs($balances[$familyID] ?? 0) >= 0.005;
+        };
+
+        $sepasByFamily = [];
+        foreach ($sepas as $sepa) {
+            $sepasByFamily[$sepa['gibbonFamilyID']][] = $sepa;
+        }
+        $adultsByFamily = $this->selectAdultsByFamily(array_unique(array_column($sepas, 'gibbonFamilyID')))->fetchGrouped();
+
+        // Clear IBANs of all records, to find IBANs used by several families
+        $ibans = [];
+        $ibanUsers = [];
+        foreach ($sepas as $sepa) {
+            $iban = IbanCipher::decrypt($sepa['IBAN'] ?? '');
+            $ibans[$sepa['gibbonSEPAID']] = $iban;
+            if (!empty($iban) && IbanCipher::isValid($iban)) {
+                $ibanUsers[IbanCipher::normalize($iban)][] = $sepa['familyName'];
+            }
+        }
+
+        $issues = [];
+        $add = function ($severity, $problem, $familyID, $familyName, $sepa, $link) use (&$issues, $balances) {
+            $issues[] = [
+                'severity' => $severity,
+                'problem' => $problem,
+                'familyID' => $familyID,
+                'familyName' => $familyName,
+                'payer' => trim($sepa['payer'] ?? ''),
+                'sepa' => $sepa,
+                'balance' => $balances[$familyID] ?? 0,
+                'link' => $link,
+            ];
+        };
+        $editLink = function ($sepa) {
+            return ['edit', '/modules/Sepa/sepa_family_edit.php', ['gibbonSEPAID' => $sepa['gibbonSEPAID']]];
+        };
+
+        // Enrolled families without SEPA
+        foreach ($enrolledFamilies as $familyID => $familyName) {
+            if (empty($sepasByFamily[$familyID]) && $isIncluded($familyID)) {
+                $add('Error', __('No SEPA for a family with enrolled students'), $familyID, $familyName, null, ['add', '/modules/Sepa/sepa_family_add.php', ['gibbonFamilyID' => $familyID]]);
+            }
+        }
+
+        foreach ($sepasByFamily as $familyID => $familySepas) {
+            if (count($familySepas) > 1 && $isIncluded($familyID)) {
+                $add('Error', sprintf(__('%d SEPA records for one family'), count($familySepas)), $familyID, $familySepas[0]['familyName'], $familySepas[0], $editLink($familySepas[0]));
+            }
+        }
+
+        foreach ($sepas as $sepa) {
+            $familyID = $sepa['gibbonFamilyID'];
+            if (!$isIncluded($familyID)) {
+                continue;
+            }
+            $familyName = $sepa['familyName'] ?? '';
+            $payer = trim($sepa['payer'] ?? '');
+            $link = $editLink($sepa);
+            $stored = $sepa['IBAN'] ?? '';
+            $iban = $ibans[$sepa['gibbonSEPAID']];
+            $report = function ($severity, $problem) use ($add, $familyID, $familyName, $sepa, $link) {
+                $add($severity, $problem, $familyID, $familyName, $sepa, $link);
+            };
+
+            // IBAN
+            if ($iban === null) {
+                $report('Error', __('The IBAN can not be decrypted (wrong key or damaged data)'));
+            } elseif ($iban === '') {
+                $report('Error', __('IBAN is missing'));
+            } elseif (strpos($iban, '*') !== false) {
+                $report('Error', __('Only a masked IBAN is stored, the full IBAN has to be entered again'));
+            } else {
+                $clean = IbanCipher::normalize($iban);
+                if (strlen($clean) <= 4) {
+                    $report('Error', __('IBAN is incomplete (only the country code or a few characters)'));
+                } elseif (!IbanCipher::isValid($clean)) {
+                    $report('Error', __('IBAN is not valid (format or checksum)'));
+                } else {
+                    $others = array_diff_key(array_count_values($ibanUsers[$clean] ?? []), [$familyName => 1]);
+                    if (!empty($others)) {
+                        $report('Error', sprintf(__('The same IBAN is used by: %s'), implode(', ', array_keys($others))));
+                    }
+                    if (!IbanCipher::isEncrypted($stored)) {
+                        $report('Warning', __('The IBAN is not encrypted yet (it is encrypted when the record is saved)'));
+                    }
+                }
+            }
+
+            // Account holder
+            if ($payer === '') {
+                $report('Error', __('Account holder is missing'));
+            } else {
+                if (preg_match('/\d/', $payer) || mb_strlen($payer) < 4 || strpos($payer, ' ') === false) {
+                    $report('Warning', __('The account holder looks incomplete or wrong (needs first and last name, no digits)'));
+                }
+                $adults = $adultsByFamily[$familyID] ?? [];
+                $matches = empty($adults);
+                foreach ($adults as $adult) {
+                    if ($adult['surname'] !== '' && mb_strpos(mb_strtolower($payer), mb_strtolower($adult['surname'])) !== false) {
+                        $matches = true;
+                        break;
+                    }
+                }
+                if (!$matches) {
+                    $report('Warning', __('The account holder does not match the surname of any parent'));
+                }
+            }
+
+            // Mandate and withdrawal data
+            if (empty($sepa['SEPA_signedDate'])) {
+                $report('Warning', __('Date of SEPA signature is missing'));
+            }
+            if (empty($sepa['withdrawDay'])) {
+                $report('Warning', __('Preferred withdrawal day is missing'));
+            }
+            if (!isset($enrolledFamilies[$familyID])) {
+                $report('Warning', __('The family has no enrolled students in the selected academic year'));
+            }
+        }
+
+        // Errors first, then by family
+        usort($issues, function ($a, $b) {
+            return [$a['severity'] !== 'Error', $a['familyName']] <=> [$b['severity'] !== 'Error', $b['familyName']];
+        });
+
+        return $issues;
+    }
+
     public function getFamilyInfo($gibbonFamilyID)
     {
         $query = $this
