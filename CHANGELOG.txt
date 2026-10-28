@@ -25,3 +25,4 @@ Add Export to Excel of the family balance (with the due-in-period column on the 
 Family Due: calculate the withdraw amount (amount due in the period, capped at the open balance) and export it with IBAN, BIC, mandate date and cadence; add a withdrawals-only export.
 v2.3.1: the import from registration forms is its own action in the Entry menu.
 v2.3.2: Check SEPA Data page; the withdrawal export also lists families without SEPA / IBAN with a Check column.
+v2.4.0: View SEPA - my family: families see their SEPA data (half hidden IBAN) and its problems; payment lists show the IBAN half hidden to families.

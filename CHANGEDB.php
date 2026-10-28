@@ -120,3 +120,9 @@ $sql[$count][1] = "UPDATE gibbonAction SET category='SEPA' WHERE name='Check SEP
 $count++;
 $sql[$count][0] = "2.3.4";
 $sql[$count][1] = "UPDATE gibbonAction SET URLList='sepa_check.php, sepa_check_export.php' WHERE name='Check SEPA Data' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.4.0 - families can see their own SEPA data (same permissions as "View Payments - my family")
+$count++;
+$sql[$count][0] = "2.4.0";
+$sql[$count][1] = "INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'View SEPA - my family', 5, 'SEPA', 'Show the SEPA data of the own family (read only)', 'sepa_family_my_sepa.php', 'sepa_family_my_sepa.php', entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther FROM gibbonAction WHERE name='View Payments - my family' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');end
+INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT p.gibbonRoleID, n.gibbonActionID FROM gibbonPermission AS p JOIN gibbonAction AS o ON o.gibbonActionID=p.gibbonActionID JOIN gibbonAction AS n ON n.name='View SEPA - my family' AND n.gibbonModuleID=o.gibbonModuleID WHERE o.name='View Payments - my family' AND o.gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
