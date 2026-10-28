@@ -372,12 +372,20 @@ if ($step == 3) {
         'no_family' => [__('No family'), 'red'],
     ];
 
-    $html = "<table class='fullWidth standardForm' cellspacing='0' id='formImportTable'><thead><tr>"
-        . "<th style='width:3%; text-align:center;'><input type='checkbox' id='selectAll' title='" . $e(__('Select All')) . "' /></th>"
-        . '<th>' . __('Status') . '</th><th>' . __('Form') . '</th><th>' . __('Family') . '</th>'
-        . '<th>' . __('Account holder') . '</th><th>' . __('IBAN') . '</th><th>' . __('BIC') . '</th>'
-        . '<th>' . __('Cadence') . '</th><th>' . __('Day') . '</th><th>' . __('Signed') . '</th><th>' . __('Note') . '</th>'
-        . '</tr></thead><tbody>';
+    // One card per registration form: wide inputs instead of a cramped table
+    $html = "<style>
+        .formImportCard { border: 1px solid #ccc; border-radius: 4px; padding: 10px 12px; margin-bottom: 12px; background: #fff; }
+        .formImportCard.skipped { background: #fafafa; }
+        .formImportHead { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 8px; }
+        .formImportHead label { font-weight: bold; }
+        .formImportFields { display: flex; flex-wrap: wrap; gap: 10px 14px; }
+        .formImportFields > div { flex: 1 1 200px; min-width: 200px; }
+        .formImportFields > div.wide { flex: 2 1 320px; }
+        .formImportFields label { display: block; font-size: 12px; color: #555; margin-bottom: 2px; }
+        .formImportFields input[type=text], .formImportFields input[type=date], .formImportFields select, .formImportFields textarea { width: 100%; box-sizing: border-box; }
+        .formImportCurrent { margin-top: 8px; padding: 6px 8px; background: #f2f2f2; font-style: italic; font-size: 12px; }
+    </style>";
+    $html .= "<p><label><input type='checkbox' id='selectAll' /> <strong>" . $e(__('Select All')) . "</strong></label></p>";
 
     $count = ['new' => 0, 'existing' => 0, 'duplicate' => 0, 'no_family' => 0];
     foreach ($rows as $index => $item) {
@@ -385,59 +393,59 @@ if ($step == 3) {
         $state = $item['state'];
         $count[$state]++;
         $selectable = $state !== 'no_family';
+        // Ready to import: a new SEPA with an account holder and a valid IBAN
         $checked = $state === 'new' && $record['payer'] !== '' && IbanCipher::isValid($record['IBAN']);
         $childName = trim($e($item['application']['formData']['preferredName'] ?? '') . ' ' . $e($item['application']['formData']['surname'] ?? ''));
 
-        $html .= '<tr>';
-        $html .= "<td style='text-align:center;'>" . ($selectable
-            ? "<input type='checkbox' name='import[]' value='{$index}'" . ($checked ? ' checked' : '') . ' />'
-            : '-') . '</td>';
-        $html .= "<td style='color:{$statusLabels[$state][1]}; font-weight:bold;'>" . $e($statusLabels[$state][0]) . '</td>';
-        $html .= '<td>#' . $e($item['application']['gibbonAdmissionsApplicationID']) . '<br/><small>' . $childName . '</small></td>';
-        $html .= '<td>' . $e($item['application']['familyName'] ?? '') . '</td>';
+        $html .= "<div class='formImportCard" . ($selectable ? '' : ' skipped') . "'><div class='formImportHead'>";
+        $html .= $selectable
+            ? "<label><input type='checkbox' name='import[]' value='{$index}'" . ($checked ? ' checked' : '') . ' /> ' . $e(__('Import')) . '</label>'
+            : '';
+        $html .= "<span style='color:{$statusLabels[$state][1]}; font-weight:bold;'>" . $e($statusLabels[$state][0]) . '</span>';
+        $html .= '<span>' . $e(__('Form')) . ' #' . $e($item['application']['gibbonAdmissionsApplicationID']) . ($childName !== '' ? ' - ' . $childName : '') . '</span>';
+        $html .= '<span>' . $e(__('Family')) . ': ' . $e($item['application']['familyName'] ?? '-') . '</span></div>';
 
         if ($selectable) {
-            $html .= "<td><input type='text' name='rows[{$index}][payer]' value='" . $e($record['payer']) . "' style='width:100%' /></td>";
-            $html .= "<td><input type='text' class='ibanInput' name='rows[{$index}][IBAN]' value='" . $e(IbanCipher::format($record['IBAN'])) . "' style='width:100%' /></td>";
-            $html .= "<td><input type='text' name='rows[{$index}][BIC]' value='" . $e($record['BIC']) . "' maxlength='11' style='width:100%' /></td>";
-            $html .= "<td><select name='rows[{$index}][withdrawCadence]'><option value=''></option>";
+            $html .= "<div class='formImportFields'>";
+            $html .= "<div class='wide'><label>" . $e(__('Account holder')) . "</label><input type='text' name='rows[{$index}][payer]' value='" . $e($record['payer']) . "' /></div>";
+            $html .= "<div class='wide'><label>" . $e(__('IBAN')) . "</label><input type='text' class='ibanInput' name='rows[{$index}][IBAN]' value='" . $e(IbanCipher::format($record['IBAN'])) . "' /></div>";
+            $html .= "<div><label>" . $e(__('BIC')) . "</label><input type='text' name='rows[{$index}][BIC]' value='" . $e($record['BIC']) . "' maxlength='11' /></div>";
+            $html .= "<div><label>" . $e(__('Withdrawal cadence')) . "</label><select name='rows[{$index}][withdrawCadence]'><option value=''></option>";
             foreach ($cadenceOptions as $value => $label) {
                 $html .= "<option value='{$value}'" . ($record['withdrawCadence'] === $value ? ' selected' : '') . '>' . $e($label) . '</option>';
             }
-            $html .= '</select></td>';
-            $html .= "<td><select name='rows[{$index}][withdrawDay]'><option value=''></option>";
+            $html .= '</select></div>';
+            $html .= "<div><label>" . $e(__('Preferred withdrawal day')) . "</label><select name='rows[{$index}][withdrawDay]'><option value=''></option>";
             foreach (SepaGateway::getWithdrawDayOptions() as $day) {
                 $html .= "<option value='{$day}'" . ((string) $record['withdrawDay'] === (string) $day ? ' selected' : '') . ">{$day}</option>";
             }
-            $html .= '</select></td>';
-            $html .= "<td><input type='date' name='rows[{$index}][SEPA_signedDate]' value='" . $e($record['SEPA_signedDate']) . "' /></td>";
-            $html .= "<td><textarea name='rows[{$index}][note]' rows='2' style='width:100%'>" . $e($record['note']) . '</textarea></td>';
-        } else {
-            $html .= '<td colspan="7">' . $e($record['payer']) . '</td>';
+            $html .= '</select></div>';
+            $html .= "<div><label>" . $e(__('Date of SEPA signature')) . "</label><input type='date' name='rows[{$index}][SEPA_signedDate]' value='" . $e($record['SEPA_signedDate']) . "' /></div>";
+            $html .= "<div class='wide'><label>" . $e(__('Note')) . "</label><textarea name='rows[{$index}][note]' rows='2'>" . $e($record['note']) . '</textarea></div>';
+            $html .= '</div>';
         }
-        $html .= '</tr>';
 
         if (!empty($item['messages'])) {
-            $html .= "<tr><td></td><td colspan='10' style='color:#c60;'><ul style='margin:0; padding-left:18px;'>";
+            $html .= "<ul style='color:#c60; margin:8px 0 0; padding-left:18px;'>";
             foreach ($item['messages'] as $message) {
                 $html .= '<li>' . $e($message) . '</li>';
             }
-            $html .= '</ul></td></tr>';
+            $html .= '</ul>';
         }
 
         if ($item['existing']) {
             $current = $item['existing'];
-            $html .= "<tr style='background-color:#f5f5f5; font-style:italic;'><td colspan='4' style='text-align:right;'>" . __('Current Data:') . '</td>'
-                . '<td>' . $e($current['payer']) . '</td>'
-                . '<td>' . $e(IbanCipher::format(IbanCipher::decryptForDisplay($current['IBAN']))) . '</td>'
-                . '<td>' . $e($current['BIC']) . '</td>'
-                . '<td>' . $e($cadenceOptions[$current['withdrawCadence']] ?? '') . '</td>'
-                . '<td>' . $e($current['withdrawDay']) . '</td>'
-                . '<td>' . $e($current['SEPA_signedDate']) . '</td>'
-                . '<td>' . $e($current['note']) . '</td></tr>';
+            $html .= "<div class='formImportCurrent'>" . $e(__('Current Data:')) . ' '
+                . $e($current['payer']) . ' | '
+                . $e(IbanCipher::format(IbanCipher::decryptForDisplay($current['IBAN']))) . ' | '
+                . $e($current['BIC']) . ' | '
+                . $e($cadenceOptions[$current['withdrawCadence']] ?? '') . ' | '
+                . $e($current['withdrawDay']) . ' | '
+                . $e($current['SEPA_signedDate']) . ' | '
+                . $e($current['note']) . '</div>';
         }
+        $html .= '</div>';
     }
-    $html .= '</tbody></table>';
 
     $html .= "<script>
     document.getElementById('selectAll').addEventListener('change', function () {
