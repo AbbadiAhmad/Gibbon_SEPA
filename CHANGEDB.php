@@ -97,3 +97,10 @@ UPDATE gibbonSEPA SET withdrawDay=5 WHERE withdrawDay IS NULL;end
 ALTER TABLE gibbonSEPAPaymentEntry MODIFY COLUMN `IBAN` VARCHAR(255) NULL COMMENT 'AES-256-GCM encrypted, see IbanCipher';end
 UPDATE gibbonAction SET URLList='sepa_family_totals.php, sepa_family_details.php, sepa_family_due.php, sepa_family_balance_export.php' WHERE name='Family Balance' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');end
 UPDATE gibbonAction SET URLList='import_sepa_data.php, import_sepa_from_form.php' WHERE name='Import Family SEPA' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.3.1 - the registration form import is a separate action in the Entry menu
+$count++;
+$sql[$count][0] = "2.3.1";
+$sql[$count][1] = "UPDATE gibbonAction SET URLList='import_sepa_data.php' WHERE name='Import Family SEPA' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');end
+INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'Import SEPA from Registration Form', 10, 'Entry', 'Import SEPA data from the accepted registration forms', 'import_sepa_from_form.php', 'import_sepa_from_form.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
+INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='Import SEPA from Registration Form' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";

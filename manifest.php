@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.3.0';            // Version number
+$version = '2.3.1';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -303,7 +303,7 @@ $actionRows[] = [
     'precedence' => '10',
     'category' => 'Entry',
     'description' => 'Import SEPA data from Excel files',
-    'URLList' => 'import_sepa_data.php, import_sepa_from_form.php',
+    'URLList' => 'import_sepa_data.php',
     'entryURL' => 'import_sepa_data.php',
     'entrySidebar' => 'Y', // Whether or not there's a sidebar on entry to the action
     'menuShow' => 'Y', // Whether or not this action shows up in menus or if it's hidden
@@ -319,6 +319,25 @@ $actionRows[] = [
 ];
 
 // Action rows
+$actionRows[] = [
+    'name' => 'Import SEPA from Registration Form',
+    'precedence' => '10',
+    'category' => 'Entry',
+    'description' => 'Import SEPA data from the accepted registration forms',
+    'URLList' => 'import_sepa_from_form.php',
+    'entryURL' => 'import_sepa_from_form.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
 $actionRows[] = [
     'name' => 'Update Courses Fee',
     'precedence' => '11',
