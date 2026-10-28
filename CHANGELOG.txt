@@ -22,3 +22,4 @@ Add the Family Due in Period page (balance plus the fees due in a selectable per
 Add the import of SEPA data from the registration forms (field mapping, review/edit, validation).
 Remove test_masking.php.
 Add Export to Excel of the family balance (with the due-in-period column on the Family Due page).
+Family Due: calculate the withdraw amount (amount due in the period, capped at the open balance) and export it with IBAN, BIC, mandate date and cadence; add a withdrawals-only export.

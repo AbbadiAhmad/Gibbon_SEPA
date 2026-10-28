@@ -679,6 +679,20 @@ class SepaGateway extends QueryableGateway
     }
 
     /**
+     * Amount to withdraw for a period: the amount due in the period, but never more than the family
+     * owes (balance < 0 means the family owes money), so a withdrawal never overshoots a zero balance.
+     * Nothing is withdrawn when the balance is zero or positive.
+     */
+    public static function calculateWithdrawAmount($balance, $dueInPeriod)
+    {
+        $owed = -1 * (float) $balance;
+        if ($owed <= 0.004 || (float) $dueInPeriod <= 0) {
+            return 0.0;
+        }
+        return round(min($owed, (float) $dueInPeriod), 2);
+    }
+
+    /**
      * Family totals. When $periodStart / $periodEnd (any day inside the first / last month) are given,
      * the result also holds `dueInPeriod`: the fees of the months of that period, plus the withdrawal
      * cadence / day of the family's SEPA.
@@ -710,13 +724,16 @@ class SepaGateway extends QueryableGateway
             ->where('gibbonCourseClassPerson.role = :role')
             ->bindValue('schoolYearID', $schoolYearID)
             ->bindValue('role', 'Student')
-            ->groupBy(['gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonSEPA.payer', 'gibbonSEPA.gibbonSEPAID', 'gibbonSEPA.withdrawCadence', 'gibbonSEPA.withdrawDay']);
+            ->groupBy(['gibbonFamily.gibbonFamilyID', 'gibbonFamily.name', 'gibbonSEPA.payer', 'gibbonSEPA.gibbonSEPAID', 'gibbonSEPA.withdrawCadence', 'gibbonSEPA.withdrawDay', 'gibbonSEPA.IBAN', 'gibbonSEPA.BIC', 'gibbonSEPA.SEPA_signedDate']);
 
         if ($periodStart !== null && $periodEnd !== null) {
             $query->cols([
                 $this->getEnrollmentFeesSQLstatments('periodFees') . ' as dueInPeriod',
                 'gibbonSEPA.withdrawCadence',
                 'gibbonSEPA.withdrawDay',
+                'gibbonSEPA.IBAN',
+                'gibbonSEPA.BIC',
+                'gibbonSEPA.SEPA_signedDate',
             ])
                 ->bindValue('periodStart', date('Y-m-01', strtotime($periodStart)))
                 ->bindValue('periodEnd', date('Y-m-01', strtotime($periodEnd)));

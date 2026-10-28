@@ -42,6 +42,8 @@ IBANs (SEPA records and payment entries) are stored encrypted (AES-256-GCM) and 
 2. Copy `.env.example` to `.env` in the module folder (or the Gibbon root folder) and set `SEPA_IBAN_ENCRYPTION_KEY=<key>`. Alternatively set it as a real environment variable of the web server / PHP-FPM, which is the safest option. `.env` is git-ignored and the module ships an `.htaccess` that denies web access to it (for nginx, add a rule denying `.env`).
 3. Back the key up separately from the database backups. Without it the stored IBANs can not be decrypted.
 
+The exported withdrawal files contain the clear IBANs - handle and delete them with care.
+
 Values written before the encryption was introduced (plain or masked `DE****000` values) are shown as they are and are encrypted the next time the record is saved. Because of the encryption the IBAN can no longer be searched or sorted in the lists.
 
 ## Import from registration forms

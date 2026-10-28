@@ -75,7 +75,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
 
     echo '<h2>' . __('Family Balance and Due in Period') . '</h2>';
     echo '<p>' . sprintf(
-        __('Due in period: fees of the billable months from %1$s to %2$s. Balance: payments and adjustments minus all fees of the academic year (negative means the family owes money).'),
+        __('Due in period: fees of the billable months from %1$s to %2$s. Balance: payments and adjustments minus all fees of the academic year (negative means the family owes money). Withdraw amount: the amount due in the period, or the open balance if that is smaller; nothing when the balance is not negative.'),
         Format::date($periodFrom),
         Format::date($periodTo)
     ) . '</p>';
@@ -111,6 +111,16 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
         ->directLink()
         ->displayLabel();
 
+    $table->addHeaderAction('exportWithdraw', __('Export Withdrawals'))
+        ->setURL('/modules/Sepa/sepa_family_balance_export.php')
+        ->addParam('schoolYearID', $schoolYearID)
+        ->addParam('periodFrom', Format::date($periodFrom))
+        ->addParam('periodTo', Format::date($periodTo))
+        ->addParam('search', $search)
+        ->addParam('onlyWithdraw', 1)
+        ->directLink()
+        ->displayLabel();
+
     $table->addColumn('familyName', __('Family Name'));
     $table->addColumn('payer', __('Payer'));
     $table->addColumn('withdrawCadence', __('Withdrawal'))->notSortable()->format(function ($row) use ($cadences) {
@@ -133,7 +143,10 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
         return number_format($row['balance'], 2);
     });
     $table->addColumn('dueInPeriod', __('Due in Period'))->format(function ($row) {
-        return '<strong>' . number_format($row['dueInPeriod'], 2) . '</strong>';
+        return number_format($row['dueInPeriod'], 2);
+    });
+    $table->addColumn('withdrawAmount', __('Withdraw Amount'))->notSortable()->format(function ($row) {
+        return '<strong>' . number_format(SepaGateway::calculateWithdrawAmount($row['balance'], $row['dueInPeriod']), 2) . '</strong>';
     });
 
     $table->addActionColumn()

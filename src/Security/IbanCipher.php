@@ -161,7 +161,7 @@ class IbanCipher
 
         $key = $value ? base64_decode(trim($value), true) : false;
         if ($key === false || strlen($key) !== 32) {
-            throw new \RuntimeException(self::KEY_NAME . ' is missing or invalid. It must be 32 random bytes, base64 encoded (see README.md).');
+            throw new \RuntimeException(self::KEY_NAME . ' is missing or invalid. It must be 32 random bytes, base64 encoded (see the README.md of the SEPA module).');
         }
 
         return self::$key = $key;

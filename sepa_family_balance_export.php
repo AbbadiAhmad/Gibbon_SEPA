@@ -20,6 +20,7 @@ use Gibbon\Services\Format;
 use Gibbon\Tables\DataTable;
 use Gibbon\Tables\Renderer\SpreadsheetRenderer;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Module\Sepa\Security\IbanCipher;
 
 require_once __DIR__ . '/../../gibbon.php';
 
@@ -44,6 +45,7 @@ $criteria = $SepaGateway->newQueryCriteria(false)->sortBy(['familyName']);
 $familyTotals = $SepaGateway->getFamilyTotals($schoolYearID, $criteria, $search, $periodFrom, $periodTo);
 $cadences = SepaGateway::getWithdrawCadenceOptions();
 
+$onlyWithdraw = !empty($_GET['onlyWithdraw']);
 $exportData = [];
 foreach ($familyTotals as $row) {
     $line = [
@@ -55,9 +57,19 @@ foreach ($familyTotals as $row) {
         'Balance' => number_format($row['balance'], 2, '.', ''),
     ];
     if ($periodFrom !== null) {
+        $withdrawAmount = SepaGateway::calculateWithdrawAmount($row['balance'], $row['dueInPeriod']);
+        // withdrawals only: skip families with nothing to withdraw or without usable bank data
+        if ($onlyWithdraw && ($withdrawAmount <= 0 || empty($row['IBAN']))) {
+            continue;
+        }
         $line['Due in Period'] = number_format($row['dueInPeriod'], 2, '.', '');
+        $line['Withdraw Amount'] = number_format($withdrawAmount, 2, '.', '');
         $line['Withdraw Cadence'] = $cadences[$row['withdrawCadence']] ?? '';
         $line['Withdraw Day'] = $row['withdrawDay'] ?? '';
+        $line['IBAN'] = IbanCipher::normalize(IbanCipher::decrypt($row['IBAN'] ?? '') ?? '');
+        $line['BIC'] = $row['BIC'] ?? '';
+        $line['Mandate Date'] = $row['SEPA_signedDate'] ?? '';
+        $line['Mandate Reference'] = $row['gibbonSEPAID'] ?? '';
     }
     $exportData[] = $line;
 }
