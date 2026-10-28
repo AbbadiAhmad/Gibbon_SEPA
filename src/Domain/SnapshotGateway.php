@@ -99,7 +99,9 @@ class SnapshotGateway extends QueryableGateway
                 'snap.timestamp',
                 'f.name as familyName',
                 'sepa.payer',
-                'sepa.IBAN'
+                'sepa.IBAN',
+                'sepa.withdrawCadence',
+                'sepa.withdrawDay'
             ])
             ->leftJoin('gibbonFamily as f', 'snap.gibbonFamilyID = f.gibbonFamilyID')
             ->leftJoin('gibbonSEPA as sepa', 'snap.gibbonSEPAID = sepa.gibbonSEPAID')

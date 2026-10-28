@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 use Gibbon\Tables\DataTable;
 use Gibbon\Tables\Renderer\SpreadsheetRenderer;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Module\Sepa\Security\IbanCipher;
 use Gibbon\Module\Sepa\Domain\SnapshotGateway;
 use Gibbon\Module\Sepa\Domain\SepaPaymentAdjustmentGateway;
 
@@ -87,7 +88,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot
                     'School Year ID' => $schoolYearID,
                     'SEPA ID' => $sepaInfo['gibbonSEPAID'] ?? '',
                     'Payer' => $sepaInfo['payer'] ?? '',
-                    'IBAN' => isset($sepaInfo['IBAN']) ? str_replace(' ', '', $sepaInfo['IBAN']) : '',
+                    'IBAN' => isset($sepaInfo['IBAN']) ? IbanCipher::decryptForDisplay($sepaInfo['IBAN']) : '',
+                    'Withdraw Cadence' => $sepaInfo['withdrawCadence'] ?? '',
+                    'Withdraw Day' => $sepaInfo['withdrawDay'] ?? '',
                     'SEPA Signed Date' => $sepaInfo['SEPA_signedDate'] ?? '',
                     'Old Balance' => number_format($lastBalance, 2, '.', ''),
                     'New Balance' => number_format($currentBalance, 2, '.', ''),
@@ -136,7 +139,9 @@ if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot
                 'School Year ID' => $snapshot['academicYear'],
                 'SEPA ID' => $snapshot['gibbonSEPAID'] ?? '',
                 'Payer' => $snapshot['payer'] ?? '',
-                'IBAN' => isset($snapshot['IBAN']) ? str_replace(' ', '', $snapshot['IBAN']) : '',
+                'IBAN' => isset($snapshot['IBAN']) ? IbanCipher::decryptForDisplay($snapshot['IBAN']) : '',
+                'Withdraw Cadence' => $snapshot['withdrawCadence'] ?? '',
+                'Withdraw Day' => $snapshot['withdrawDay'] ?? '',
                 'SEPA Signed Date' => $snapshot['snapshotData'] ? (json_decode($snapshot['snapshotData'], true)['sepaInfo']['SEPA_signedDate'] ?? '') : '',
                 'Old Balance' => number_format($lastBalance, 2, '.', ''),
                 'New Balance' => number_format($currentBalance, 2, '.', ''),

@@ -9,6 +9,7 @@ use Gibbon\Forms\Form;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Gibbon\Services\Format;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Module\Sepa\Security\IbanCipher;
 use Gibbon\Data\Validator;
 
 $_GET = $container->get(Validator::class)->sanitize($_GET);
@@ -38,6 +39,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
     ];
     $StepLink = $session->get('absoluteURL') . '/index.php?q=' . $_SESSION[$guid]['address'] . '&step=';
 
+    // Import directly from the accepted registration forms (shown at the top of the first step)
+    if ($step == 1) {
+        echo "<p><a href='" . $session->get('absoluteURL') . "/index.php?q=/modules/Sepa/import_sepa_from_form.php' class='button' style='text-decoration: none;'>";
+        echo __('Import from registration forms');
+        echo "</a></p>";
+    }
+
     // Display steps progress
     echo "<ul class='multiPartForm'>";
     foreach ($steps as $stepNumber => $stepName) {
@@ -54,6 +62,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         'payer',
         'IBAN',
         'BIC',
+        'withdrawCadence',
+        'withdrawDay',
         'SEPA_signedDate',
         'note'
     ];
@@ -76,7 +86,6 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         $row->addSubmit();
 
         echo $form->getOutput();
-
 
     }
     // STEP 2: CONFIRM DATA
@@ -186,6 +195,29 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                 if (!empty($mappedRow['SEPA_signedDate']))
                     $mappedRow['SEPA_signedDate'] = DateTime::createFromFormat($dateFormat, $mappedRow['SEPA_signedDate'])->format('Y-m-d');
 
+                // normalise IBAN / cadence / day; invalid values are reported in the preview
+                $mappedRow['__Warnings__'] = [];
+                if (!empty($mappedRow['IBAN'])) {
+                    $mappedRow['IBAN'] = IbanCipher::normalize($mappedRow['IBAN']);
+                    if (!IbanCipher::isValid($mappedRow['IBAN'])) {
+                        $mappedRow['__Warnings__'][] = __('IBAN checksum is not valid');
+                    }
+                }
+                if (isset($mappedRow['withdrawCadence']) && $mappedRow['withdrawCadence'] !== '') {
+                    $cadence = SepaGateway::normalizeCadence($mappedRow['withdrawCadence']);
+                    if ($cadence === null) {
+                        $mappedRow['__Warnings__'][] = __('Unknown withdrawal cadence: {value}', ['value' => $mappedRow['withdrawCadence']]);
+                    }
+                    $mappedRow['withdrawCadence'] = $cadence;
+                }
+                if (isset($mappedRow['withdrawDay']) && $mappedRow['withdrawDay'] !== '') {
+                    $day = SepaGateway::normalizeDay($mappedRow['withdrawDay']);
+                    if ($day === null) {
+                        $mappedRow['__Warnings__'][] = __('Unknown withdrawal day: {value}', ['value' => $mappedRow['withdrawDay']]);
+                    }
+                    $mappedRow['withdrawDay'] = $day;
+                }
+
                 // init
                 $mappedRow['__Status__'] = 'error';
                 $mappedRow['__Status_ID__'] = '1';
@@ -261,7 +293,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             echo "<p>" . __('Review the records below and select which existing records to update.') . "</p>";
             echo "<div class='warning' style='margin-bottom: 15px;'>";
             echo "<strong>" . __('Security Notice:') . "</strong> ";
-            echo __('IBANs will be automatically masked before storage (format: XX****XXX). Full IBAN data shown below will NOT be saved to the database. BIC codes will NOT be stored.');
+            echo __('IBANs are encrypted before they are stored in the database.');
             echo "</div>";
 
             // Add export button
@@ -288,7 +320,9 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             $tableHTML .= "<th style='width: 20%;'>" . __('Payer') . "</th>";
             $tableHTML .= "<th style='width: 15%;'>" . __('IBAN') . "</th>";
             $tableHTML .= "<th style='width: 10%;'>" . __('BIC') . "</th>";
-            $tableHTML .= "<th style='width: 15%;'>" . __('Signed Date') . "</th>";
+            $tableHTML .= "<th style='width: 8%;'>" . __('Cadence') . "</th>";
+            $tableHTML .= "<th style='width: 5%;'>" . __('Day') . "</th>";
+            $tableHTML .= "<th style='width: 10%;'>" . __('Signed Date') . "</th>";
             $tableHTML .= "<th style='width: 20%;'>" . __('Note') . "</th>";
             $tableHTML .= "</tr>";
             $tableHTML .= "</thead>";
@@ -346,11 +380,20 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                 $tableHTML .= "</td>";
                 $tableHTML .= "<td style='color: {$statusColor}; font-weight: bold;'>{$statusText}</td>";
                 $tableHTML .= "<td>{$record['__RowNumberInExcelFile__']}</td>";
-                $tableHTML .= "<td>{$record['payer']}</td>";
-                $tableHTML .= "<td>{$record['IBAN']}</td>";
-                $tableHTML .= "<td>{$record['BIC']}</td>";
-                $tableHTML .= "<td>{$record['SEPA_signedDate']}</td>";
-                $tableHTML .= "<td>{$record['note']}</td>";
+                $warningHTML = '';
+                foreach ($record['__Warnings__'] ?? [] as $warning) {
+                    $warningHTML .= "<br/><span style='color: #c60;'>" . htmlspecialchars($warning, ENT_QUOTES, 'UTF-8') . "</span>";
+                }
+                $e = function ($value) {
+                    return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
+                };
+                $tableHTML .= "<td>{$e($record['payer'])}</td>";
+                $tableHTML .= "<td>{$e($record['IBAN'] ?? '')}{$warningHTML}</td>";
+                $tableHTML .= "<td>{$e($record['BIC'] ?? '')}</td>";
+                $tableHTML .= "<td>{$e($record['withdrawCadence'] ?? '')}</td>";
+                $tableHTML .= "<td>{$e($record['withdrawDay'] ?? '')}</td>";
+                $tableHTML .= "<td>{$e($record['SEPA_signedDate'] ?? '')}</td>";
+                $tableHTML .= "<td>{$e($record['note'] ?? '')}</td>";
                 $tableHTML .= "</tr>";
 
                 // Show existing data for comparison if status is existing
@@ -358,18 +401,22 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                 if (!empty($record['__ExistingData__'])) {
                     $existing = $record['__ExistingData__'];
                     $existing['payer'] = $existing['payer'] ?? '';
-                    $existing['IBAN'] = $existing['IBAN'] ?? '';
+                    $existing['IBAN'] = IbanCipher::decryptForDisplay($existing['IBAN'] ?? '');
+                    $existing['withdrawCadence'] = $existing['withdrawCadence'] ?? '';
+                    $existing['withdrawDay'] = $existing['withdrawDay'] ?? '';
                     $existing['BIC'] = $existing['BIC'] ?? '';
                     $existing['SEPA_signedDate'] = $existing['SEPA_signedDate'] ?? '';
                     $existing['note'] = $existing['note'] ?? '';
 
                     $tableHTML .= "<tr style='background-color: #f5f5f5; font-style: italic;'>";
                     $tableHTML .= "<td colspan='3' style='text-align: right; padding-right: 10px;'>" . __('Current Data:') . "</td>";
-                    $tableHTML .= "<td>{$existing['payer']}</td>";
-                    $tableHTML .= "<td>{$existing['IBAN']}</td>";
-                    $tableHTML .= "<td>{$existing['BIC']}</td>";
-                    $tableHTML .= "<td>{$existing['SEPA_signedDate']}</td>";
-                    $tableHTML .= "<td>{$existing['note']}</td>";
+                    $tableHTML .= "<td>{$e($existing['payer'])}</td>";
+                    $tableHTML .= "<td>{$e($existing['IBAN'])}</td>";
+                    $tableHTML .= "<td>{$e($existing['BIC'])}</td>";
+                    $tableHTML .= "<td>{$e($existing['withdrawCadence'])}</td>";
+                    $tableHTML .= "<td>{$e($existing['withdrawDay'])}</td>";
+                    $tableHTML .= "<td>{$e($existing['SEPA_signedDate'])}</td>";
+                    $tableHTML .= "<td>{$e($existing['note'])}</td>";
                     $tableHTML .= "</tr>";
                 }
             }

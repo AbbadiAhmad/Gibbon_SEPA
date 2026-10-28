@@ -8,6 +8,7 @@ Copyright © 2010, Gibbon Foundation
 use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Module\Sepa\Security\IbanCipher;
 use Gibbon\Data\Validator;
 $_GET = $container->get(Validator::class)->sanitize($_GET);
 $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -28,7 +29,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.p
 
     // CRITERIA
     $criteria = $SepaGateway->newQueryCriteria(true)
-        ->searchBy(['gibbonSEPAPaymentEntry.payer', 'gibbonSEPAPaymentEntry.booking_date', 'gibbonSEPAPaymentEntry.amount', 'gibbonSEPAPaymentEntry.transaction_message', 'gibbonSEPAPaymentEntry.IBAN', 'gibbonSEPAPaymentEntry.transaction_reference', 'gibbonSEPAPaymentEntry.note'], $search)
+        ->searchBy(['gibbonSEPAPaymentEntry.payer', 'gibbonSEPAPaymentEntry.booking_date', 'gibbonSEPAPaymentEntry.amount', 'gibbonSEPAPaymentEntry.transaction_message', 'gibbonSEPAPaymentEntry.transaction_reference', 'gibbonSEPAPaymentEntry.note'], $search)
         ->sortBy(['timestamp'])
         ->fromPOST();
 
@@ -36,7 +37,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.p
 
     $row = $form->addRow();
         $row->addLabel('search', __('Search For'))
-            ->description(__('payer, booking date, amount, transaction message, IBAN, transaction reference, note'));
+            ->description(__('payer, booking date, amount, transaction message, transaction reference, note'));
         $row->addTextField('search')->setValue($criteria->getSearchText());
 
     $form->addRow()->addSearchSubmit('', __('Clear Search'));
@@ -82,7 +83,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.p
         ->sortable(['yearName']);
 
     $table->addColumn('IBAN', __('IBAN'))
-        ->sortable(['IBAN']);
+        ->notSortable()
+        ->format(function ($row) {
+            return htmlspecialchars(IbanCipher::format(IbanCipher::decryptForDisplay($row['IBAN'])), ENT_QUOTES, 'UTF-8');
+        });
 
     $table->addColumn('transaction_reference', __('Transaction Reference'))
         ->sortable(['transaction_reference']);

@@ -85,3 +85,38 @@ ALTER TABLE gibbonSEPABalanceSnapshot
 ADD COLUMN totalFees DECIMAL(12,2) DEFAULT 0.00 COMMENT 'Total owed fees at time of snapshot' AFTER balance;end
 ALTER TABLE gibbonSEPABalanceSnapshot
 ADD COLUMN totalAdjustments DECIMAL(12,2) DEFAULT 0.00 COMMENT 'Total adjustments at time of snapshot' AFTER totalFees;";
+
+
+// v2.3.0 - IBAN encryption, withdrawal cadence / day, import from registration form, family due report
+$count++;
+$sql[$count][0] = "2.3.0";
+$sql[$count][1] = "ALTER TABLE gibbonSEPA MODIFY COLUMN `IBAN` VARCHAR(255) DEFAULT NULL COMMENT 'AES-256-GCM encrypted, see IbanCipher';end
+ALTER TABLE gibbonSEPA ADD COLUMN `withdrawCadence` ENUM('Monthly','HalfYearly','Yearly') NOT NULL DEFAULT 'Monthly' COMMENT 'How often the money is withdrawn' AFTER `BIC`;end
+ALTER TABLE gibbonSEPA ADD COLUMN `withdrawDay` TINYINT UNSIGNED DEFAULT 5 COMMENT 'Preferred day of the month for the withdrawal (1-31)' AFTER `withdrawCadence`;end
+UPDATE gibbonSEPA SET withdrawDay=5 WHERE withdrawDay IS NULL;end
+ALTER TABLE gibbonSEPAPaymentEntry MODIFY COLUMN `IBAN` VARCHAR(255) NULL COMMENT 'AES-256-GCM encrypted, see IbanCipher';end
+UPDATE gibbonAction SET URLList='sepa_family_totals.php, sepa_family_details.php, sepa_family_due.php, sepa_family_balance_export.php' WHERE name='Family Balance' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');end
+UPDATE gibbonAction SET URLList='import_sepa_data.php, import_sepa_from_form.php' WHERE name='Import Family SEPA' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.3.1 - the registration form import is a separate action in the Entry menu
+$count++;
+$sql[$count][0] = "2.3.1";
+$sql[$count][1] = "UPDATE gibbonAction SET URLList='import_sepa_data.php' WHERE name='Import Family SEPA' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');end
+INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'Import SEPA from Registration Form', 10, 'Entry', 'Import SEPA data from the accepted registration forms', 'import_sepa_from_form.php', 'import_sepa_from_form.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
+INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='Import SEPA from Registration Form' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.3.2 - SEPA data check page
+$count++;
+$sql[$count][0] = "2.3.2";
+$sql[$count][1] = "INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'Check SEPA Data', 17, 'Reports', 'Find missing or wrong SEPA data', 'sepa_check.php', 'sepa_check.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
+INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='Check SEPA Data' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.3.3 - SEPA data check page moves to the SEPA menu group
+$count++;
+$sql[$count][0] = "2.3.3";
+$sql[$count][1] = "UPDATE gibbonAction SET category='SEPA' WHERE name='Check SEPA Data' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.3.4 - SEPA check export
+$count++;
+$sql[$count][0] = "2.3.4";
+$sql[$count][1] = "UPDATE gibbonAction SET URLList='sepa_check.php, sepa_check_export.php' WHERE name='Check SEPA Data' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";

@@ -8,6 +8,7 @@ Copyright © 2010, Gibbon Foundation
 use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Module\Sepa\Security\IbanCipher;
 use Gibbon\Services\Format;
 use Gibbon\Data\Validator;
 $_GET = $container->get(Validator::class)->sanitize($_GET);
@@ -197,7 +198,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
                     ->sortable(['transaction_message']);
 
                 $table->addColumn('IBAN', __('IBAN'))
-                    ->sortable(['IBAN']);
+                    ->notSortable()
+                    ->format(function ($row) {
+                        return htmlspecialchars(IbanCipher::format(IbanCipher::decryptForDisplay($row['IBAN'])), ENT_QUOTES, 'UTF-8');
+                    });
 
                 $table->addColumn('transaction_reference', __('Transaction Reference'))
                     ->sortable(['transaction_reference']);

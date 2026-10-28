@@ -13,3 +13,15 @@ Add SEPA Archive ID as defaults field when installing the SEPA module. (to match
 Add academicYear to Payments.
 Change the column name from user into gibbonUser in gibbonSEPAPaymentEntry table (not to use sql keyword).
 Add familyID to payment_entry when import the payments from xls file.
+
+v2.3.0
+------
+IBAN is stored encrypted (AES-256-GCM, key in .env / environment) instead of masked; BIC is stored again.
+Add withdrawal cadence (monthly, half-yearly, yearly) and preferred withdrawal day (default monthly, day 5) to the SEPA data, forms, views, imports and snapshot export.
+Add the Family Due in Period page (balance plus the fees due in a selectable period).
+Add the import of SEPA data from the registration forms (field mapping, review/edit, validation).
+Remove test_masking.php.
+Add Export to Excel of the family balance (with the due-in-period column on the Family Due page).
+Family Due: calculate the withdraw amount (amount due in the period, capped at the open balance) and export it with IBAN, BIC, mandate date and cadence; add a withdrawals-only export.
+v2.3.1: the import from registration forms is its own action in the Entry menu.
+v2.3.2: Check SEPA Data page; the withdrawal export also lists families without SEPA / IBAN with a Check column.

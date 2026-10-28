@@ -18,6 +18,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 use Gibbon\Forms\Form;
 use Gibbon\Module\Sepa\Domain\CustomFieldsGateway;
+use Gibbon\Module\Sepa\Domain\SepaGateway;
+use Gibbon\Module\Sepa\Security\IbanCipher;
 use Gibbon\Data\Validator;
 
 $_GET = $container->get(Validator::class)->sanitize($_GET);
@@ -55,6 +57,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
 
             $form->addHiddenValue('address', $session->get('address'));
             $form->addHiddenValue('gibbonSEPAID', $SEPA['gibbonSEPAID']);
+            foreach (getSepaCheckReturnParams($_GET) as $name => $value) {
+                $form->addHiddenValue($name, $value);
+            }
 
             // BASIC INFORMATION
             $form->addRow()->addHeading('SEPA Information', __('SEPA Information'));
@@ -65,11 +70,19 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
 
             $row = $form->addRow();
             $row->addLabel('SEPAIBAN', __('SEPA IBAN'))->description(__('IBAN of the bank account, The money will be withdrawn from this account.'));
-            $row->addTextField('IBAN')->maxLength(22);
+            $row->addTextField('IBAN')->maxLength(40);
 
             $row = $form->addRow();
-            $row->addLabel('SEPABIC', __('BIC'))->description(__('IBAN of the bank account.'));
+            $row->addLabel('SEPABIC', __('BIC'))->description(__('BIC of the bank.'));
             $row->addTextField('BIC')->maxLength(11);
+
+            $row = $form->addRow();
+            $row->addLabel('withdrawCadence', __('Withdrawal cadence'))->description(__('How often the money is withdrawn.'));
+            $row->addSelect('withdrawCadence')->fromArray(SepaGateway::getWithdrawCadenceOptions())->required()->selected('Monthly');
+
+            $row = $form->addRow();
+            $row->addLabel('withdrawDay', __('Preferred withdrawal day'))->description(__('Preferred day of the month for the withdrawal.'));
+            $row->addSelect('withdrawDay')->fromArray(SepaGateway::getWithdrawDayOptions())->placeholder();
 
 
             $FamiliesName = "SELECT gibbonFamily.gibbonFamilyID as value, name FROM gibbonFamily LEFT JOIN gibbonSEPA ON gibbonFamily.gibbonFamilyID = gibbonSEPA.gibbonFamilyID WHERE (gibbonSEPA.gibbonFamilyID is NULL || gibbonFamily.gibbonFamilyID = {$SEPA['gibbonFamilyID']} )";
@@ -96,6 +109,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_edit.php
             $row->addFooter();
             $row->addSubmit();
 
+            // The IBAN is stored encrypted; show the clear value in the form
+            $storedIBAN = $SEPA['IBAN'];
+            $SEPA['IBAN'] = IbanCipher::decrypt($storedIBAN);
+            if ($SEPA['IBAN'] === null) {
+                $SEPA['IBAN'] = '';
+                $page->addError(__('The stored IBAN can not be decrypted. Check the IBAN encryption key.'));
+            }
             $form->loadAllValuesFrom($SEPA);
 
             echo $form->getOutput();

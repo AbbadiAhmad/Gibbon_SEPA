@@ -80,6 +80,18 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
     //$table->addMetaData('filterOptions', ['unpaidNoSepa' => __('Unpaid without SEPA')]);
 
     //$table->addColumn('gibbonFamilyID', __('Family ID'));
+    $table->addHeaderAction('due', __('Due in Period'))
+        ->setURL('/modules/Sepa/sepa_family_due.php')
+        ->addParam('schoolYearID', $schoolYearID)
+        ->displayLabel();
+
+    $table->addHeaderAction('export', __('Export to Excel'))
+        ->setURL('/modules/Sepa/sepa_family_balance_export.php')
+        ->addParam('schoolYearID', $schoolYearID)
+        ->addParam('search', $search)
+        ->directLink()
+        ->displayLabel();
+
     $table->addColumn('familyName', __('Family Name'));
     $table->addColumn('payer', __('Payer'));
     $table->addColumn('totalDept', __('Total Dept'))->format(function ($row) {

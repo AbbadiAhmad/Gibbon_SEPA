@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.2.0';            // Version number
+$version = '2.3.4';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -21,8 +21,10 @@ $moduleTables[] = "
         `gibbonSEPAID` INT(8) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT,
         `gibbonFamilyID` INT(7) UNSIGNED ZEROFILL NOT NULL,
         `payer` VARCHAR(255) NOT NULL  COMMENT 'The name of the account holder',
-        `IBAN` VARCHAR(22) DEFAULT 'NULL',
+        `IBAN` VARCHAR(255) DEFAULT NULL COMMENT 'AES-256-GCM encrypted, see IbanCipher',
         `BIC` VARCHAR(11) DEFAULT NULL,
+        `withdrawCadence` ENUM('Monthly','HalfYearly','Yearly') NOT NULL DEFAULT 'Monthly' COMMENT 'How often the money is withdrawn',
+        `withdrawDay` TINYINT UNSIGNED DEFAULT 5 COMMENT 'Preferred day of the month for the withdrawal (1-31)',
         `SEPA_signedDate` date DEFAULT NULL,
         `note` TEXT DEFAULT NULL,
         `customData` text COMMENT 'JSON object of custom field values',
@@ -56,7 +58,7 @@ CREATE TABLE `gibbonSEPAPaymentEntry` (
         `gibbonSEPAPaymentRecordID` int(10) unsigned NOT NULL AUTO_INCREMENT,
         `booking_date` DATE not NULL,
         `payer` varchar(100) NOT NULL,
-        `IBAN` varchar(34) NULL,
+        `IBAN` varchar(255) NULL COMMENT 'AES-256-GCM encrypted, see IbanCipher',
         `transaction_reference` varchar(255) NULL,
         `transaction_message` varchar(255) NULL,
         `amount` decimal(10,2) not NULL,
@@ -318,6 +320,44 @@ $actionRows[] = [
 
 // Action rows
 $actionRows[] = [
+    'name' => 'Import SEPA from Registration Form',
+    'precedence' => '10',
+    'category' => 'Entry',
+    'description' => 'Import SEPA data from the accepted registration forms',
+    'URLList' => 'import_sepa_from_form.php',
+    'entryURL' => 'import_sepa_from_form.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+$actionRows[] = [
+    'name' => 'Check SEPA Data',
+    'precedence' => '17',
+    'category' => 'SEPA',
+    'description' => 'Find missing or wrong SEPA data',
+    'URLList' => 'sepa_check.php, sepa_check_export.php',
+    'entryURL' => 'sepa_check.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+$actionRows[] = [
     'name' => 'Update Courses Fee',
     'precedence' => '11',
     'category' => 'Courses',
@@ -342,7 +382,7 @@ $actionRows[] = [
     'precedence' => '12',
     'category' => 'Reports',
     'description' => 'View family totals including dept and payments',
-    'URLList' => 'sepa_family_totals.php, sepa_family_details.php',
+    'URLList' => 'sepa_family_totals.php, sepa_family_details.php, sepa_family_due.php, sepa_family_balance_export.php',
     'entryURL' => 'sepa_family_totals.php',
     'entrySidebar' => 'Y',
     'menuShow' => 'Y',
