@@ -137,7 +137,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_pe
         $table2->addColumn('payer', __('Payer'));
         $table2->addColumn('transaction_message', __('Transaction Message'));
         $table2->addColumn('IBAN', __('IBAN'))->format(function ($row) {
-            return htmlspecialchars(IbanCipher::format(IbanCipher::decryptForDisplay($row['IBAN'])), ENT_QUOTES, 'UTF-8');
+            return htmlspecialchars(IbanCipher::maskForDisplay(IbanCipher::decrypt($row['IBAN']) ?? ''), ENT_QUOTES, 'UTF-8');
         });
         $table2->addColumn('transaction_reference', __('Transaction Reference'));
         $table2->addColumn('note', __('Note'));

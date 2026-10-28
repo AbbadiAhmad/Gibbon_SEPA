@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.3.4';            // Version number
+$version = '2.4.0';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -174,6 +174,25 @@ $actionRows[] = [
     'categoryPermissionOther' => 'Y', // Should this action be available to user roles in the Other category?
 ];
 
+$actionRows[] = [
+    'name' => 'View SEPA - my family',
+    'precedence' => '5',
+    'category' => 'SEPA',
+    'description' => 'Show the SEPA data of the own family (read only)',
+    'URLList' => 'sepa_family_my_sepa.php',
+    'entryURL' => 'sepa_family_my_sepa.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'Y',
+    'defaultPermissionStudent' => 'Y',
+    'defaultPermissionParent' => 'Y',
+    'defaultPermissionSupport' => 'Y',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'Y',
+    'categoryPermissionParent' => 'Y',
+    'categoryPermissionOther' => 'Y',
+];
 $actionRows[] = [
     'name' => 'Import SEPA Payment',
     'precedence' => '1',

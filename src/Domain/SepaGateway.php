@@ -790,9 +790,10 @@ class SepaGateway extends QueryableGateway
      *
      * @param int  $schoolYearID  families with enrolled students in this year must have a SEPA
      * @param bool $onlyNonZero   only families whose balance of the year is not zero
+     * @param int|null $onlyFamilyID only the problems of this family
      * @return array list of ['severity', 'problem', 'familyID', 'familyName', 'payer', 'sepa', 'balance', 'link']
      */
-    public function getSEPAIssues($schoolYearID, $onlyNonZero = true)
+    public function getSEPAIssues($schoolYearID, $onlyNonZero = true, $onlyFamilyID = null)
     {
         $sepas = $this->getAllSEPAWithFamily();
         $enrolledFamilies = $this->getFamiliesWithEnrolledChildren($schoolYearID);
@@ -801,7 +802,10 @@ class SepaGateway extends QueryableGateway
         foreach ($this->getFamilyTotals($schoolYearID, $this->newQueryCriteria(false)) as $total) {
             $balances[$total['gibbonFamilyID']] = (float) $total['balance'];
         }
-        $isIncluded = function ($familyID) use ($onlyNonZero, $balances) {
+        $isIncluded = function ($familyID) use ($onlyNonZero, $balances, $onlyFamilyID) {
+            if ($onlyFamilyID !== null && $familyID != $onlyFamilyID) {
+                return false;
+            }
             return !$onlyNonZero || abs($balances[$familyID] ?? 0) >= 0.005;
         };
 
@@ -823,8 +827,9 @@ class SepaGateway extends QueryableGateway
         }
 
         $issues = [];
-        $add = function ($severity, $problem, $familyID, $familyName, $sepa, $link) use (&$issues, $balances) {
+        $add = function ($severity, $problem, $familyID, $familyName, $sepa, $link, $code = '') use (&$issues, $balances) {
             $issues[] = [
+                'code' => $code,
                 'severity' => $severity,
                 'problem' => $problem,
                 'familyID' => $familyID,
@@ -862,13 +867,13 @@ class SepaGateway extends QueryableGateway
             $link = $editLink($sepa);
             $stored = $sepa['IBAN'] ?? '';
             $iban = $ibans[$sepa['gibbonSEPAID']];
-            $report = function ($severity, $problem) use ($add, $familyID, $familyName, $sepa, $link) {
-                $add($severity, $problem, $familyID, $familyName, $sepa, $link);
+            $report = function ($severity, $problem, $code = '') use ($add, $familyID, $familyName, $sepa, $link) {
+                $add($severity, $problem, $familyID, $familyName, $sepa, $link, $code);
             };
 
             // IBAN
             if ($iban === null) {
-                $report('Error', __('The IBAN can not be decrypted (wrong key or damaged data)'));
+                $report('Error', __('The IBAN can not be decrypted (wrong key or damaged data)'), 'decrypt');
             } elseif ($iban === '') {
                 $report('Error', __('IBAN is missing'));
             } elseif (strpos($iban, '*') !== false) {
@@ -882,10 +887,10 @@ class SepaGateway extends QueryableGateway
                 } else {
                     $others = array_diff_key(array_count_values($ibanUsers[$clean] ?? []), [$familyName => 1]);
                     if (!empty($others)) {
-                        $report('Error', sprintf(__('The same IBAN is used by: %s'), implode(', ', array_keys($others))));
+                        $report('Error', sprintf(__('The same IBAN is used by: %s'), implode(', ', array_keys($others))), 'sharedIban');
                     }
                     if (!IbanCipher::isEncrypted($stored)) {
-                        $report('Warning', __('The IBAN is not encrypted yet (it is encrypted when the record is saved)'));
+                        $report('Warning', __('The IBAN is not encrypted yet (it is encrypted when the record is saved)'), 'internal');
                     }
                 }
             }
@@ -918,7 +923,7 @@ class SepaGateway extends QueryableGateway
                 $report('Warning', __('Preferred withdrawal day is missing'));
             }
             if (!isset($enrolledFamilies[$familyID])) {
-                $report('Warning', __('The family has no enrolled students in the selected academic year'));
+                $report('Warning', __('The family has no enrolled students in the selected academic year'), 'internal');
             }
         }
 
