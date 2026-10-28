@@ -110,3 +110,8 @@ $count++;
 $sql[$count][0] = "2.3.2";
 $sql[$count][1] = "INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'Check SEPA Data', 17, 'Reports', 'Find missing or wrong SEPA data', 'sepa_check.php', 'sepa_check.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
 INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='Check SEPA Data' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.3.3 - SEPA data check page moves to the SEPA menu group
+$count++;
+$sql[$count][0] = "2.3.3";
+$sql[$count][1] = "UPDATE gibbonAction SET category='SEPA' WHERE name='Check SEPA Data' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";

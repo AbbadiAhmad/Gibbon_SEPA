@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.3.2';            // Version number
+$version = '2.3.3';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -341,7 +341,7 @@ $actionRows[] = [
 $actionRows[] = [
     'name' => 'Check SEPA Data',
     'precedence' => '17',
-    'category' => 'Reports',
+    'category' => 'SEPA',
     'description' => 'Find missing or wrong SEPA data',
     'URLList' => 'sepa_check.php',
     'entryURL' => 'sepa_check.php',
