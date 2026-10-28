@@ -147,11 +147,13 @@ if ($step == 2) {
     }
 
     // All form fields used by any application, with the first non-empty example
-    $labels = $FormGateway->getCustomFieldLabels();
+    // Only active custom fields can be used
+    $customFieldInfo = $FormGateway->getCustomFieldInfo();
+    $labels = $customFieldInfo['labels'];
     $examples = [];
     foreach ($applications as $application) {
         foreach ($application['formData'] as $key => $value) {
-            if (!is_scalar($value) || $value === '') {
+            if (in_array($key, $customFieldInfo['inactive'], true) || !is_scalar($value) || $value === '') {
                 continue;
             }
             if (!isset($examples[$key])) {

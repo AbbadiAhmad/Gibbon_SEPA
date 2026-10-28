@@ -71,19 +71,25 @@ class RegistrationFormGateway extends QueryableGateway
     }
 
     /**
-     * Labels of the custom form fields: ['custom0006' => 'IBAN', ...]. Empty when not available.
+     * Custom form fields from Gibbon: labels and the keys of the inactive ones.
+     * Returns ['labels' => ['custom0006' => 'IBAN', ...], 'inactive' => ['custom0010', ...]];
+     * both are empty when the custom fields are not available.
      */
-    public function getCustomFieldLabels()
+    public function getCustomFieldInfo()
     {
+        $info = ['labels' => [], 'inactive' => []];
         try {
-            $rows = $this->db()->select('SELECT gibbonCustomFieldID, name FROM gibbonCustomField')->fetchAll();
+            $rows = $this->db()->select('SELECT gibbonCustomFieldID, name, active FROM gibbonCustomField')->fetchAll();
         } catch (\Exception $e) {
-            return [];
+            return $info;
         }
-        $labels = [];
         foreach ($rows as $row) {
-            $labels['custom' . str_pad($row['gibbonCustomFieldID'], 4, '0', STR_PAD_LEFT)] = $row['name'];
+            $key = 'custom' . str_pad($row['gibbonCustomFieldID'], 4, '0', STR_PAD_LEFT);
+            $info['labels'][$key] = $row['name'];
+            if (($row['active'] ?? 'Y') !== 'Y') {
+                $info['inactive'][] = $key;
+            }
         }
-        return $labels;
+        return $info;
     }
 }
