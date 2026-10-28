@@ -930,6 +930,24 @@ class SepaGateway extends QueryableGateway
         return $issues;
     }
 
+    /**
+     * Column filters for the SEPA check: type (Error / Warning), exact problem text and a text
+     * that has to be part of the family name or the payer. Empty filters are ignored.
+     */
+    public static function filterSEPAIssues($issues, $severity = '', $problem = '', $search = '')
+    {
+        $search = mb_strtolower(trim($search));
+        return array_values(array_filter($issues, function ($issue) use ($severity, $problem, $search) {
+            if ($severity !== '' && $issue['severity'] !== $severity) {
+                return false;
+            }
+            if ($problem !== '' && $issue['problem'] !== $problem) {
+                return false;
+            }
+            return $search === '' || mb_strpos(mb_strtolower($issue['familyName'] . ' ' . $issue['payer']), $search) !== false;
+        }));
+    }
+
     public function getFamilyInfo($gibbonFamilyID)
     {
         $query = $this

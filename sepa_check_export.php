@@ -34,7 +34,13 @@ $onlyNonZero = ($_GET['balanceFilter'] ?? 'nonzero') !== 'all';
 
 $cadences = SepaGateway::getWithdrawCadenceOptions();
 $exportData = [];
-foreach ($SepaGateway->getSEPAIssues($schoolYearID, $onlyNonZero) as $issue) {
+$issues = SepaGateway::filterSEPAIssues(
+    $SepaGateway->getSEPAIssues($schoolYearID, $onlyNonZero),
+    in_array($_GET['severity'] ?? '', ['Error', 'Warning'], true) ? $_GET['severity'] : '',
+    $_GET['problem'] ?? '',
+    $_GET['search'] ?? ''
+);
+foreach ($issues as $issue) {
     $sepa = $issue['sepa'];
     $exportData[] = [
         'Type' => $issue['severity'],

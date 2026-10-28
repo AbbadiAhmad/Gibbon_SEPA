@@ -48,11 +48,31 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
         ->fromArray(['nonzero' => __('Only SEPAs with a balance not zero'), 'all' => __('All SEPAs')])
         ->selected($balanceFilter);
 
+    // Column filters
+    $allIssues = $SepaGateway->getSEPAIssues($schoolYearID, $balanceFilter === 'nonzero');
+    $severity = in_array($_GET['severity'] ?? '', ['Error', 'Warning'], true) ? $_GET['severity'] : '';
+    $problem = $_GET['problem'] ?? '';
+    $search = $_GET['search'] ?? '';
+    $problems = array_unique(array_column($allIssues, 'problem'));
+    sort($problems);
+
+    $row = $form->addRow();
+    $row->addLabel('severity', __('Type'));
+    $row->addSelect('severity')->fromArray(['Error' => __('Error'), 'Warning' => __('Warning')])->selected($severity)->placeholder(__('All'));
+
+    $row = $form->addRow();
+    $row->addLabel('problem', __('Problem'));
+    $row->addSelect('problem')->fromArray(array_combine($problems, $problems))->selected($problem)->placeholder(__('All'));
+
+    $row = $form->addRow();
+    $row->addLabel('search', __('Family / Payer'));
+    $row->addTextField('search')->setValue($search);
+
     $row = $form->addRow();
     $row->addSubmit(__('Check'));
     echo $form->getOutput();
 
-    $issues = $SepaGateway->getSEPAIssues($schoolYearID, $balanceFilter === 'nonzero');
+    $issues = SepaGateway::filterSEPAIssues($allIssues, $severity, $problem, $search);
 
     $errors = count(array_filter($issues, function ($i) {
         return $i['severity'] === 'Error';
@@ -68,6 +88,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
             ->setURL('/modules/Sepa/sepa_check_export.php')
             ->addParam('schoolYearID', $schoolYearID)
             ->addParam('balanceFilter', $balanceFilter)
+            ->addParam('severity', $severity)
+            ->addParam('problem', $problem)
+            ->addParam('search', $search)
             ->directLink()
             ->displayLabel();
         $table->addColumn('severity', __('Type'))->format(function ($row) {
