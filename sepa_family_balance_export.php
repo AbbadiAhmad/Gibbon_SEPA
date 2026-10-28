@@ -47,19 +47,9 @@ $cadences = SepaGateway::getWithdrawCadenceOptions();
 
 $onlyWithdraw = !empty($_GET['onlyWithdraw']);
 
-// Children names per family, used as comment for the withdrawals
-$childrenByFamily = [];
-if ($periodFrom !== null) {
-    $familyIDs = [];
-    foreach ($familyTotals as $row) {
-        $familyIDs[] = $row['gibbonFamilyID'];
-    }
-    if (!empty($familyIDs)) {
-        foreach ($SepaGateway->selectChildrenByFamily($familyIDs)->fetchAll() as $child) {
-            $childrenByFamily[$child['gibbonFamilyID']][] = trim($child['preferredName'] . ' ' . $child['surname']) . ($child['status'] === 'Left' ? ' (left)' : '');
-        }
-    }
-}
+// Children whose courses make up the fees, used as comment for the withdrawals
+$childrenByFamily = $periodFrom !== null ? $SepaGateway->getBilledChildrenNamesByFamily($schoolYearID) : [];
+
 $exportData = [];
 foreach ($familyTotals as $row) {
     $line = [

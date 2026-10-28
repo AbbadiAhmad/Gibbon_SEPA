@@ -948,6 +948,32 @@ class SepaGateway extends QueryableGateway
         }));
     }
 
+    /**
+     * Names of the children whose courses make up the family's fees in the school year
+     * (children without any fee in the year are left out). Keyed by family ID.
+     */
+    public function getBilledChildrenNamesByFamily($schoolYearID)
+    {
+        $query = $this->getEnrollmentFeesBaseQuery($schoolYearID)
+            ->cols([
+                'gibbonFamilyChild.gibbonFamilyID',
+                'gibbonPerson.gibbonPersonID',
+                'gibbonPerson.preferredName',
+                'gibbonPerson.surname',
+                $this->getEnrollmentFeesSQLstatments('totalFees') . ' as totalFees',
+            ])
+            ->groupBy(['gibbonFamilyChild.gibbonFamilyID', 'gibbonPerson.gibbonPersonID', 'gibbonPerson.preferredName', 'gibbonPerson.surname'])
+            ->orderBy(['gibbonPerson.preferredName']);
+
+        $names = [];
+        foreach ($this->runSelect($query)->fetchAll() as $child) {
+            if ((float) $child['totalFees'] > 0) {
+                $names[$child['gibbonFamilyID']][] = trim($child['preferredName'] . ' ' . $child['surname']);
+            }
+        }
+        return $names;
+    }
+
     public function getFamilyInfo($gibbonFamilyID)
     {
         $query = $this
