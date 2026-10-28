@@ -102,6 +102,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
 
     $table = DataTable::createPaginated('familyDue', $criteria);
 
+    $table->addHeaderAction('export', __('Export to Excel'))
+        ->setURL('/modules/Sepa/sepa_family_balance_export.php')
+        ->addParam('schoolYearID', $schoolYearID)
+        ->addParam('periodFrom', Format::date($periodFrom))
+        ->addParam('periodTo', Format::date($periodTo))
+        ->addParam('search', $search)
+        ->directLink()
+        ->displayLabel();
+
     $table->addColumn('familyName', __('Family Name'));
     $table->addColumn('payer', __('Payer'));
     $table->addColumn('withdrawCadence', __('Withdrawal'))->notSortable()->format(function ($row) use ($cadences) {

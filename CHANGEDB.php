@@ -95,5 +95,5 @@ ALTER TABLE gibbonSEPA ADD COLUMN `withdrawCadence` ENUM('Monthly','HalfYearly',
 ALTER TABLE gibbonSEPA ADD COLUMN `withdrawDay` TINYINT UNSIGNED DEFAULT 5 COMMENT 'Preferred day of the month for the withdrawal (1-31)' AFTER `withdrawCadence`;end
 UPDATE gibbonSEPA SET withdrawDay=5 WHERE withdrawDay IS NULL;end
 ALTER TABLE gibbonSEPAPaymentEntry MODIFY COLUMN `IBAN` VARCHAR(255) NULL COMMENT 'AES-256-GCM encrypted, see IbanCipher';end
-UPDATE gibbonAction SET URLList='sepa_family_totals.php, sepa_family_details.php, sepa_family_due.php' WHERE name='Family Balance' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');end
+UPDATE gibbonAction SET URLList='sepa_family_totals.php, sepa_family_details.php, sepa_family_due.php, sepa_family_balance_export.php' WHERE name='Family Balance' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');end
 UPDATE gibbonAction SET URLList='import_sepa_data.php, import_sepa_from_form.php' WHERE name='Import Family SEPA' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
