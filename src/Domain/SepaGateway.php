@@ -102,8 +102,9 @@ class SepaGateway extends QueryableGateway
     /**
      * Writable gibbonSEPA columns for the given form / import data.
      * The IBAN is encrypted here, so every insert / update goes through the same path.
+     * With $skipEmpty (updates) only the fields that have a value are returned.
      */
-    private function getSEPAColumns($sepaData)
+    private function getSEPAColumns($sepaData, $skipEmpty = false)
     {
         $columns = [
             'payer' => trim($sepaData['payer']),
@@ -121,6 +122,13 @@ class SepaGateway extends QueryableGateway
         $day = $sepaData['withdrawDay'] ?? '';
         if ($day !== '' && (int) $day >= 1 && (int) $day <= 31) {
             $columns['withdrawDay'] = (int) $day;
+        }
+
+        // Updates from an import: empty / unmapped values keep the stored data
+        if ($skipEmpty) {
+            $columns = array_filter($columns, function ($value) {
+                return $value !== null && $value !== '';
+            });
         }
 
         return $columns;
@@ -940,7 +948,7 @@ class SepaGateway extends QueryableGateway
         $query = $this
             ->newUpdate()
             ->table('gibbonSEPA')
-            ->cols($this->getSEPAColumns($sepaData))
+            ->cols($this->getSEPAColumns($sepaData, true))
             ->where('gibbonFamilyID = :gibbonFamilyID')
             ->bindValue('gibbonFamilyID', $gibbonFamilyID);
 
@@ -952,7 +960,7 @@ public function updateSEPABySEPAID($SEPAID, $sepaData)
         $query = $this
             ->newUpdate()
             ->table('gibbonSEPA')
-            ->cols($this->getSEPAColumns($sepaData))
+            ->cols($this->getSEPAColumns($sepaData, true))
             ->where('gibbonSEPAID = :SEPAID')
             ->bindValue('SEPAID', $SEPAID);
 
