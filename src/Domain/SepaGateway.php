@@ -949,10 +949,10 @@ class SepaGateway extends QueryableGateway
     }
 
     /**
-     * Names of the children whose courses make up the family's fees in the school year
-     * (children without any fee in the year are left out). Keyed by family ID.
+     * Names of the children whose courses make up the fees due in the period
+     * (children without any fee due in the period are left out). Keyed by family ID.
      */
-    public function getBilledChildrenNamesByFamily($schoolYearID)
+    public function getBilledChildrenNamesByFamily($schoolYearID, $periodStart, $periodEnd)
     {
         $query = $this->getEnrollmentFeesBaseQuery($schoolYearID)
             ->cols([
@@ -960,8 +960,10 @@ class SepaGateway extends QueryableGateway
                 'gibbonPerson.gibbonPersonID',
                 'gibbonPerson.preferredName',
                 'gibbonPerson.surname',
-                $this->getEnrollmentFeesSQLstatments('totalFees') . ' as totalFees',
+                $this->getEnrollmentFeesSQLstatments('periodFees') . ' as totalFees',
             ])
+            ->bindValue('periodStart', date('Y-m-01', strtotime($periodStart)))
+            ->bindValue('periodEnd', date('Y-m-01', strtotime($periodEnd)))
             ->groupBy(['gibbonFamilyChild.gibbonFamilyID', 'gibbonPerson.gibbonPersonID', 'gibbonPerson.preferredName', 'gibbonPerson.surname'])
             ->orderBy(['gibbonPerson.preferredName']);
 

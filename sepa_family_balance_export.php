@@ -47,8 +47,8 @@ $cadences = SepaGateway::getWithdrawCadenceOptions();
 
 $onlyWithdraw = !empty($_GET['onlyWithdraw']);
 
-// Children whose courses make up the fees, used as comment for the withdrawals
-$childrenByFamily = $periodFrom !== null ? $SepaGateway->getBilledChildrenNamesByFamily($schoolYearID) : [];
+// Children whose courses make up the amount due in the period, used as comment for the withdrawals
+$childrenByFamily = $periodFrom !== null ? $SepaGateway->getBilledChildrenNamesByFamily($schoolYearID, $periodFrom, $periodTo) : [];
 
 $exportData = [];
 foreach ($familyTotals as $row) {
