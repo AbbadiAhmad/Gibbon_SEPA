@@ -143,9 +143,6 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
         if (empty($sepa['withdrawDay'])) {
             $add('Warning', $familyName, $payer, __('Preferred withdrawal day is missing'), $link);
         }
-        if (!empty($sepa['BIC']) && !preg_match('/^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/', $sepa['BIC'])) {
-            $add('Warning', $familyName, $payer, __('BIC has an unusual format'), $link);
-        }
         if (!isset($enrolledFamilies[$sepa['gibbonFamilyID']])) {
             $add('Warning', $familyName, $payer, __('The family has no enrolled students in the selected academic year'), $link);
         }
