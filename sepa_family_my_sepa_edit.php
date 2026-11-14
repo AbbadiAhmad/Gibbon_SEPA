@@ -54,6 +54,14 @@ $sepa = $sepas[0] ?? SepaChangeRequestGateway::emptySepa();
 $pending = $requestGateway->getPending($sepa['gibbonSEPAID'], $gibbonFamilyID);
 $values = $pending ? SepaChangeRequestGateway::enteredValues($pending, $sepa) : SepaChangeRequestGateway::clearValues($sepa);
 $current = SepaChangeRequestGateway::clearValues($sepa);
+if ($isNew) {
+    // defaults of a new SEPA: day 5, signed on the day the data is entered
+    foreach (SepaChangeRequestGateway::newSepaDefaults($pending) as $field => $default) {
+        if ((string) $values[$field] === '') {
+            $values[$field] = $default;
+        }
+    }
+}
 
 if (!empty($_SESSION[$guid]['sepaMyError'])) {
     echo "<div class='error'>" . htmlspecialchars($_SESSION[$guid]['sepaMyError'], ENT_QUOTES, 'UTF-8') . '</div>';

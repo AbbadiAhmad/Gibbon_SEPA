@@ -60,6 +60,22 @@ class SepaChangeRequestGateway extends QueryableGateway
         return $this->runSelect($query)->fetch() ?: null;
     }
 
+    /**
+     * Defaults of a new SEPA for what the family left empty: withdrawal on day 5, monthly, and the
+     * date the family entered the data as date of signature.
+     *
+     * @param array|null $request the request (its creation date is used), null: today
+     */
+    public static function newSepaDefaults(?array $request = null)
+    {
+        $created = !empty($request['timestampSubmitted']) ? substr((string) $request['timestampSubmitted'], 0, 10) : date('Y-m-d');
+        return [
+            'withdrawCadence' => SepaGateway::DEFAULT_WITHDRAW_CADENCE,
+            'withdrawDay' => (string) SepaGateway::DEFAULT_WITHDRAW_DAY,
+            'SEPA_signedDate' => $created,
+        ];
+    }
+
     /** A SEPA row without data: the "current" data of a family that has no SEPA yet. */
     public static function emptySepa()
     {

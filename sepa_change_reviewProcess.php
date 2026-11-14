@@ -64,9 +64,14 @@ try {
             $decision['final']['SEPA_signedDate'] = SepaChangeRequestGateway::clearValues($sepa)['SEPA_signedDate'] ?: null;
         }
         $hasChanges = !empty(SepaChangeRequestGateway::describeChanges($sepa, $decision['final']));
-        if ($hasChanges && empty($decision['final']['withdrawCadence'])) {
-            $decision['final']['withdrawCadence'] = \Gibbon\Module\Sepa\Domain\SepaGateway::DEFAULT_WITHDRAW_CADENCE;
-            $decision['finalClear']['withdrawCadence'] = $decision['final']['withdrawCadence'];
+        if ($hasChanges && !$target) {
+            // a new SEPA: day 5, monthly and signed on the day the family entered it, unless set
+            foreach (SepaChangeRequestGateway::newSepaDefaults($request) as $field => $default) {
+                if (empty($decision['final'][$field])) {
+                    $decision['final'][$field] = $default;
+                    $decision['finalClear'][$field] = $default;
+                }
+            }
         }
 
         // The checks are made on the values that are saved; errors need a confirmation.

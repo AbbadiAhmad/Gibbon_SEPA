@@ -80,7 +80,12 @@ if ($signed === '' && trim((string) ($_POST['SEPA_signedDate'] ?? '')) !== '') {
     header('Location: ' . $URL . '&return=error3');
     exit;
 }
-if ($signed === '') {
+if ($isNew) {
+    // a new SEPA: day 5 and the day the family entered the data, unless something else is entered
+    $defaults = SepaChangeRequestGateway::newSepaDefaults($requestGateway->getPending(null, $gibbonFamilyID));
+    $day = $day ?: (int) $defaults['withdrawDay'];
+    $signed = $signed ?: $defaults['SEPA_signedDate'];
+} elseif ($signed === '') {
     $signed = $existingSigned;
 } elseif ($existingSigned !== '' && $signed < $existingSigned) {
     $_SESSION[$guid]['sepaMyError'] = sprintf(__('The date of the SEPA signature can not be earlier than the existing date (%s).'), Format::date($existingSigned));

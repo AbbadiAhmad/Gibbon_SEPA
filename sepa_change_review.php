@@ -89,6 +89,15 @@ $values = $entered;
 $values['IBAN'] = (string) $entered['IBAN'];
 // ticked by default: only what the family really changed (to a value that is not empty)
 $accept = SepaChangeRequestGateway::defaultAccept($entered, SepaChangeRequestGateway::clearValues($sepa));
+if ($isPending && $isNew && !$draft) {
+    // a new SEPA: what the family left empty gets the defaults (day 5, signed when entered)
+    foreach (SepaChangeRequestGateway::newSepaDefaults($request) as $field => $default) {
+        if ((string) $values[$field] === '') {
+            $values[$field] = $default;
+            $accept[$field] = true;
+        }
+    }
+}
 if ($isPending && $draft) {
     $values = SepaChangeRequestGateway::cleanReviewValues($draft['value'] ?? [], $values);
     foreach ($accept as $field => $on) {
