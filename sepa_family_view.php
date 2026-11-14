@@ -49,6 +49,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
         ->sortBy(['SEPA_signedDate'])
         ->fromPOST();
 
+    // Filter on the withdrawal cadence
+    $cadences = SepaGateway::getWithdrawCadenceOptions();
+    $cadence = in_array($_GET['cadence'] ?? '', SepaGateway::WITHDRAW_CADENCES, true) ? $_GET['cadence'] : '';
+    if ($cadence !== '') {
+        $criteria->filterBy('cadence', $cadence);
+    }
+
 
     // SQL or Gateway query, as a dataset
     // For a OO datatable, see https:// gist.github.com/SKuipers/e176454a2feb555126c2147865bd0626
@@ -61,6 +68,10 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
         $row->addLabel('search', __m('Search For'))
             ->description(__m('Payer, custom fields'));
         $row->addTextField('search')->setValue($criteria->getSearchText());
+
+    $row = $form->addRow();
+        $row->addLabel('cadence', __m('Withdrawal cadence'));
+        $row->addSelect('cadence')->fromArray($cadences)->selected($cadence)->placeholder(__m('All'));
 
     $form->addRow()->addSearchSubmit('', __m('Clear Search'));
 
@@ -123,6 +134,11 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
         ->displayLabel();
 
     $table->addColumn('payer', __m('Payer'));
+
+    $table->addColumn('withdrawCadence', __m('Withdrawal cadence'))
+        ->format(function ($row) use ($cadences) {
+            return $cadences[$row['withdrawCadence']] ?? $row['withdrawCadence'];
+        });
 
     $table->addColumn('adults', __m('Adults'))
         ->notSortable()

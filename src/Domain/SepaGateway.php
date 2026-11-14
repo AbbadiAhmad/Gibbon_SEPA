@@ -167,6 +167,14 @@ class SepaGateway extends QueryableGateway
                 ->bindValue("gibbonSEPAIDList", $gibbonSEPAIDList);
         }
 
+        // filter on the withdrawal cadence (Monthly, HalfYearly, Yearly)
+        $criteria->addFilterRules([
+            'cadence' => function ($query, $cadence) {
+                return $query->where('gibbonSEPA.withdrawCadence = :filterCadence')
+                    ->bindValue('filterCadence', $cadence);
+            },
+        ]);
+
         return $this->runQuery($query, $criteria);
     }
 
