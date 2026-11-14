@@ -183,6 +183,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         $validData = [];
         $otherData = [];
         $validDataCount = 0;
+        $negativeCount = 0;
 
         foreach ($data as $rowIndex => $row) {
 
@@ -256,6 +257,9 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
                         }
 
                         $validDataCount++;
+                        if ((float)$mappedRow['amount'] < 0) {
+                            $negativeCount++;
+                        }
                     }
 
                 } catch (Exception $e) {
@@ -303,6 +307,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         $form = Form::create('importStep3', $StepLink . '4');
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
+        if ($negativeCount > 0) {
+            echo "<div class='warning'>" . sprintf(__m('%d rows have a negative amount (e.g. rejected/refunded orders). These will increase the amount owed by the payer instead of reducing it.'), $negativeCount) . "</div>";
+            $row = $form->addRow();
+            $row->addLabel('confirmNegative', __m('Confirm negative amounts'));
+            $row->addCheckbox('confirmNegative')->description(__m('I understand negative amounts will increase the amount owed.'))->setValue('Y');
+        }
+
         $row = $form->addRow();
         $row->addFooter();
         $row->addSubmit(__m('Proceed to Import'));
@@ -321,9 +332,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         $SepaGateway = $container->get(SepaGateway::class);
         $count = 0;
         $unprocessedRows = [];
+        $negativeConfirmed = ($_POST['confirmNegative'] ?? '') === 'Y';
         foreach ($data as $index => $row) {
             if ($row['__RowCanBeImported__']) {
                 try {
+                    if ((float)$row['amount'] < 0 && !$negativeConfirmed) {
+                        throw new Exception('Negative amount not confirmed');
+                    }
                     $row = $container->get(Validator::class)->sanitize($row);
                     $result = $SepaGateway->insertPayment($row, $_SESSION[$guid]["username"]);
                     if (!$result) {

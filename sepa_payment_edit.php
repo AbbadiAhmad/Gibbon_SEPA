@@ -92,7 +92,29 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
 
     $row = $form->addRow();
     $row->addLabel('amount', __m('Amount'));
-    $row->addNumber('amount')->required()->decimalPlaces(2)->minimum(0)->setValue($payment['amount']);
+    $row->addNumber('amount')->required()->decimalPlaces(2)->setValue($payment['amount']);
+
+    // A negative amount (e.g. a rejected/refunded SEPA order) increases what the payer owes.
+    // The admin has to explicitly confirm it.
+    $row = $form->addRow('negativeConfirmRow')->addClass('hidden');
+    $row->addLabel('confirmNegative', __m('Confirm negative amount'))
+        ->description(__m('A negative payment increases the amount owed by the payer instead of reducing it.'));
+    $row->addCheckbox('confirmNegative')->description(__m('I understand this negative amount will increase the amount owed.'))->setValue('Y');
+    $form->addRow()->addContent("<script>
+        (function () {
+            var amount = document.getElementById('amount');
+            var row = document.getElementById('negativeConfirmRow');
+            var box = document.getElementById('confirmNegative');
+            function toggle() {
+                var neg = parseFloat((amount.value || '').replace(',', '.')) < 0;
+                row.classList.toggle('hidden', !neg);
+                row.style.display = neg ? '' : 'none';
+                if (!neg && box) box.checked = false;
+            }
+            amount.addEventListener('input', toggle);
+            toggle();
+        })();
+    </script>");
 
     $row = $form->addRow();
     $row->addLabel('payer', __m('Payer'));

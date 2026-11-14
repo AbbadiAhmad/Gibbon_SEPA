@@ -47,6 +47,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
         'gibbonSEPAID' => $_POST['gibbonSEPAID'] ?? null,
     ];
 
+    // Negative amounts (rejected/refunded orders) must be explicitly confirmed by the admin.
+    if (is_numeric($paymentData['amount']) && (float)$paymentData['amount'] < 0 && ($_POST['confirmNegative'] ?? '') !== 'Y') {
+        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_edit.php&gibbonSEPAPaymentRecordID={$gibbonSEPAPaymentRecordID}&return=error1");
+        exit;
+    }
+
     // Try to match with existing SEPA record
     $sepaMatches = $SepaGateway->getSEPAForPaymentEntry($paymentData);
     if ($sepaMatches && count($sepaMatches) == 1) {
