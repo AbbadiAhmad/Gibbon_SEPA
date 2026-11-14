@@ -101,6 +101,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
     
     $table->addActionColumn()
         ->addParam('gibbonSEPAPaymentRecordID')
+        ->addParam('linkOnly', 'Y')
         ->format(function ($row, $actions) {
             $actions->addAction('Add', '')
                 ->setURL('/modules/Sepa/sepa_payment_edit.php');

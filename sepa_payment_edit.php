@@ -25,6 +25,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
     $gibbonSEPAPaymentRecordID = $_GET['gibbonSEPAPaymentRecordID'] ?? '';
     $family_details = $_GET['family_details'] ?? '';
     $LockFamily = $_GET['LockFamily'] ?? false;
+    $linkOnly = ($_GET['linkOnly'] ?? '') === 'Y';
 
 
     if (empty($gibbonSEPAPaymentRecordID)) {
@@ -48,9 +49,9 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
         return;
     }
 
-    // An unlinked payment (usually imported from a bank statement) is only assigned to a family:
-    // its values are shown read-only and cannot be changed here.
-    if (empty($payment['gibbonSEPAID'])) {
+    // Coming from the Unlinked Payments list (usually bank statement data): the payment is only
+    // assigned to a family and its values are shown read-only. The normal edit page stays editable.
+    if ($linkOnly && empty($payment['gibbonSEPAID'])) {
         $form = Form::create('paymentLink', $session->get('absoluteURL') . '/modules/Sepa/sepa_payment_editProcess.php');
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
         $form->addHiddenValue('gibbonSEPAPaymentRecordID', $gibbonSEPAPaymentRecordID);
