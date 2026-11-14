@@ -172,7 +172,7 @@ function sepaRenderChangeLog(array $logRows, $showFamily = true)
         return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
     };
     $events = ['Submitted' => __('Entered'), 'Updated' => __('Entries changed'), 'Discarded' => __('Discarded'), 'Approved' => __('Approved'), 'Rejected' => __('Rejected')];
-    $labels = ['payer' => __('Account holder'), 'IBAN' => __('IBAN'), 'BIC' => __('BIC'), 'withdrawCadence' => __('Withdrawal cadence'), 'withdrawDay' => __('Preferred withdrawal day')];
+    $labels = ['payer' => __('Account holder'), 'IBAN' => __('IBAN'), 'BIC' => __('BIC'), 'withdrawCadence' => __('Withdrawal cadence'), 'withdrawDay' => __('Preferred withdrawal day'), 'SEPA_signedDate' => __('Date of SEPA signature')];
 
     if (empty($logRows)) {
         return '<p><em>' . __('The log is empty.') . '</em></p>';

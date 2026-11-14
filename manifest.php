@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.6.0';            // Version number
+$version = '2.6.1';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -136,6 +136,7 @@ $moduleTables[] = "
     `BIC` varchar(11) DEFAULT NULL,
     `withdrawCadence` enum('Monthly','HalfYearly','Yearly') NOT NULL DEFAULT 'Monthly',
     `withdrawDay` tinyint unsigned DEFAULT NULL,
+    `SEPA_signedDate` date DEFAULT NULL,
     `status` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending' COMMENT 'Entered by the family, applied to the SEPA when approved',
     `gibbonPersonIDSubmitted` int(10) unsigned zerofill NOT NULL,
     `timestampSubmitted` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

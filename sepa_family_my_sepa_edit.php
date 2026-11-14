@@ -53,6 +53,10 @@ $pending = $requestGateway->getPendingBySEPAID($sepa['gibbonSEPAID']);
 $values = SepaChangeRequestGateway::clearValues($pending ?: $sepa);
 $current = SepaChangeRequestGateway::clearValues($sepa);
 
+if (!empty($_SESSION[$guid]['sepaMyError'])) {
+    echo "<div class='error'>" . htmlspecialchars($_SESSION[$guid]['sepaMyError'], ENT_QUOTES, 'UTF-8') . '</div>';
+    unset($_SESSION[$guid]['sepaMyError']);
+}
 echo '<h2>' . __('Change my SEPA data') . '</h2>';
 echo "<div class='message'>" . __('Your changes are checked by the school administration before they apply. Until then, the current data stays valid. You can change or discard your entries at any time.') . '</div>';
 
@@ -81,6 +85,12 @@ $row->addSelect('withdrawCadence')->fromArray(SepaGateway::getWithdrawCadenceOpt
 $row = $form->addRow();
 $row->addLabel('withdrawDay', __('Preferred withdrawal day'))->description(__('Preferred day of the month for the withdrawal.'));
 $row->addSelect('withdrawDay')->fromArray(SepaGateway::getWithdrawDayOptions())->placeholder()->selected($values['withdrawDay']);
+
+$row = $form->addRow();
+$row->addLabel('SEPA_signedDate', __('Date of SEPA signature'))->description($current['SEPA_signedDate']
+    ? sprintf(__('Can not be earlier than the existing date (%s).'), \Gibbon\Services\Format::date($current['SEPA_signedDate']))
+    : '');
+$row->addDate('SEPA_signedDate')->setValue($values['SEPA_signedDate'] ? \Gibbon\Services\Format::date($values['SEPA_signedDate']) : '');
 
 $row = $form->addRow();
 $row->addContent('<a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_family_my_sepa.php">' . __('Back') . '</a>');

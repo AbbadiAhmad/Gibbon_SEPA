@@ -31,3 +31,4 @@ v2.5.1: SEPA check finds SEPAs whose family does not exist and offers 'Merge wit
 v2.5.2: Courses Fee: copy the fees from the previous academic year (courses matched by name, only courses without a fee), empty field = fee not set; pages with balances/totals warn when a course with enrolled students has no fee.
 v2.6.0: Families can enter changes of their SEPA data on 'View SEPA - my family' (new permission 'Edit SEPA - my family', not given to any role by default). The changes are recorded until approved in 'Approve SEPA Changes', where errors and warnings (e.g. invalid IBAN) are flagged. The family sees the current and the entered values and can change the entries or discard them.
 v2.6.0 (log): every entry, change, discard, approval and rejection is logged (what, when, who); IBANs in the log stay encrypted.
+v2.6.1: Families can also change the date of the SEPA signature, not earlier than the existing date (checked when entering and again on approval).

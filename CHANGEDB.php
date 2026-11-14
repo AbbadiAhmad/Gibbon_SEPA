@@ -179,3 +179,8 @@ INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, descriptio
 INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='Edit SEPA - my family' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');end
 INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'Approve SEPA Changes', 20, 'SEPA', 'Review and approve or reject the SEPA changes entered by families', 'sepa_change_requests.php, sepa_change_review.php, sepa_change_reviewProcess.php', 'sepa_change_requests.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
 INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='Approve SEPA Changes' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.6.1 - families can also change the date of the SEPA signature (not earlier than the existing date)
+$count++;
+$sql[$count][0] = "2.6.1";
+$sql[$count][1] = "ALTER TABLE gibbonSEPAChangeRequest ADD COLUMN `SEPA_signedDate` date DEFAULT NULL AFTER `withdrawDay`;";

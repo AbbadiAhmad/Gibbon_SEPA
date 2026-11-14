@@ -18,6 +18,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
 use Gibbon\Data\Validator;
+use Gibbon\Services\Format;
 use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway;
 use Gibbon\Module\Sepa\Security\IbanCipher;
@@ -69,6 +70,21 @@ $cadence = in_array($_POST['withdrawCadence'] ?? '', SepaGateway::WITHDRAW_CADEN
 $day = (int) ($_POST['withdrawDay'] ?? 0);
 $day = ($day >= 1 && $day <= 31) ? $day : null;
 
+// Date of the signature: empty keeps the existing date, never earlier than the existing date
+$signed = !empty($_POST['SEPA_signedDate']) ? Format::dateConvert($_POST['SEPA_signedDate']) : '';
+$existingSigned = (string) ($sepa['SEPA_signedDate'] ?? '');
+if ($signed !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $signed)) {
+    header('Location: ' . $URL . '&return=error3');
+    exit;
+}
+if ($signed === '') {
+    $signed = $existingSigned;
+} elseif ($existingSigned !== '' && $signed < $existingSigned) {
+    $_SESSION[$guid]['sepaMyError'] = sprintf(__('The date of the SEPA signature can not be earlier than the existing date (%s).'), Format::date($existingSigned));
+    header('Location: ' . $URL);
+    exit;
+}
+
 if ($payer === '' || mb_strlen($payer) > 255 || mb_strlen($iban) > 40 || strlen($bic) > 11) {
     header('Location: ' . $URL . '&return=error3');
     exit;
@@ -82,13 +98,13 @@ try {
     exit;
 }
 
-$values = ['payer' => $payer, 'IBAN' => $storedIban, 'BIC' => $bic ?: null, 'withdrawCadence' => $cadence, 'withdrawDay' => $day];
+$values = ['payer' => $payer, 'IBAN' => $storedIban, 'BIC' => $bic ?: null, 'withdrawCadence' => $cadence, 'withdrawDay' => $day, 'SEPA_signedDate' => $signed ?: null];
 
 // Nothing changed: no request is needed (and an open one is dropped)
 $new = SepaChangeRequestGateway::clearValues($values);
 $old = SepaChangeRequestGateway::clearValues($sepa);
 $sameIban = IbanCipher::normalize((string) $new['IBAN']) === IbanCipher::normalize((string) $old['IBAN']);
-if ($sameIban && $new['payer'] === $old['payer'] && $new['BIC'] === $old['BIC'] && $new['withdrawCadence'] === $old['withdrawCadence'] && (string) $new['withdrawDay'] === (string) $old['withdrawDay']) {
+if ($sameIban && $new['payer'] === $old['payer'] && $new['BIC'] === $old['BIC'] && $new['withdrawCadence'] === $old['withdrawCadence'] && (string) $new['withdrawDay'] === (string) $old['withdrawDay'] && $new['SEPA_signedDate'] === $old['SEPA_signedDate']) {
     $requestGateway->discardPending($sepa['gibbonSEPAID'], $personID);
     $_SESSION[$guid]['sepaMyNotice'] = __('Nothing is different from the current data, so there is nothing to approve.');
     header('Location: ' . $URLView . '&return=success0');

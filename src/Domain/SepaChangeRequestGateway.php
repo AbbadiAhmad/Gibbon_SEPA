@@ -21,7 +21,7 @@ class SepaChangeRequestGateway extends QueryableGateway
     private static $searchableColumns = ['payer'];
 
     /** The SEPA fields a family can change. */
-    const FIELDS = ['payer', 'IBAN', 'BIC', 'withdrawCadence', 'withdrawDay'];
+    const FIELDS = ['payer', 'IBAN', 'BIC', 'withdrawCadence', 'withdrawDay', 'SEPA_signedDate'];
 
     public function getByID($gibbonSEPAChangeRequestID)
     {
@@ -85,6 +85,7 @@ class SepaChangeRequestGateway extends QueryableGateway
             'BIC' => $values['BIC'],
             'withdrawCadence' => $values['withdrawCadence'],
             'withdrawDay' => $values['withdrawDay'],
+            'SEPA_signedDate' => $values['SEPA_signedDate'],
         ];
 
         $sepa = $this->getSepaRow($gibbonSEPAID);
@@ -161,6 +162,7 @@ class SepaChangeRequestGateway extends QueryableGateway
                 'BIC' => $request['BIC'],
                 'withdrawCadence' => $request['withdrawCadence'],
                 'withdrawDay' => $request['withdrawDay'],
+                'SEPA_signedDate' => $request['SEPA_signedDate'],
             ])
             ->where('gibbonSEPAID = :gibbonSEPAID')
             ->bindValue('gibbonSEPAID', $request['gibbonSEPAID']);
@@ -397,6 +399,7 @@ class SepaChangeRequestGateway extends QueryableGateway
             'BIC' => (string) ($row['BIC'] ?? ''),
             'withdrawCadence' => (string) ($row['withdrawCadence'] ?? ''),
             'withdrawDay' => (string) ($row['withdrawDay'] ?? ''),
+            'SEPA_signedDate' => (string) ($row['SEPA_signedDate'] ?? ''),
         ];
     }
 
@@ -468,6 +471,20 @@ class SepaChangeRequestGateway extends QueryableGateway
         $day = $new['withdrawDay'];
         if ($day === '' || (int) $day < 1 || (int) $day > 31) {
             $flag('Warning', 'dayMissing', __('Preferred withdrawal day is missing'));
+        }
+
+        // Date of the SEPA signature: not earlier than the existing date
+        $signed = trim((string) ($new['SEPA_signedDate'] ?? ''));
+        $signedBefore = trim((string) ($current['SEPA_signedDate'] ?? ''));
+        if ($signed !== '') {
+            if ($signedBefore !== '' && $signed < $signedBefore) {
+                $flag('Error', 'signedEarlier', sprintf(__('The date of the SEPA signature is earlier than the existing date (%s)'), $signedBefore));
+            } elseif ($signed > date('Y-m-d')) {
+                $flag('Warning', 'signedFuture', __('The date of the SEPA signature is in the future'));
+            }
+            if ($signedBefore !== '' && $signed > $signedBefore) {
+                $flag('Warning', 'signedChanged', __('The date of the SEPA signature is changed'));
+            }
         }
 
         // What differs from the current SEPA deserves attention

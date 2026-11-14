@@ -95,6 +95,7 @@ $rows = [
     __('BIC') => [$current['BIC'], $entered['BIC']],
     __('Withdrawal cadence') => [$cadences[$current['withdrawCadence']] ?? $current['withdrawCadence'], $cadences[$entered['withdrawCadence']] ?? $entered['withdrawCadence']],
     __('Preferred withdrawal day') => [$current['withdrawDay'], $entered['withdrawDay']],
+    __('Date of SEPA signature') => [$current['SEPA_signedDate'] ? Format::date($current['SEPA_signedDate']) : '', $entered['SEPA_signedDate'] ? Format::date($entered['SEPA_signedDate']) : ''],
 ];
 $html = '<table class="fullWidth colorOddEven"><thead><tr><th></th><th>' . __('Current') . '</th><th>' . __('Entered by the family') . '</th></tr></thead><tbody>';
 foreach ($rows as $label => [$old, $new]) {

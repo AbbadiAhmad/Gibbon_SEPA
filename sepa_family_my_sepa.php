@@ -129,6 +129,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
                     __('BIC') => [$current['BIC'], $entered['BIC']],
                     __('Withdrawal cadence') => [$cadences[$current['withdrawCadence']] ?? '', $cadences[$entered['withdrawCadence']] ?? ''],
                     __('Preferred withdrawal day') => [$current['withdrawDay'], $entered['withdrawDay']],
+                    __('Date of SEPA signature') => [$current['SEPA_signedDate'] ? \Gibbon\Services\Format::date($current['SEPA_signedDate']) : '', $entered['SEPA_signedDate'] ? \Gibbon\Services\Format::date($entered['SEPA_signedDate']) : ''],
                 ];
                 foreach ($compare as $label => [$old, $new]) {
                     $changed = (string) $old !== (string) $new;
@@ -139,7 +140,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
                 // Problems of the entered values (no data of other families)
                 $others = $entered['IBAN'] ? $requestGateway->getOtherFamiliesWithIban($entered['IBAN'], $sepa['gibbonSEPAID']) : [];
                 foreach (SepaChangeRequestGateway::validate($entered, $current, $requestGateway->getAdultSurnames($gibbonFamilyID), $others) as $flag) {
-                    if (in_array($flag['code'], ['ibanChanged', 'payerChanged'], true)) {
+                    if (in_array($flag['code'], ['ibanChanged', 'payerChanged', 'signedChanged'], true)) {
                         continue;
                     }
                     $text = $flag['code'] === 'sharedIban' ? __('The IBAN is also used by another family.') : $flag['text'];
