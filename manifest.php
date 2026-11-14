@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.6.1';            // Version number
+$version = '2.7.0';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -623,6 +623,26 @@ $actionRows[] = [
     'description' => 'Review and approve or reject the SEPA changes entered by families',
     'URLList' => 'sepa_change_requests.php, sepa_change_review.php, sepa_change_reviewProcess.php',
     'entryURL' => 'sepa_change_requests.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'SEPA Change Log',
+    'precedence' => '21',
+    'category' => 'SEPA',
+    'description' => 'Log of the SEPA changes entered by families, with data retention',
+    'URLList' => 'sepa_change_log.php, sepa_change_logProcess.php',
+    'entryURL' => 'sepa_change_log.php',
     'entrySidebar' => 'Y',
     'menuShow' => 'Y',
     'defaultPermissionAdmin' => 'Y',

@@ -80,7 +80,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
 
     $table->addExpandableColumn('gibbonSEPA')
         ->format(
-            function ($row) use ($CustomFieldsGateway) {
+            function ($row) use ($CustomFieldsGateway, $container, $session, $guid, $connection2) {
                 $customFields = $CustomFieldsGateway->getCustomFields();
                 $output_text = '';
                 $cadences = SepaGateway::getWithdrawCadenceOptions();
@@ -103,6 +103,14 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
                         $output_text .= "<p>" . htmlspecialchars($field['title'], ENT_QUOTES, 'UTF-8') . ": " . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . "</p>";
                     }
 
+                }
+                // History of changes entered by the family and their approval
+                if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_change_log.php')) {
+                    $history = $container->get(\Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway::class)->selectLog($row['gibbonSEPAID'], 10);
+                    if (!empty($history)) {
+                        $output_text .= '<h4>' . __('History of changes') . '</h4>' . sepaRenderChangeLog($history, false)
+                            . '<p><a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_log.php&sepa=' . (int) $row['gibbonSEPAID'] . '">' . __('Open the full log') . '</a></p>';
+                    }
                 }
                 return $output_text;
             }

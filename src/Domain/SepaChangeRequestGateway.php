@@ -4,6 +4,7 @@ namespace Gibbon\Module\Sepa\Domain;
 
 use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\QueryableGateway;
+use Gibbon\Domain\QueryCriteria;
 use Gibbon\Module\Sepa\Security\IbanCipher;
 
 /**
@@ -19,6 +20,9 @@ class SepaChangeRequestGateway extends QueryableGateway
     private static $tableName = 'gibbonSEPAChangeRequest';
     private static $primaryKey = 'gibbonSEPAChangeRequestID';
     private static $searchableColumns = ['payer'];
+
+    /** Log lines and decided requests are kept for this long, only older data can be deleted. */
+    const RETENTION = '-2 years';
 
     /** The SEPA fields a family can change. */
     const FIELDS = ['payer', 'IBAN', 'BIC', 'withdrawCadence', 'withdrawDay', 'SEPA_signedDate'];
@@ -278,6 +282,82 @@ class SepaChangeRequestGateway extends QueryableGateway
             ]);
 
         return $this->runInsert($query);
+    }
+
+    /**
+     * The log for the log page (paginated), with filters: event, from / to (Y-m-d), SEPA and a
+     * search text for the family name and the person.
+     */
+    public function queryLog(QueryCriteria $criteria)
+    {
+        $query = $this
+            ->newQuery()
+            ->cols(['gibbonSEPAChangeLog.*', 'gibbonFamily.name AS familyName', 'gibbonSEPA.payer', "CONCAT(gibbonPerson.preferredName, ' ', gibbonPerson.surname) AS personName"])
+            ->from('gibbonSEPAChangeLog')
+            ->leftJoin('gibbonFamily', 'gibbonFamily.gibbonFamilyID = gibbonSEPAChangeLog.gibbonFamilyID')
+            ->leftJoin('gibbonSEPA', 'gibbonSEPA.gibbonSEPAID = gibbonSEPAChangeLog.gibbonSEPAID')
+            ->leftJoin('gibbonPerson', 'gibbonPerson.gibbonPersonID = gibbonSEPAChangeLog.gibbonPersonID');
+
+        $criteria->addFilterRules([
+            'event' => function ($query, $event) {
+                return $query->where('gibbonSEPAChangeLog.event = :logEvent')->bindValue('logEvent', $event);
+            },
+            'from' => function ($query, $from) {
+                return $query->where('DATE(gibbonSEPAChangeLog.timestamp) >= :logFrom')->bindValue('logFrom', $from);
+            },
+            'to' => function ($query, $to) {
+                return $query->where('DATE(gibbonSEPAChangeLog.timestamp) <= :logTo')->bindValue('logTo', $to);
+            },
+            'sepa' => function ($query, $sepa) {
+                return $query->where('gibbonSEPAChangeLog.gibbonSEPAID = :logSepa')->bindValue('logSepa', $sepa);
+            },
+            'search' => function ($query, $search) {
+                return $query->where("(gibbonFamily.name LIKE :logSearch OR gibbonSEPA.payer LIKE :logSearch OR CONCAT(gibbonPerson.preferredName, ' ', gibbonPerson.surname) LIKE :logSearch)")
+                    ->bindValue('logSearch', '%' . $search . '%');
+            },
+        ]);
+
+        return $this->runQuery($query, $criteria);
+    }
+
+    /** Date before which data may be deleted. */
+    public static function retentionCutoff()
+    {
+        return date('Y-m-d H:i:s', strtotime(self::RETENTION));
+    }
+
+    /**
+     * Numbers of rows that are old enough to be deleted: log lines, and requests that were decided.
+     * Requests that are still waiting for approval are never counted.
+     *
+     * @return int[] log, requests
+     */
+    public function countExpired()
+    {
+        $cutoff = self::retentionCutoff();
+        $log = $this->runSelect($this->newSelect()->cols(['COUNT(*) AS total'])->from('gibbonSEPAChangeLog')->where('timestamp < :cutoff')->bindValue('cutoff', $cutoff))->fetch();
+        $requests = $this->runSelect($this->newSelect()->cols(['COUNT(*) AS total'])->from($this->getTableName())
+            ->where("status <> 'Pending' AND COALESCE(timestampReviewed, timestampUpdated, timestampSubmitted) < :cutoff")->bindValue('cutoff', $cutoff))->fetch();
+
+        return ['log' => (int) ($log['total'] ?? 0), 'requests' => (int) ($requests['total'] ?? 0)];
+    }
+
+    /**
+     * Delete the log lines and decided requests older than the retention time. The cut-off is set
+     * here, nothing newer can be deleted whatever the caller passes.
+     *
+     * @return int[] deleted: log, requests
+     */
+    public function purgeExpired()
+    {
+        $counts = $this->countExpired();
+        $cutoff = self::retentionCutoff();
+
+        $this->runDelete($this->newDelete()->from('gibbonSEPAChangeLog')->where('timestamp < :cutoff')->bindValue('cutoff', $cutoff));
+        $this->runDelete($this->newDelete()->from($this->getTableName())
+            ->where("status <> 'Pending' AND COALESCE(timestampReviewed, timestampUpdated, timestampSubmitted) < :cutoff")->bindValue('cutoff', $cutoff));
+
+        return $counts;
     }
 
     /**

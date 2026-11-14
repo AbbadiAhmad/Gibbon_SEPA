@@ -160,19 +160,49 @@ function sepaMissingFeesWarning($gateway, $schoolYearID, $absoluteURL, $gibbonFa
 }
 
 /**
- * HTML table of the SEPA change log (who, when, what). For the administration only: the IBANs of the
- * log are stored encrypted and are decrypted here.
- *
- * @param array[] $logRows rows of SepaChangeRequestGateway::selectLog()
- * @param bool $showFamily show the family column
+ * The changes of one log line as HTML lines (old -> new). The IBANs of the log are stored encrypted
+ * and are decrypted here; for families ($forFamily) the IBAN is shown half hidden.
  */
-function sepaRenderChangeLog(array $logRows, $showFamily = true)
+function sepaFormatLogChanges($json, $forFamily = false)
 {
     $e = function ($value) {
         return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
     };
-    $events = ['Submitted' => __('Entered'), 'Updated' => __('Entries changed'), 'Discarded' => __('Discarded'), 'Approved' => __('Approved'), 'Rejected' => __('Rejected')];
     $labels = ['payer' => __('Account holder'), 'IBAN' => __('IBAN'), 'BIC' => __('BIC'), 'withdrawCadence' => __('Withdrawal cadence'), 'withdrawDay' => __('Preferred withdrawal day'), 'SEPA_signedDate' => __('Date of SEPA signature')];
+
+    [$changes, $note] = \Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway::readLogChanges($json);
+    $lines = [];
+    foreach ($changes as $field => [$old, $new]) {
+        if ($forFamily && $field === 'IBAN') {
+            $old = \Gibbon\Module\Sepa\Security\IbanCipher::maskForDisplay($old);
+            $new = \Gibbon\Module\Sepa\Security\IbanCipher::maskForDisplay($new);
+        }
+        $lines[] = '<strong>' . $e($labels[$field] ?? $field) . ':</strong> ' . $e($old === '' ? '-' : $old) . ' &rarr; ' . $e($new === '' ? '-' : $new);
+    }
+    if ($note !== '') {
+        $lines[] = '<em>' . __('Note') . ': ' . $e($note) . '</em>';
+    }
+    return $lines ? implode('<br>', $lines) : '-';
+}
+
+function sepaLogEventLabel($event)
+{
+    return ['Submitted' => __('Entered'), 'Updated' => __('Entries changed'), 'Discarded' => __('Discarded'), 'Approved' => __('Approved'), 'Rejected' => __('Rejected')][$event] ?? $event;
+}
+
+/**
+ * HTML table of the SEPA change log (who, when, what). For the administration the IBANs are shown
+ * in full; for the family ($forFamily) they are half hidden and the decisions are by the school administration.
+ *
+ * @param array[] $logRows rows of SepaChangeRequestGateway::selectLog()
+ * @param bool $showFamily show the family column
+ * @param bool $forFamily the log is shown to the family itself
+ */
+function sepaRenderChangeLog(array $logRows, $showFamily = true, $forFamily = false)
+{
+    $e = function ($value) {
+        return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
+    };
 
     if (empty($logRows)) {
         return '<p><em>' . __('The log is empty.') . '</em></p>';
@@ -180,17 +210,10 @@ function sepaRenderChangeLog(array $logRows, $showFamily = true)
     $html = '<table class="fullWidth colorOddEven"><thead><tr><th>' . __('When') . '</th><th>' . __('Who') . '</th>'
         . ($showFamily ? '<th>' . __('Family') . '</th>' : '') . '<th>' . __('What') . '</th><th>' . __('Changes (old -> new)') . '</th></tr></thead><tbody>';
     foreach ($logRows as $row) {
-        [$changes, $note] = \Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway::readLogChanges($row['changes']);
-        $lines = [];
-        foreach ($changes as $field => [$old, $new]) {
-            $lines[] = '<strong>' . $e($labels[$field] ?? $field) . ':</strong> ' . $e($old === '' ? '-' : $old) . ' &rarr; ' . $e($new === '' ? '-' : $new);
-        }
-        if ($note !== '') {
-            $lines[] = '<em>' . __('Note') . ': ' . $e($note) . '</em>';
-        }
-        $html .= '<tr><td>' . $e(\Gibbon\Services\Format::dateTime($row['timestamp'])) . '</td><td>' . $e($row['personName']) . '</td>'
+        $who = $forFamily && in_array($row['event'], ['Approved', 'Rejected'], true) ? __('School administration') : $row['personName'];
+        $html .= '<tr><td>' . $e(\Gibbon\Services\Format::dateTime($row['timestamp'])) . '</td><td>' . $e($who) . '</td>'
             . ($showFamily ? '<td>' . $e($row['familyName']) . '</td>' : '')
-            . '<td>' . $e($events[$row['event']] ?? $row['event']) . '</td><td>' . ($lines ? implode('<br>', $lines) : '-') . '</td></tr>';
+            . '<td>' . $e(sepaLogEventLabel($row['event'])) . '</td><td>' . sepaFormatLogChanges($row['changes'], $forFamily) . '</td></tr>';
     }
     return $html . '</tbody></table>';
 }

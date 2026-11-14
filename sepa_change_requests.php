@@ -60,6 +60,11 @@ unset($request);
 echo '<h2>' . __('SEPA changes entered by families') . '</h2>';
 
 $table = DataTable::create('sepaChangeRequests');
+if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_change_log.php')) {
+    $table->addHeaderAction('log', __('Log'))
+        ->setURL('/modules/Sepa/sepa_change_log.php')
+        ->displayLabel();
+}
 $table->addColumn('familyName', __('Family'));
 $table->addColumn('payer', __('Account holder'));
 $table->addColumn('submittedBy', __('Entered by'));
@@ -91,6 +96,3 @@ $table->addActionColumn()
 
 echo $table->render($requests);
 
-echo '<h2>' . __('Log of SEPA changes') . '</h2>';
-echo '<p>' . __('Every entry, change, discard, approval and rejection: what, when and by whom. IBANs are stored encrypted.') . '</p>';
-echo sepaRenderChangeLog($gateway->selectLog(null, 200));

@@ -106,6 +106,9 @@ $html .= '</tbody></table><p><small>* ' . __('differs from the current data') . 
 echo $html;
 
 echo '<h3>' . __('Log of this SEPA') . '</h3>';
+if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_change_log.php')) {
+    echo '<p><a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_log.php&sepa=' . (int) $request['gibbonSEPAID'] . '">' . __('Open the full log') . '</a></p>';
+}
 echo sepaRenderChangeLog($gateway->selectLog($request['gibbonSEPAID'], 50), false);
 
 if (!$isPending) {

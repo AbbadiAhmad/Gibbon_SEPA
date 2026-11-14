@@ -184,3 +184,9 @@ INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbon
 $count++;
 $sql[$count][0] = "2.6.1";
 $sql[$count][1] = "ALTER TABLE gibbonSEPAChangeRequest ADD COLUMN `SEPA_signedDate` date DEFAULT NULL AFTER `withdrawDay`;";
+
+// v2.7.0 - SEPA change log page (with data retention of two years)
+$count++;
+$sql[$count][0] = "2.7.0";
+$sql[$count][1] = "INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'SEPA Change Log', 21, 'SEPA', 'Log of the SEPA changes entered by families, with data retention', 'sepa_change_log.php, sepa_change_logProcess.php', 'sepa_change_log.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
+INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='SEPA Change Log' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";

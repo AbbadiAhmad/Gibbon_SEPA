@@ -105,6 +105,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
             echo '</tbody></table>';
         }
 
+        // History of changes of this SEPA (the IBAN half hidden)
+        if (count($FamilySEPA) === 1) {
+            $history = $requestGateway->selectLog($FamilySEPA[0]['gibbonSEPAID'], 20);
+            if (!empty($history)) {
+                echo '<h3>' . __('History of changes') . '</h3>';
+                echo sepaRenderChangeLog($history, false, true);
+            }
+        }
+
         // Changes entered by the family: current and entered values until the administration decides
         if ($canEdit && count($FamilySEPA) === 1) {
             $sepa = $FamilySEPA[0];
