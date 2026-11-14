@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.5.1';            // Version number
+$version = '2.6.0';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -123,6 +123,45 @@ $moduleTables[] = "
     KEY `gibbonSEPAID` (`gibbonSEPAID`),
     KEY `academicYear` (`academicYear`),
     KEY `snapshotDate` (`snapshotDate`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ ";
+
+$moduleTables[] = "
+    CREATE TABLE `gibbonSEPAChangeRequest` (
+    `gibbonSEPAChangeRequestID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `gibbonSEPAID` int(8) unsigned zerofill NOT NULL,
+    `gibbonFamilyID` int(7) unsigned zerofill NOT NULL,
+    `payer` varchar(255) NOT NULL,
+    `IBAN` varchar(255) DEFAULT NULL COMMENT 'AES-256-GCM encrypted, see IbanCipher',
+    `BIC` varchar(11) DEFAULT NULL,
+    `withdrawCadence` enum('Monthly','HalfYearly','Yearly') NOT NULL DEFAULT 'Monthly',
+    `withdrawDay` tinyint unsigned DEFAULT NULL,
+    `status` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending' COMMENT 'Entered by the family, applied to the SEPA when approved',
+    `gibbonPersonIDSubmitted` int(10) unsigned zerofill NOT NULL,
+    `timestampSubmitted` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `timestampUpdated` timestamp NULL DEFAULT NULL,
+    `gibbonPersonIDReviewed` int(10) unsigned zerofill DEFAULT NULL,
+    `timestampReviewed` timestamp NULL DEFAULT NULL,
+    `reviewNote` text DEFAULT NULL,
+    PRIMARY KEY (`gibbonSEPAChangeRequestID`),
+    KEY `gibbonSEPAID` (`gibbonSEPAID`),
+    KEY `status` (`status`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ ";
+
+$moduleTables[] = "
+    CREATE TABLE `gibbonSEPAChangeLog` (
+    `gibbonSEPAChangeLogID` int(12) unsigned NOT NULL AUTO_INCREMENT,
+    `gibbonSEPAID` int(8) unsigned zerofill NOT NULL,
+    `gibbonFamilyID` int(7) unsigned zerofill NOT NULL,
+    `gibbonSEPAChangeRequestID` int(10) unsigned DEFAULT NULL,
+    `event` enum('Submitted','Updated','Discarded','Approved','Rejected') NOT NULL,
+    `gibbonPersonID` int(10) unsigned zerofill NOT NULL COMMENT 'Who did it: the family member or the reviewer',
+    `changes` text DEFAULT NULL COMMENT 'JSON: field => [old, new]; the IBAN is stored masked',
+    `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`gibbonSEPAChangeLogID`),
+    KEY `gibbonSEPAID` (`gibbonSEPAID`),
+    KEY `gibbonFamilyID` (`gibbonFamilyID`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
  ";
 
@@ -545,6 +584,46 @@ $actionRows[] = [
     'entryURL' => 'sepa_merge.php',
     'entrySidebar' => 'Y',
     'menuShow' => 'N',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Edit SEPA - my family',
+    'precedence' => '6',
+    'category' => 'SEPA',
+    'description' => 'Families enter changes of their SEPA data, they apply after approval',
+    'URLList' => 'sepa_family_my_sepa_edit.php, sepa_family_my_sepa_editProcess.php',
+    'entryURL' => 'sepa_family_my_sepa_edit.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'N',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'Y',
+    'categoryPermissionParent' => 'Y',
+    'categoryPermissionOther' => 'Y',
+];
+
+$actionRows[] = [
+    'name' => 'Approve SEPA Changes',
+    'precedence' => '20',
+    'category' => 'SEPA',
+    'description' => 'Review and approve or reject the SEPA changes entered by families',
+    'URLList' => 'sepa_change_requests.php, sepa_change_review.php, sepa_change_reviewProcess.php',
+    'entryURL' => 'sepa_change_requests.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
     'defaultPermissionAdmin' => 'Y',
     'defaultPermissionTeacher' => 'N',
     'defaultPermissionStudent' => 'N',

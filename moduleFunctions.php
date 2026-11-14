@@ -158,3 +158,39 @@ function sepaMissingFeesWarning($gateway, $schoolYearID, $absoluteURL, $gibbonFa
     return '<div class="warning"><strong>' . sprintf(__('The fee is not set for %d course(s) with enrolled students; they are counted with 0, so the results below are not complete.'), count($courses)) . '</strong><br>'
         . implode(', ', $names) . $more . '<br>' . implode(' | ', $links) . '</div>';
 }
+
+/**
+ * HTML table of the SEPA change log (who, when, what). For the administration only: the IBANs of the
+ * log are stored encrypted and are decrypted here.
+ *
+ * @param array[] $logRows rows of SepaChangeRequestGateway::selectLog()
+ * @param bool $showFamily show the family column
+ */
+function sepaRenderChangeLog(array $logRows, $showFamily = true)
+{
+    $e = function ($value) {
+        return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
+    };
+    $events = ['Submitted' => __('Entered'), 'Updated' => __('Entries changed'), 'Discarded' => __('Discarded'), 'Approved' => __('Approved'), 'Rejected' => __('Rejected')];
+    $labels = ['payer' => __('Account holder'), 'IBAN' => __('IBAN'), 'BIC' => __('BIC'), 'withdrawCadence' => __('Withdrawal cadence'), 'withdrawDay' => __('Preferred withdrawal day')];
+
+    if (empty($logRows)) {
+        return '<p><em>' . __('The log is empty.') . '</em></p>';
+    }
+    $html = '<table class="fullWidth colorOddEven"><thead><tr><th>' . __('When') . '</th><th>' . __('Who') . '</th>'
+        . ($showFamily ? '<th>' . __('Family') . '</th>' : '') . '<th>' . __('What') . '</th><th>' . __('Changes (old -> new)') . '</th></tr></thead><tbody>';
+    foreach ($logRows as $row) {
+        [$changes, $note] = \Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway::readLogChanges($row['changes']);
+        $lines = [];
+        foreach ($changes as $field => [$old, $new]) {
+            $lines[] = '<strong>' . $e($labels[$field] ?? $field) . ':</strong> ' . $e($old === '' ? '-' : $old) . ' &rarr; ' . $e($new === '' ? '-' : $new);
+        }
+        if ($note !== '') {
+            $lines[] = '<em>' . __('Note') . ': ' . $e($note) . '</em>';
+        }
+        $html .= '<tr><td>' . $e(\Gibbon\Services\Format::dateTime($row['timestamp'])) . '</td><td>' . $e($row['personName']) . '</td>'
+            . ($showFamily ? '<td>' . $e($row['familyName']) . '</td>' : '')
+            . '<td>' . $e($events[$row['event']] ?? $row['event']) . '</td><td>' . ($lines ? implode('<br>', $lines) : '-') . '</td></tr>';
+    }
+    return $html . '</tbody></table>';
+}
