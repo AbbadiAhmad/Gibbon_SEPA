@@ -109,8 +109,10 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
         if (count($FamilySEPA) === 1) {
             $history = $requestGateway->selectLog($FamilySEPA[0]['gibbonSEPAID'], 20);
             if (!empty($history)) {
-                echo '<h3>' . __('History of changes') . '</h3>';
+                // folded by default
+                echo '<details style="margin: 1em 0;"><summary style="cursor: pointer; font-weight: bold;">' . __('History of changes') . ' (' . count($history) . ')</summary>';
                 echo sepaRenderChangeLog($history, false, true);
+                echo '</details>';
             }
         }
 
