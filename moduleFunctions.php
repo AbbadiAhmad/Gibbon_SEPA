@@ -170,7 +170,7 @@ function sepaFormatLogChanges($json, $forFamily = false)
     };
     $labels = ['payer' => __('Account holder'), 'IBAN' => __('IBAN'), 'BIC' => __('BIC'), 'withdrawCadence' => __('Withdrawal cadence'), 'withdrawDay' => __('Preferred withdrawal day'), 'SEPA_signedDate' => __('Date of SEPA signature')];
 
-    [$changes, $note] = \Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway::readLogChanges($json);
+    [$changes, $note, $extra] = \Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway::readLogChanges($json);
     $lines = [];
     foreach ($changes as $field => [$old, $new]) {
         if ($forFamily && $field === 'IBAN') {
@@ -178,6 +178,17 @@ function sepaFormatLogChanges($json, $forFamily = false)
             $new = \Gibbon\Module\Sepa\Security\IbanCipher::maskForDisplay($new);
         }
         $lines[] = '<strong>' . $e($labels[$field] ?? $field) . ':</strong> ' . $e($old === '' ? '-' : $old) . ' &rarr; ' . $e($new === '' ? '-' : $new);
+    }
+    $names = function (array $fields) use ($labels, $e) {
+        return implode(', ', array_map(function ($field) use ($labels, $e) {
+            return $e($labels[$field] ?? $field);
+        }, $fields));
+    };
+    if (!empty($extra['rejected'])) {
+        $lines[] = '<em>' . __('Not accepted') . ': ' . $names($extra['rejected']) . '</em>';
+    }
+    if (!empty($extra['edited'])) {
+        $lines[] = '<em>' . __('Corrected by the school administration') . ': ' . $names($extra['edited']) . '</em>';
     }
     if ($note !== '') {
         $lines[] = '<em>' . __('Note') . ': ' . $e($note) . '</em>';

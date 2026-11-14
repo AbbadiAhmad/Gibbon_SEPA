@@ -51,17 +51,36 @@ try {
     if ($decision === 'reject') {
         $gateway->reject($id, $personID, $note);
     } else {
-        // The checks are made again here, errors need a confirmation
-        $errors = array_filter($gateway->getRequestFlags($request), function ($flag) {
+        // What the reviewer accepts per field, with the corrected values
+        $sepa = $gateway->getSepaRow($request['gibbonSEPAID']);
+        if (!$sepa) {
+            header('Location: ' . $URLList . '&return=error1');
+            exit;
+        }
+        $posted = is_array($_POST['value'] ?? null) ? $_POST['value'] : [];
+        $accept = is_array($_POST['accept'] ?? null) ? $_POST['accept'] : [];
+        $values = SepaChangeRequestGateway::cleanReviewValues($posted, SepaChangeRequestGateway::clearValues($request));
+        $decision = SepaChangeRequestGateway::buildDecision($request, $sepa, $accept, $values);
+
+        // The checks are made on the values that are saved; errors need a confirmation.
+        // The reviewer's values are kept for the page.
+        $errors = array_filter($gateway->getFlagsForValues($decision['finalClear'], $request), function ($flag) {
             return $flag['severity'] === 'Error';
         });
         if (!empty($errors) && empty($_POST['confirmErrors'])) {
+            $_SESSION[$guid]['sepaReviewDraft'][$id] = ['value' => $posted, 'accept' => $accept, 'reviewNote' => $note];
             header('Location: ' . $URL . '&return=error3');
             exit;
         }
-        $gateway->approve($id, $personID, $note);
+
+        // Nothing accepted that differs from the current data: that is a rejection
+        if (empty(SepaChangeRequestGateway::describeChanges($sepa, $decision['final']))) {
+            $gateway->reject($id, $personID, $note);
+        } else {
+            $gateway->approve($id, $personID, $note, $decision);
+        }
     }
-} catch (\PDOException $e) {
+} catch (\PDOException | \RuntimeException $e) {
     header('Location: ' . $URL . '&return=error2');
     exit;
 }

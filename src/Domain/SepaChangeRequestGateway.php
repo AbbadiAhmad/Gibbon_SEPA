@@ -146,27 +146,38 @@ class SepaChangeRequestGateway extends QueryableGateway
      * Approve: the entered values replace the SEPA data (the IBAN is copied as stored, encrypted).
      * Only a request that is still pending is handled.
      */
-    public function approve($gibbonSEPAChangeRequestID, $gibbonPersonID, $note = '')
+    public function approve($gibbonSEPAChangeRequestID, $gibbonPersonID, $note = '', array $decision = null)
     {
         $request = $this->getByID($gibbonSEPAChangeRequestID);
         if (!$request || $request['status'] !== 'Pending') {
             return false;
         }
 
-        // logged before the SEPA changes: what the approval changes
+        // Without a decision of the reviewer everything the family entered is taken over
+        $final = $decision['final'] ?? $request;
+
+        // logged before the SEPA changes: what the approval changes, what was not accepted
+        // and what the reviewer changed
         $sepaBefore = $this->getSepaRow($request['gibbonSEPAID']);
-        $this->log($request['gibbonSEPAID'], $request['gibbonFamilyID'], $gibbonSEPAChangeRequestID, 'Approved', $gibbonPersonID, $sepaBefore ? self::describeChanges($sepaBefore, $request) : [], $note);
+        $changes = $sepaBefore ? self::describeChanges($sepaBefore, $final) : [];
+        if (!empty($decision['rejected'])) {
+            $changes['_rejected'] = array_values($decision['rejected']);
+        }
+        if (!empty($decision['edited'])) {
+            $changes['_edited'] = array_values($decision['edited']);
+        }
+        $this->log($request['gibbonSEPAID'], $request['gibbonFamilyID'], $gibbonSEPAChangeRequestID, 'Approved', $gibbonPersonID, $changes, $note);
 
         $query = $this
             ->newUpdate()
             ->table('gibbonSEPA')
             ->cols([
-                'payer' => $request['payer'],
-                'IBAN' => $request['IBAN'],
-                'BIC' => $request['BIC'],
-                'withdrawCadence' => $request['withdrawCadence'],
-                'withdrawDay' => $request['withdrawDay'],
-                'SEPA_signedDate' => $request['SEPA_signedDate'],
+                'payer' => $final['payer'],
+                'IBAN' => $final['IBAN'],
+                'BIC' => $final['BIC'] !== '' ? $final['BIC'] : null,
+                'withdrawCadence' => $final['withdrawCadence'],
+                'withdrawDay' => $final['withdrawDay'] !== '' ? $final['withdrawDay'] : null,
+                'SEPA_signedDate' => !empty($final['SEPA_signedDate']) ? $final['SEPA_signedDate'] : null,
             ])
             ->where('gibbonSEPAID = :gibbonSEPAID')
             ->bindValue('gibbonSEPAID', $request['gibbonSEPAID']);
@@ -245,20 +256,21 @@ class SepaChangeRequestGateway extends QueryableGateway
      * The changes of a log line for display (to the administration only): field => [old, new],
      * the encrypted IBANs are decrypted here.
      *
-     * @return array [changes, note]
+     * @return array [changes, note, ['rejected' => fields not accepted, 'edited' => fields changed by the reviewer]]
      */
     public static function readLogChanges($json)
     {
         $data = json_decode((string) $json, true) ?: [];
         $note = (string) ($data['_note'] ?? '');
-        unset($data['_note']);
+        $extra = ['rejected' => (array) ($data['_rejected'] ?? []), 'edited' => (array) ($data['_edited'] ?? [])];
+        unset($data['_note'], $data['_rejected'], $data['_edited']);
         if (isset($data['IBAN'])) {
             foreach ($data['IBAN'] as $k => $stored) {
                 $clear = IbanCipher::decrypt($stored);
                 $data['IBAN'][$k] = $clear === null ? '[' . __('cannot decrypt - check the encryption key') . ']' : IbanCipher::format($clear);
             }
         }
-        return [$data, $note];
+        return [$data, $note, $extra];
     }
 
     /**
@@ -466,6 +478,101 @@ class SepaChangeRequestGateway extends QueryableGateway
         $others = $entered['IBAN'] ? $this->getOtherFamiliesWithIban($entered['IBAN'], $request['gibbonSEPAID']) : [];
 
         return self::validate($entered, $current, $this->getAdultSurnames($request['gibbonFamilyID']), $others);
+    }
+
+    /**
+     * The values the reviewer posted, cleaned (clear IBAN). A missing or invalid value falls back
+     * to what the family entered.
+     *
+     * @param array $posted field => value
+     * @param array $entered clear values of the request
+     */
+    public static function cleanReviewValues(array $posted, array $entered)
+    {
+        $get = function ($field) use ($posted, $entered) {
+            return array_key_exists($field, $posted) ? (string) $posted[$field] : (string) $entered[$field];
+        };
+        $day = $get('withdrawDay');
+        $date = trim($get('SEPA_signedDate'));
+
+        return [
+            'payer' => trim(preg_replace('/\s+/', ' ', $get('payer'))),
+            'IBAN' => IbanCipher::normalize($get('IBAN')),
+            'BIC' => strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $get('BIC'))),
+            'withdrawCadence' => in_array($get('withdrawCadence'), SepaGateway::WITHDRAW_CADENCES, true) ? $get('withdrawCadence') : (string) $entered['withdrawCadence'],
+            'withdrawDay' => ((int) $day >= 1 && (int) $day <= 31) ? (string) (int) $day : '',
+            'SEPA_signedDate' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) ? $date : '',
+        ];
+    }
+
+    /**
+     * The decision of the reviewer per field: an accepted field takes the (possibly corrected)
+     * value, a field that is not accepted keeps the current SEPA value.
+     *
+     * @param array $request the request row (stored values)
+     * @param array $sepa the current SEPA row (stored values)
+     * @param array $accept field => truthy when the field is accepted
+     * @param array $values clear values from cleanReviewValues()
+     * @return array ['final' => values as stored (IBAN encrypted), 'finalClear' => clear values,
+     *                'rejected' => fields of the family that are not accepted, 'edited' => fields the reviewer changed]
+     * @throws \RuntimeException when a new IBAN can not be encrypted
+     */
+    public static function buildDecision(array $request, array $sepa, array $accept, array $values)
+    {
+        $entered = self::clearValues($request);
+        $current = self::clearValues($sepa);
+        $same = function ($field, $a, $b) {
+            return $field === 'IBAN'
+                ? IbanCipher::normalize((string) $a) === IbanCipher::normalize((string) $b)
+                : (string) $a === (string) $b;
+        };
+
+        $final = [];
+        $finalClear = [];
+        $rejected = [];
+        $edited = [];
+        foreach (self::FIELDS as $field) {
+            if (empty($accept[$field])) {
+                // keep the current value
+                $final[$field] = $sepa[$field] ?? null;
+                $finalClear[$field] = $current[$field];
+                if (!$same($field, $entered[$field], $current[$field])) {
+                    $rejected[] = $field;
+                }
+                continue;
+            }
+
+            $value = $values[$field];
+            $finalClear[$field] = $value;
+            if (!$same($field, $value, $entered[$field])) {
+                $edited[] = $field;
+            }
+            if ($field === 'IBAN') {
+                // stays encrypted: reuse the stored value when the IBAN is the entered or the current one
+                if ($same($field, $value, $entered[$field])) {
+                    $final[$field] = $request['IBAN'];
+                } elseif ($same($field, $value, $current[$field])) {
+                    $final[$field] = $sepa['IBAN'];
+                } else {
+                    $final[$field] = $value === '' ? null : IbanCipher::encrypt($value);
+                }
+            } else {
+                $final[$field] = $value;
+            }
+        }
+
+        return ['final' => $final, 'finalClear' => $finalClear, 'rejected' => $rejected, 'edited' => $edited];
+    }
+
+    /**
+     * Errors and warnings of clear values for the SEPA of a request (used for the reviewer's values).
+     */
+    public function getFlagsForValues(array $clearValues, array $request)
+    {
+        $sepa = $this->getSepaRow($request['gibbonSEPAID']);
+        $others = !empty($clearValues['IBAN']) ? $this->getOtherFamiliesWithIban($clearValues['IBAN'], $request['gibbonSEPAID']) : [];
+
+        return self::validate($clearValues, $sepa ? self::clearValues($sepa) : null, $this->getAdultSurnames($request['gibbonFamilyID']), $others);
     }
 
     /**
