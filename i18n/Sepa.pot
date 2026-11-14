@@ -1,0 +1,2317 @@
+# SEPA module translation template (msgid = English source text)
+msgid ""
+msgstr ""
+"Project-Id-Version: Sepa\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: import_sepa_data.php:32
+msgid "Import SEPA Data"
+msgstr ""
+
+#: import_sepa_data.php:33 import_sepa_data.php:58 import_sepa_from_form.php:31
+msgid "Step {number}"
+msgstr ""
+
+#: import_sepa_data.php:36 import_sepa_payment.php:29
+msgid "Select File"
+msgstr ""
+
+#: import_sepa_data.php:37 import_sepa_payment.php:30
+msgid "Confirm Data"
+msgstr ""
+
+#: import_sepa_data.php:38 import_sepa_payment.php:31
+msgid "Dry Run"
+msgstr ""
+
+#: import_sepa_data.php:39 import_sepa_payment.php:32
+msgid "Live Run"
+msgstr ""
+
+#: import_sepa_data.php:46
+msgid "Import from registration forms"
+msgstr ""
+
+#: import_sepa_data.php:82 import_sepa_payment.php:71
+msgid "File"
+msgstr ""
+
+#: import_sepa_data.php:82 import_sepa_payment.php:71
+msgid "Excel file (.xlsx, .xls)"
+msgstr ""
+
+#: import_sepa_data.php:95 import_sepa_payment.php:85
+msgid "No file was uploaded"
+msgstr ""
+
+#: import_sepa_data.php:124 import_sepa_payment.php:114
+msgid "Column Mapping"
+msgstr ""
+
+#: import_sepa_data.php:135 import_sepa_from_form.php:207 import_sepa_payment.php:134
+msgid "Date format"
+msgstr ""
+
+#: import_sepa_data.php:152 import_sepa_data.php:166 import_sepa_data.php:460
+msgid "Invalid data"
+msgstr ""
+
+#: import_sepa_data.php:204
+msgid "IBAN checksum is not valid"
+msgstr ""
+
+#: import_sepa_data.php:210
+msgid "Unknown withdrawal cadence: {value}"
+msgstr ""
+
+#: import_sepa_data.php:217
+msgid "Unknown withdrawal day: {value}"
+msgstr ""
+
+#: import_sepa_data.php:268
+msgid "Validation Errors"
+msgstr ""
+
+#: import_sepa_data.php:293
+msgid "Import Preview"
+msgstr ""
+
+#: import_sepa_data.php:294
+msgid "Review the records below and select which existing records to update."
+msgstr ""
+
+#: import_sepa_data.php:296
+msgid "Security Notice:"
+msgstr ""
+
+#: import_sepa_data.php:297
+msgid "IBANs are encrypted before they are stored in the database."
+msgstr ""
+
+#: import_sepa_data.php:303 import_sepa_payment.php:352
+msgid "Export"
+msgstr ""
+
+#: import_sepa_data.php:304 sepa_balance_snapshot.php:84 sepa_check.php:88
+msgid "Export to Excel"
+msgstr ""
+
+#: import_sepa_data.php:317 import_sepa_from_form.php:390
+msgid "Select All"
+msgstr ""
+
+#: import_sepa_data.php:319 import_sepa_data_export.php:65 sepa_change_requests.php:45
+msgid "Status"
+msgstr ""
+
+#: import_sepa_data.php:320 import_sepa_data_export.php:64
+msgid "Row"
+msgstr ""
+
+#: import_sepa_data.php:321 import_sepa_data_export.php:66 sepa_balance_snapshot.php:168
+msgid "Payer"
+msgstr ""
+
+#: import_sepa_data.php:322 import_sepa_data_export.php:67 import_sepa_from_form.php:64
+msgid "IBAN"
+msgstr ""
+
+#: import_sepa_data.php:323 import_sepa_data_export.php:68 import_sepa_from_form.php:65
+msgid "BIC"
+msgstr ""
+
+#: import_sepa_data.php:324 import_sepa_data_export.php:69
+msgid "Cadence"
+msgstr ""
+
+#: import_sepa_data.php:325 import_sepa_data_export.php:70
+msgid "Day"
+msgstr ""
+
+#: import_sepa_data.php:326
+msgid "Signed Date"
+msgstr ""
+
+#: import_sepa_data.php:327 import_sepa_data_export.php:72 import_sepa_from_form.php:68
+msgid "Note"
+msgstr ""
+
+#: import_sepa_data.php:344 import_sepa_from_form.php:371 import_sepa_from_form.php:477
+msgid "New"
+msgstr ""
+
+#: import_sepa_data.php:349 import_sepa_from_form.php:372 import_sepa_from_form.php:477
+msgid "Existing"
+msgstr ""
+
+#: import_sepa_data.php:355
+msgid "existing SEPA. The SEPA holder may be changed!"
+msgstr ""
+
+#: import_sepa_data.php:361
+msgid "User Not Found"
+msgstr ""
+
+#: import_sepa_data.php:367
+msgid "Multiple Users"
+msgstr ""
+
+#: import_sepa_data.php:413 import_sepa_from_form.php:440
+msgid "Current Data:"
+msgstr ""
+
+#: import_sepa_data.php:439 import_sepa_data.php:572 import_sepa_from_form.php:476
+msgid "Summary:"
+msgstr ""
+
+#: import_sepa_data.php:440
+msgid "New records:"
+msgstr ""
+
+#: import_sepa_data.php:441
+msgid "Existing records:"
+msgstr ""
+
+#: import_sepa_data.php:442 import_sepa_data.php:576 import_sepa_from_form.php:583
+msgid "Errors:"
+msgstr ""
+
+#: import_sepa_data.php:451 import_sepa_payment.php:308
+msgid "Proceed to Import"
+msgstr ""
+
+#: import_sepa_data.php:532 import_sepa_from_form.php:568
+msgid "Import Results"
+msgstr ""
+
+#: import_sepa_data.php:536 import_sepa_from_form.php:575
+#, php-format
+msgid "Successfully inserted %d new records"
+msgstr ""
+
+#: import_sepa_data.php:545 import_sepa_from_form.php:576
+#, php-format
+msgid "Successfully updated %d existing records"
+msgstr ""
+
+#: import_sepa_data.php:554
+#, php-format
+msgid "Skipped %d existing records (not selected for update)"
+msgstr ""
+
+#: import_sepa_data.php:563 import_sepa_from_form.php:577
+#, php-format
+msgid "Failed to process %d records"
+msgstr ""
+
+#: import_sepa_data.php:573 import_sepa_from_form.php:580
+msgid "Inserted:"
+msgstr ""
+
+#: import_sepa_data.php:574 import_sepa_from_form.php:581
+msgid "Updated:"
+msgstr ""
+
+#: import_sepa_data.php:575 import_sepa_from_form.php:582
+msgid "Skipped:"
+msgstr ""
+
+#: import_sepa_data_export.php:16 import_sepa_from_form.php:19 import_sepa_payment.php:19
+msgid "You do not have access to this action."
+msgstr ""
+
+#: import_sepa_data_export.php:71
+msgid "SEPA Signed Date"
+msgstr ""
+
+#: import_sepa_from_form.php:29
+msgid "Import Family SEPA"
+msgstr ""
+
+#: import_sepa_from_form.php:30
+msgid "Import from Registration Forms"
+msgstr ""
+
+#: import_sepa_from_form.php:34
+msgid "Select Forms"
+msgstr ""
+
+#: import_sepa_from_form.php:35
+msgid "Map Fields"
+msgstr ""
+
+#: import_sepa_from_form.php:36
+msgid "Review and Edit"
+msgstr ""
+
+#: import_sepa_from_form.php:37 import_sepa_from_form.php:404
+msgid "Import"
+msgstr ""
+
+#: import_sepa_from_form.php:50 sepa_family_add.php:59
+msgid "The IBAN encryption key is not configured, the IBAN can not be saved. See README.md."
+msgstr ""
+
+#: import_sepa_from_form.php:63 import_sepa_from_form.php:412 moduleFunctions.php:173
+msgid "Account holder"
+msgstr ""
+
+#: import_sepa_from_form.php:66 import_sepa_from_form.php:420 moduleFunctions.php:173
+msgid "Preferred withdrawal day"
+msgstr ""
+
+#: import_sepa_from_form.php:67 import_sepa_from_form.php:415 moduleFunctions.php:173
+msgid "Withdrawal cadence"
+msgstr ""
+
+#: import_sepa_from_form.php:112 import_sepa_payment.php:126 import_sepa_payment.php:286
+msgid "Academic Year"
+msgstr ""
+
+#: import_sepa_from_form.php:112
+msgid "Registration forms of this academic year are read."
+msgstr ""
+
+#: import_sepa_from_form.php:116
+msgid "Form Status"
+msgstr ""
+
+#: import_sepa_from_form.php:121 import_sepa_from_form.php:212
+msgid "Next"
+msgstr ""
+
+#: import_sepa_from_form.php:134 sepa_enrollment_edit.php:29 sepa_enrollment_editProcess.php:27
+msgid "You have not specified one or more required parameters."
+msgstr ""
+
+#: import_sepa_from_form.php:145
+msgid "No registration forms with this status were found in the academic year."
+msgstr ""
+
+#: import_sepa_from_form.php:184
+#, php-format
+msgid "%d registration forms were found. Choose which form field holds which SEPA information."
+msgstr ""
+
+#: import_sepa_from_form.php:201
+msgid "Date the registration form was created"
+msgstr ""
+
+#: import_sepa_from_form.php:203 import_sepa_from_form.php:425 moduleFunctions.php:173
+msgid "Date of SEPA signature"
+msgstr ""
+
+#: import_sepa_from_form.php:203
+msgid "The SEPA mandate is signed with the registration form."
+msgstr ""
+
+#: import_sepa_from_form.php:204
+msgid "No date"
+msgstr ""
+
+#: import_sepa_from_form.php:207
+msgid "Only used when the signature date is taken from a form field."
+msgstr ""
+
+#: import_sepa_from_form.php:229
+msgid "The account holder and the IBAN have to be mapped."
+msgstr ""
+
+#: import_sepa_from_form.php:264
+#, php-format
+msgid "Unknown withdrawal day: %s - the default is used."
+msgstr ""
+
+#: import_sepa_from_form.php:274
+#, php-format
+msgid "Unknown withdrawal cadence: %s - the default is used."
+msgstr ""
+
+#: import_sepa_from_form.php:285
+msgid "The signature date could not be read"
+msgstr ""
+
+#: import_sepa_from_form.php:290
+#, php-format
+msgid "From registration form ID = %s"
+msgstr ""
+
+#: import_sepa_from_form.php:298 import_sepa_from_form.php:531
+msgid "The registration form is not connected to a family."
+msgstr ""
+
+#: import_sepa_from_form.php:303
+#, php-format
+msgid "The family is already used by registration form %s"
+msgstr ""
+
+#: import_sepa_from_form.php:306
+msgid "The family already has a SEPA. Select the row only if it should be overwritten."
+msgstr ""
+
+#: import_sepa_from_form.php:317
+msgid "The account holder is missing, the first parent of the family was suggested. Please check."
+msgstr ""
+
+#: import_sepa_from_form.php:319 import_sepa_from_form.php:535
+msgid "The account holder is missing."
+msgstr ""
+
+#: import_sepa_from_form.php:323
+msgid "The account holder looks incomplete or wrong (needs first and last name, no digits)."
+msgstr ""
+
+#: import_sepa_from_form.php:333
+msgid "The account holder does not match the surname of any parent of the family."
+msgstr ""
+
+#: import_sepa_from_form.php:339
+msgid "Another family already has a SEPA with this account holder."
+msgstr ""
+
+#: import_sepa_from_form.php:345
+msgid "The IBAN is missing."
+msgstr ""
+
+#: import_sepa_from_form.php:347
+msgid "The IBAN is incomplete (only the country code or a few characters were entered). Enter it or clear the field."
+msgstr ""
+
+#: import_sepa_from_form.php:349 import_sepa_from_form.php:539
+msgid "The IBAN is not valid (checksum)."
+msgstr ""
+
+#: import_sepa_from_form.php:373 import_sepa_from_form.php:478
+msgid "Duplicate family"
+msgstr ""
+
+#: import_sepa_from_form.php:374 import_sepa_from_form.php:478
+msgid "No family"
+msgstr ""
+
+#: import_sepa_from_form.php:407
+msgid "Form"
+msgstr ""
+
+#: import_sepa_from_form.php:408 moduleFunctions.php:229 sepa_change_log.php:100
+msgid "Family"
+msgstr ""
+
+#: import_sepa_from_form.php:479
+msgid "Check the data, correct it where needed and select the rows to import. Rows with a red IBAN field have an invalid IBAN and can not be imported until it is corrected."
+msgstr ""
+
+#: import_sepa_from_form.php:486
+msgid "Import Selected"
+msgstr ""
+
+#: import_sepa_from_form.php:517
+#, php-format
+msgid "Form #%s"
+msgstr ""
+
+#: import_sepa_from_form.php:547
+msgid "The family has a SEPA already (it was added after the review)."
+msgstr ""
+
+#: import_sepa_from_form.php:554
+msgid "The SEPA of the family was deleted after the review."
+msgstr ""
+
+#: import_sepa_from_form.php:558
+msgid "Failed to insert"
+msgstr ""
+
+#: import_sepa_payment.php:25
+msgid "Import SEPA Payments"
+msgstr ""
+
+#: import_sepa_payment.php:33
+msgid "Final step"
+msgstr ""
+
+#: import_sepa_payment.php:140
+msgid "Decimal Separator"
+msgstr ""
+
+#: import_sepa_payment.php:278
+#, php-format
+msgid "%d rows are ready for import."
+msgstr ""
+
+#: import_sepa_payment.php:282 import_sepa_payment.php:358
+msgid "Row No."
+msgstr ""
+
+#: import_sepa_payment.php:283 import_sepa_payment.php:359 sepa_change_requests.php:71
+msgid "Date"
+msgstr ""
+
+#: import_sepa_payment.php:284 import_sepa_payment.php:360
+msgid "SEPA Owner Name"
+msgstr ""
+
+#: import_sepa_payment.php:285 import_sepa_payment.php:361 sepa_balance_snapshot_details.php:236
+msgid "Amount"
+msgstr ""
+
+#: import_sepa_payment.php:287 import_sepa_payment.php:363
+msgid "Process Message"
+msgstr ""
+
+#: import_sepa_payment.php:347
+#, php-format
+msgid "%d rows inserted successfully."
+msgstr ""
+
+#: import_sepa_payment.php:382
+msgid "Final Step"
+msgstr ""
+
+#: import_sepa_payment.php:394
+msgid "The process is finished successfully!"
+msgstr ""
+
+#: import_sepa_payment.php:396
+msgid "No Data to process"
+msgstr ""
+
+#: moduleFunctions.php:125 sepa_change_log.php:62 sepa_change_requests.php:46
+msgid "All"
+msgstr ""
+
+#: moduleFunctions.php:153
+#, php-format
+msgid "and %d more"
+msgstr ""
+
+#: moduleFunctions.php:157
+#, php-format
+msgid "Set the course fees of %s"
+msgstr ""
+
+#: moduleFunctions.php:160
+#, php-format
+msgid "The fee is not set for %d course(s) with enrolled students; they are counted with 0, so the results below are not complete."
+msgstr ""
+
+#: moduleFunctions.php:195
+msgid "Not accepted"
+msgstr ""
+
+#: moduleFunctions.php:198
+msgid "Corrected by the school administration"
+msgstr ""
+
+#: moduleFunctions.php:208 sepa_change_log.php:62
+msgid "Entered"
+msgstr ""
+
+#: moduleFunctions.php:208 sepa_change_log.php:62
+msgid "Entries changed"
+msgstr ""
+
+#: moduleFunctions.php:208 sepa_change_log.php:62
+msgid "Discarded"
+msgstr ""
+
+#: moduleFunctions.php:208 sepa_change_log.php:62 sepa_change_requests.php:46
+msgid "Approved"
+msgstr ""
+
+#: moduleFunctions.php:208 sepa_change_log.php:62 sepa_change_requests.php:46
+msgid "Rejected"
+msgstr ""
+
+#: moduleFunctions.php:226
+msgid "The log is empty."
+msgstr ""
+
+#: moduleFunctions.php:228 sepa_change_log.php:96
+msgid "When"
+msgstr ""
+
+#: moduleFunctions.php:228 sepa_change_log.php:99
+msgid "Who"
+msgstr ""
+
+#: moduleFunctions.php:229 sepa_change_log.php:61 sepa_change_log.php:105
+msgid "What"
+msgstr ""
+
+#: moduleFunctions.php:229 sepa_change_log.php:108
+msgid "Changes (old -> new)"
+msgstr ""
+
+#: moduleFunctions.php:231
+msgid "School administration"
+msgstr ""
+
+#: sepa_balance_snapshot.php:35 sepa_balance_snapshot.php:48 sepa_balance_snapshot_create.php:41
+msgid "Balance Snapshot"
+msgstr ""
+
+#: sepa_balance_snapshot.php:53
+msgid "Current Status (Families with changes)"
+msgstr ""
+
+#: sepa_balance_snapshot.php:66
+msgid "Select Snapshot"
+msgstr ""
+
+#: sepa_balance_snapshot.php:72 sepa_change_log.php:58 sepa_child_enrollment_details.php:51
+msgid "Search For"
+msgstr ""
+
+#: sepa_balance_snapshot.php:73
+msgid "Family Name, Payer Name"
+msgstr ""
+
+#: sepa_balance_snapshot.php:75 sepa_child_enrollment_details.php:56 sepa_family_totals.php:68
+msgid "Clear Search"
+msgstr ""
+
+#: sepa_balance_snapshot.php:82 sepa_balance_snapshot_create.php:42 sepa_balance_snapshot_create.php:262
+msgid "Create Snapshot"
+msgstr ""
+
+#: sepa_balance_snapshot.php:89
+msgid "Families with Changes in Fees or Adjustments Since Last Snapshot"
+msgstr ""
+
+#: sepa_balance_snapshot.php:91 sepa_balance_snapshot_details.php:132
+msgid "Snapshot from "
+msgstr ""
+
+#: sepa_balance_snapshot.php:93
+msgid "Invalid Snapshot"
+msgstr ""
+
+#: sepa_balance_snapshot.php:167 sepa_family_due.php:125 sepa_family_totals.php:97
+msgid "Family Name"
+msgstr ""
+
+#: sepa_balance_snapshot.php:171
+msgid "Last Balance (Snapshot)"
+msgstr ""
+
+#: sepa_balance_snapshot.php:174
+msgid "Current Balance"
+msgstr ""
+
+#: sepa_balance_snapshot.php:179
+msgid "Last Total Fees"
+msgstr ""
+
+#: sepa_balance_snapshot.php:182
+msgid "Current Total Fees"
+msgstr ""
+
+#: sepa_balance_snapshot.php:185
+msgid "Last Adjustments"
+msgstr ""
+
+#: sepa_balance_snapshot.php:188 sepa_balance_snapshot_details.php:269
+msgid "Current Adjustments"
+msgstr ""
+
+#: sepa_balance_snapshot.php:191
+msgid "Last Fees+Adj Sum"
+msgstr ""
+
+#: sepa_balance_snapshot.php:194
+msgid "Current Fees+Adj Sum"
+msgstr ""
+
+#: sepa_balance_snapshot.php:200 sepa_balance_snapshot_details.php:154 sepa_check.php:104
+msgid "Balance"
+msgstr ""
+
+#: sepa_balance_snapshot.php:205 sepa_balance_snapshot_details.php:151
+msgid "Total Fees"
+msgstr ""
+
+#: sepa_balance_snapshot.php:208
+msgid "Adjustments"
+msgstr ""
+
+#: sepa_balance_snapshot.php:211
+msgid "Fees+Adj Sum"
+msgstr ""
+
+#: sepa_balance_snapshot.php:225 sepa_family_due.php:156 sepa_family_totals.php:116
+msgid "View Details"
+msgstr ""
+
+#: sepa_balance_snapshot_create.php:191
+msgid "Snapshot created successfully for {count} families."
+msgstr ""
+
+#: sepa_balance_snapshot_create.php:194
+msgid "Failed to create snapshot for {count} families."
+msgstr ""
+
+#: sepa_balance_snapshot_create.php:198 sepa_balance_snapshot_create.php:242 sepa_balance_snapshot_details.php:463
+msgid "Back to Snapshots"
+msgstr ""
+
+#: sepa_balance_snapshot_create.php:204
+msgid "Create Balance Snapshot"
+msgstr ""
+
+#: sepa_balance_snapshot_create.php:238
+msgid "No families with changes in fees or adjustments found."
+msgstr ""
+
+#: sepa_balance_snapshot_create.php:246
+msgid "This will create a snapshot for {count} families with changes in fees or adjustments since the last snapshot."
+msgstr ""
+
+#: sepa_balance_snapshot_create.php:250
+msgid "The snapshot will record the current balance, fees, payments, and adjustments for each family."
+msgstr ""
+
+#: sepa_balance_snapshot_create.php:257
+msgid "Families to snapshot"
+msgstr ""
+
+#: sepa_balance_snapshot_create.php:257
+msgid "Number of families"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:43 sepa_family_details.php:39
+msgid "Family ID is required."
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:49
+msgid "Snapshot Details"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:59
+msgid "Snapshot Details: "
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:98
+msgid "Current Status vs Last Snapshot"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:100
+msgid "Last Snapshot Date: "
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:102 sepa_balance_snapshot_details.php:136
+msgid "No previous snapshot available for comparison."
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:109
+msgid "Snapshot not found."
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:134
+msgid "Comparing with snapshot from: "
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:141
+msgid "Balance Summary"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:144
+msgid "Item"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:145
+msgid "Previous"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:145
+msgid "N/A"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:146 sepa_change_review.php:190 sepa_family_my_sepa.php:142
+msgid "Current"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:147
+msgid "Change"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:152 sepa_payment_report.php:151
+msgid "Total Payments"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:153
+msgid "Total Adjustments"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:176 sepa_family_details.php:88 sepa_payment_view_per_family.php:94
+msgid "Fees Details"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:179
+msgid "Current Fees"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:179
+msgid "Snapshot Fees"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:183 sepa_balance_snapshot_details.php:207 sepa_family_details.php:95
+msgid "Child Name"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:190 sepa_balance_snapshot_details.php:214 sepa_child_enrollment_details.php:83
+msgid "Course"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:191 sepa_balance_snapshot_details.php:215 sepa_family_details.php:94
+msgid "Fee"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:194 sepa_balance_snapshot_details.php:218 sepa_child_enrollment_details.php:89
+msgid "Months Enrolled"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:195 sepa_balance_snapshot_details.php:219 sepa_family_details.php:92
+msgid "Total Cost"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:203
+msgid "Previous Snapshot Fees"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:227
+msgid "Payment Entries"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:230
+msgid "Current Payments"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:230
+msgid "Snapshot Payments"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:235 sepa_balance_snapshot_details.php:254 sepa_family_details.php:179
+msgid "Booking Date"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:240 sepa_balance_snapshot_details.php:259 sepa_family_details.php:181
+msgid "Transaction Message"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:241 sepa_balance_snapshot_details.php:260 sepa_payment_add.php:73
+msgid "Payment Method"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:245
+msgid "No payment entries recorded."
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:250
+msgid "Previous Snapshot Payments"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:266
+msgid "Adjustment Entries"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:269
+msgid "Snapshot Adjustments"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:277 sepa_balance_snapshot_details.php:295 sepa_family_details.php:133
+msgid "Description"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:279 sepa_balance_snapshot_details.php:297 sepa_family_details.php:135
+msgid "Timestamp"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:283
+msgid "No adjustment entries recorded."
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:288
+msgid "Previous Snapshot Adjustments"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:304
+msgid "Detailed Changes"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:387
+msgid "Fee Changes"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:422
+msgid "New Payments"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:449
+msgid "New Adjustments"
+msgstr ""
+
+#: sepa_balance_snapshot_details.php:458
+msgid "No detailed changes found."
+msgstr ""
+
+#: sepa_change_log.php:34 sepa_change_log.php:88
+msgid "SEPA Change Log"
+msgstr ""
+
+#: sepa_change_log.php:58
+msgid "Family, payer, person"
+msgstr ""
+
+#: sepa_change_log.php:64
+msgid "From"
+msgstr ""
+
+#: sepa_change_log.php:70
+msgid "To"
+msgstr ""
+
+#: sepa_change_log.php:76
+msgid "Filter"
+msgstr ""
+
+#: sepa_change_log.php:89
+msgid "Every entry, change, discard, approval and rejection of SEPA data by families: what, when and by whom. IBANs are stored encrypted. The family sees its own history on its SEPA page."
+msgstr ""
+
+#: sepa_change_log.php:91
+msgid "Show the log of all families"
+msgstr ""
+
+#: sepa_change_log.php:101 sepa_merge.php:69 src/Domain/SepaChangeRequestGateway.php:559
+msgid "(family deleted)"
+msgstr ""
+
+#: sepa_change_log.php:115
+msgid "View request"
+msgstr ""
+
+#: sepa_change_log.php:122
+msgid "Data retention"
+msgstr ""
+
+#: sepa_change_log.php:124
+msgid "Nothing is older than two years, so nothing can be deleted yet."
+msgstr ""
+
+#: sepa_change_log.php:129
+msgid "Delete data older than two years"
+msgstr ""
+
+#: sepa_change_log.php:130
+#, php-format
+msgid "%1$d log line(s) and %2$d decided request(s) are older than two years (before %3$s). Requests waiting for approval and newer data are never deleted."
+msgstr ""
+
+#: sepa_change_log.php:131
+msgid "Yes, delete this data. This can not be undone."
+msgstr ""
+
+#: sepa_change_log.php:133 sepa_family_details.php:147 sepa_payment_adjustment_delete.php:58
+msgid "Delete"
+msgstr ""
+
+#: sepa_change_logProcess.php:47
+#, php-format
+msgid "%1$d log line(s) and %2$d decided request(s) older than two years were deleted."
+msgstr ""
+
+#: sepa_change_requests.php:34 sepa_change_review.php:35
+msgid "Approve SEPA Changes"
+msgstr ""
+
+#: sepa_change_requests.php:46 sepa_change_requests.php:75
+msgid "Waiting for approval"
+msgstr ""
+
+#: sepa_change_requests.php:47 sepa_courses_fee_view.php:45 sepa_unlinked_payment_view.php:46
+msgid "Go"
+msgstr ""
+
+#: sepa_change_requests.php:60
+msgid "SEPA changes entered by families"
+msgstr ""
+
+#: sepa_change_requests.php:64
+msgid "Log"
+msgstr ""
+
+#: sepa_change_requests.php:70
+msgid "Entered by"
+msgstr ""
+
+#: sepa_change_requests.php:77 sepa_check.php:46 sepa_check.php:72
+msgid "Check"
+msgstr ""
+
+#: sepa_change_requests.php:83
+#, php-format
+msgid "%d error(s)"
+msgstr ""
+
+#: sepa_change_requests.php:86
+#, php-format
+msgid "%d warning(s)"
+msgstr ""
+
+#: sepa_change_requests.php:88
+msgid "No problems"
+msgstr ""
+
+#: sepa_change_requests.php:93 sepa_change_review.php:36
+msgid "Review"
+msgstr ""
+
+#: sepa_change_requests.php:93 sepa_family_view.php:70
+msgid "View"
+msgstr ""
+
+#: sepa_change_review.php:47 sepa_family_delete.php:45 sepa_family_edit.php:51
+msgid "The specified record cannot be found."
+msgstr ""
+
+#: sepa_change_review.php:60 src/Domain/SepaChangeRequestGateway.php:376 src/Security/IbanCipher.php:98
+msgid "cannot decrypt - check the encryption key"
+msgstr ""
+
+#: sepa_change_review.php:63
+#, php-format
+msgid "New SEPA of family %s"
+msgstr ""
+
+#: sepa_change_review.php:63
+#, php-format
+msgid "SEPA change of family %s"
+msgstr ""
+
+#: sepa_change_review.php:64
+#, php-format
+msgid "Entered by %1$s on %2$s."
+msgstr ""
+
+#: sepa_change_review.php:74 sepa_family_merge.php:332 sepa_family_view.php:127
+msgid "Adults"
+msgstr ""
+
+#: sepa_change_review.php:74 sepa_family_merge.php:333 sepa_family_view.php:138
+msgid "Children"
+msgstr ""
+
+#: sepa_change_review.php:122 sepa_check.php:61 sepa_check.php:99
+msgid "Error"
+msgstr ""
+
+#: sepa_change_review.php:122 sepa_check.php:61 sepa_check.php:100
+msgid "Warning"
+msgstr ""
+
+#: sepa_change_review.php:125 sepa_check.php:83 sepa_family_my_sepa.php:189
+msgid "No problems found."
+msgstr ""
+
+#: sepa_change_review.php:156 sepa_change_review.php:190
+msgid "Entered by the family"
+msgstr ""
+
+#: sepa_change_review.php:190
+msgid "Value to save (can be corrected)"
+msgstr ""
+
+#: sepa_change_review.php:190
+msgid "Accept"
+msgstr ""
+
+#: sepa_change_review.php:199
+msgid "differs from the current data"
+msgstr ""
+
+#: sepa_change_review.php:200
+msgid "Approve saves the ticked rows with the value in the \"Value to save\" column; rows that are not ticked keep the current value. Rows the family did not change are not ticked."
+msgstr ""
+
+#: sepa_change_review.php:208
+msgid "Approve despite errors"
+msgstr ""
+
+#: sepa_change_review.php:208
+msgid "Only needed when the values to save have errors. Only tick this when the data is really correct."
+msgstr ""
+
+#: sepa_change_review.php:212
+msgid "Optional, stored with the decision."
+msgstr ""
+
+#: sepa_change_review.php:216 sepa_family_merge.php:238 sepa_family_my_sepa_edit.php:117
+msgid "Back"
+msgstr ""
+
+#: sepa_change_review.php:219
+msgid "Reject all"
+msgstr ""
+
+#: sepa_change_review.php:220
+msgid "Approve the ticked changes"
+msgstr ""
+
+#: sepa_change_review.php:226
+msgid "Last changes of this SEPA"
+msgstr ""
+
+#: sepa_change_review.php:229
+msgid "More: the full log of this SEPA"
+msgstr ""
+
+#: sepa_check.php:30 sepa_check.php:81 sepa_merge.php:33
+msgid "Check SEPA Data"
+msgstr ""
+
+#: sepa_check.php:42
+msgid "Families with enrolled students in this year must have a SEPA."
+msgstr ""
+
+#: sepa_check.php:46
+msgid "The balance is the balance of the selected academic year."
+msgstr ""
+
+#: sepa_check.php:48
+msgid "Only SEPAs with a balance not zero"
+msgstr ""
+
+#: sepa_check.php:48
+msgid "All SEPAs"
+msgstr ""
+
+#: sepa_check.php:60 sepa_check.php:97
+msgid "Type"
+msgstr ""
+
+#: sepa_check.php:64 sepa_check.php:107
+msgid "Problem"
+msgstr ""
+
+#: sepa_check.php:68
+msgid "Family / Payer"
+msgstr ""
+
+#: sepa_check.php:85
+#, php-format
+msgid "%1$d errors and %2$d warnings found."
+msgstr ""
+
+#: sepa_check.php:112
+msgid "Merge with other SEPA"
+msgstr ""
+
+#: sepa_check.php:117 sepa_family_add.php:37
+msgid "Add SEPA"
+msgstr ""
+
+#: sepa_check.php:117 sepa_family_details.php:112 sepa_family_details.php:144
+msgid "Edit"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:37 sepa_child_enrollment_details.php:60
+msgid "Child Enrollment Details"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:52
+msgid "Student name"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:63
+msgid "Rows in red: the end date lies before the start date (see the Issue column)."
+msgstr ""
+
+#: sepa_child_enrollment_details.php:75
+msgid "Child ID"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:76
+msgid "Student Name"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:82
+msgid "ClassID"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:84
+msgid "dateEnrolled"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:85
+msgid "dateUnenrolled"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:86
+msgid "Left date"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:87
+msgid "Calc. start"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:88
+msgid "Calc. end"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:90
+msgid "Course Fee"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:91
+msgid "Total"
+msgstr ""
+
+#: sepa_child_enrollment_details.php:92
+msgid "Issue"
+msgstr ""
+
+#: sepa_courses_fee_view.php:32 sepa_payment_view_per_family.php:35
+msgid "SEPA Payment Entries"
+msgstr ""
+
+#: sepa_courses_fee_view.php:50
+msgid "View Payment Entries"
+msgstr ""
+
+#: sepa_courses_fee_view.php:57
+#, php-format
+msgid "%1$d fee(s) copied from %2$s."
+msgstr ""
+
+#: sepa_courses_fee_view.php:59
+#, php-format
+msgid "No match with a fee in that year (left empty): %s"
+msgstr ""
+
+#: sepa_courses_fee_view.php:69
+#, php-format
+msgid "%d course(s) have no fee yet. The balances and totals count them with 0."
+msgstr ""
+
+#: sepa_courses_fee_view.php:78
+#, php-format
+msgid "Courses are compared by name with %s; matching courses get the same fee, courses without a match stay empty. Fees that are set are not changed."
+msgstr ""
+
+#: sepa_courses_fee_view.php:79
+#, php-format
+msgid "Copy fees from %s"
+msgstr ""
+
+#: sepa_courses_fee_view.php:94
+msgid "Courses Fee"
+msgstr ""
+
+#: sepa_courses_fee_view.php:100
+msgid "not set"
+msgstr ""
+
+#: sepa_enrollment_edit.php:34 sepa_family_details.php:43 sepa_family_details.php:56
+msgid "Family Details"
+msgstr ""
+
+#: sepa_enrollment_edit.php:35
+msgid "Edit Enrollment"
+msgstr ""
+
+#: sepa_enrollment_edit.php:42
+msgid "The specified enrollment cannot be found."
+msgstr ""
+
+#: sepa_enrollment_edit.php:54
+msgid "Student"
+msgstr ""
+
+#: sepa_enrollment_edit.php:62
+msgid "Class"
+msgstr ""
+
+#: sepa_enrollment_edit.php:66
+msgid "Date Enrolled"
+msgstr ""
+
+#: sepa_enrollment_edit.php:70
+msgid "Date Unenrolled"
+msgstr ""
+
+#: sepa_enrollment_editProcess.php:35
+msgid "Date enrolled is required."
+msgstr ""
+
+#: sepa_family_add.php:36 sepa_family_edit.php:35
+msgid "Manage Family SEPA"
+msgstr ""
+
+#: sepa_family_add.php:69 sepa_family_edit.php:65
+msgid "SEPA Information"
+msgstr ""
+
+#: sepa_family_add.php:72 sepa_family_edit.php:68
+msgid "Sepa owner name"
+msgstr ""
+
+#: sepa_family_add.php:72 sepa_family_edit.php:68
+msgid "The name of SEPA account owner."
+msgstr ""
+
+#: sepa_family_add.php:80 sepa_family_edit.php:72 sepa_family_view.php:87
+msgid "SEPA IBAN"
+msgstr ""
+
+#: sepa_family_add.php:80 sepa_family_edit.php:72
+msgid "IBAN of the bank account, The money will be withdrawn from this account."
+msgstr ""
+
+#: sepa_family_add.php:87 sepa_family_edit.php:76
+msgid "BIC of the bank."
+msgstr ""
+
+#: sepa_family_add.php:91 sepa_family_edit.php:80 sepa_family_my_sepa_edit.php:99
+msgid "How often the money is withdrawn."
+msgstr ""
+
+#: sepa_family_add.php:95 sepa_family_edit.php:84 sepa_family_my_sepa_edit.php:103
+msgid "Preferred day of the month for the withdrawal."
+msgstr ""
+
+#: sepa_family_delete.php:51
+msgid "The SEPA has linked payments. Can not be deleted"
+msgstr ""
+
+#: sepa_family_delete.php:57
+msgid "The SEPA has linked Adjustments. Can not be deleted"
+msgstr ""
+
+#: sepa_family_details.php:42 sepa_family_due.php:32 sepa_family_totals.php:33
+msgid "Family Totals"
+msgstr ""
+
+#: sepa_family_details.php:61 sepa_family_my_sepa.php:55 sepa_payment_view_per_family.php:65
+msgid "Family: "
+msgstr ""
+
+#: sepa_family_details.php:73 sepa_payment_view_per_family.php:79
+msgid "Fees Summary"
+msgstr ""
+
+#: sepa_family_details.php:74 sepa_payment_view_per_family.php:80
+msgid "Total Fees Owed: "
+msgstr ""
+
+#: sepa_family_details.php:75 sepa_payment_view_per_family.php:81
+msgid "Total Adjustments: "
+msgstr ""
+
+#: sepa_family_details.php:76 sepa_payment_view_per_family.php:82
+msgid "Total Payments: "
+msgstr ""
+
+#: sepa_family_details.php:77 sepa_payment_view_per_family.php:83
+msgid "Balance: "
+msgstr ""
+
+#: sepa_family_details.php:81 sepa_payment_view_per_family.php:87
+msgid "SEPA informaiton is not available for this family."
+msgstr ""
+
+#: sepa_family_details.php:84 sepa_payment_view_per_family.php:90
+msgid "Databased Error: more than one SEPA informaiton is entered for this family."
+msgstr ""
+
+#: sepa_family_details.php:122 sepa_payment_view_per_family.php:115
+msgid "Adjustment Details"
+msgstr ""
+
+#: sepa_family_details.php:125
+msgid "Add Adjustment"
+msgstr ""
+
+#: sepa_family_details.php:132 sepa_payment_view_per_family.php:119
+msgid "Adjustment Amount"
+msgstr ""
+
+#: sepa_family_details.php:136
+msgid "user"
+msgstr ""
+
+#: sepa_family_details.php:156 sepa_payment_view_per_family.php:129
+msgid "Payment Details"
+msgstr ""
+
+#: sepa_family_details.php:161
+msgid "Add Payment"
+msgstr ""
+
+#: sepa_family_details.php:170 sepa_payment_report.php:176
+msgid "Payment Report"
+msgstr ""
+
+#: sepa_family_details.php:185 sepa_payment_add.php:89 sepa_payment_edit.php:106
+msgid "Transaction Reference"
+msgstr ""
+
+#: sepa_family_details.php:195 sepa_payment_unlink.php:58
+msgid "Unlink"
+msgstr ""
+
+#: sepa_family_due.php:33
+msgid "Family Due in Period"
+msgstr ""
+
+#: sepa_family_due.php:60
+msgid "Period from"
+msgstr ""
+
+#: sepa_family_due.php:60 sepa_family_due.php:64
+msgid "The whole month of this date is included."
+msgstr ""
+
+#: sepa_family_due.php:64
+msgid "Period to"
+msgstr ""
+
+#: sepa_family_due.php:68 sepa_family_totals.php:65
+msgid "Family Name, Payer"
+msgstr ""
+
+#: sepa_family_due.php:72
+msgid "Clear Filters"
+msgstr ""
+
+#: sepa_family_due.php:77
+msgid "Family Balance and Due in Period"
+msgstr ""
+
+#: sepa_family_due.php:79
+#, php-format
+msgid "Due in period: fees of the billable months from %1$s to %2$s. Balance: payments and adjustments minus all fees of the academic year (negative means the family owes money). Withdraw amount: the amount due in the period, or the open balance if that is smaller; nothing when the balance is not negative."
+msgstr ""
+
+#: sepa_family_due.php:115
+msgid "Export Withdrawals (incl. missing SEPA)"
+msgstr ""
+
+#: sepa_family_due.php:127 sepa_family_view.php:149
+msgid "Withdrawal"
+msgstr ""
+
+#: sepa_family_due.php:129
+msgid "No SEPA"
+msgstr ""
+
+#: sepa_family_due.php:132 sepa_family_view.php:153
+msgid "day"
+msgstr ""
+
+#: sepa_family_due.php:134 sepa_family_totals.php:99
+msgid "Total Dept"
+msgstr ""
+
+#: sepa_family_due.php:137 sepa_family_totals.php:102
+msgid "Payments"
+msgstr ""
+
+#: sepa_family_due.php:140 sepa_family_totals.php:105
+msgid "Payments Adjustment"
+msgstr ""
+
+#: sepa_family_due.php:146 sepa_family_totals.php:85
+msgid "Due in Period"
+msgstr ""
+
+#: sepa_family_due.php:149
+msgid "Withdraw Amount"
+msgstr ""
+
+#: sepa_family_edit.php:36
+msgid "Edit SEPA"
+msgstr ""
+
+#: sepa_family_edit.php:117
+msgid "The stored IBAN can not be decrypted. Check the IBAN encryption key."
+msgstr ""
+
+#: sepa_family_merge.php:33
+msgid "Merge Families"
+msgstr ""
+
+#: sepa_family_merge.php:50
+msgid "The families have been merged."
+msgstr ""
+
+#: sepa_family_merge.php:63
+msgid "Use this when one family was registered twice (for example once by the mother and once by the father). The members, the family data and the SEPA of the second family are moved into the family to keep."
+msgstr ""
+
+#: sepa_family_merge.php:71
+msgid "Family to keep"
+msgstr ""
+
+#: sepa_family_merge.php:71
+msgid "The users, family data and SEPA are merged into this family."
+msgstr ""
+
+#: sepa_family_merge.php:74
+msgid "Family to merge into it"
+msgstr ""
+
+#: sepa_family_merge.php:74
+msgid "This family is emptied, its SEPA is merged and then deleted."
+msgstr ""
+
+#: sepa_family_merge.php:77 sepa_merge.php:105
+msgid "Compare"
+msgstr ""
+
+#: sepa_family_merge.php:84 src/Domain/FamilyMerger.php:157
+msgid "A family can not be merged into itself."
+msgstr ""
+
+#: sepa_family_merge.php:97
+msgid "A family has more than one SEPA. Fix this first."
+msgstr ""
+
+#: sepa_family_merge.php:143 sepa_merge.php:134
+msgid "Nothing differs, nothing to choose."
+msgstr ""
+
+#: sepa_family_merge.php:145 sepa_merge.php:136
+msgid "Field"
+msgstr ""
+
+#: sepa_family_merge.php:169
+#, php-format
+msgid "%s is removed from %s."
+msgstr ""
+
+#: sepa_family_merge.php:175
+#, php-format
+msgid "%s moves to %s."
+msgstr ""
+
+#: sepa_family_merge.php:177
+#, php-format
+msgid "%s is removed from %s (the user itself is not deleted)."
+msgstr ""
+
+#: sepa_family_merge.php:179
+#, php-format
+msgid "%s is merged with %s."
+msgstr ""
+
+#: sepa_family_merge.php:184
+#, php-format
+msgid "The SEPA of %s is merged into the SEPA of %s: %d payments, %d adjustments and %d snapshots move over, then the SEPA is deleted."
+msgstr ""
+
+#: sepa_family_merge.php:186
+#, php-format
+msgid "The SEPA of %s moves to %s."
+msgstr ""
+
+#: sepa_family_merge.php:188
+#, php-format
+msgid "The family %s stays as an empty family; delete it in the family administration when it is not needed."
+msgstr ""
+
+#: sepa_family_merge.php:190
+msgid "What will happen"
+msgstr ""
+
+#: sepa_family_merge.php:200
+msgid "Family data"
+msgstr ""
+
+#: sepa_family_merge.php:201 sepa_family_merge.php:220
+msgid "keep"
+msgstr ""
+
+#: sepa_family_merge.php:216
+msgid "SEPA data"
+msgstr ""
+
+#: sepa_family_merge.php:218 sepa_family_merge.php:350
+msgid "Both families use the same IBAN."
+msgstr ""
+
+#: sepa_family_merge.php:225
+msgid "Merged users"
+msgstr ""
+
+#: sepa_family_merge.php:229
+#, php-format
+msgid "%s (kept) and %s"
+msgstr ""
+
+#: sepa_family_merge.php:230
+msgid "Keep user"
+msgstr ""
+
+#: sepa_family_merge.php:230
+msgid "Other user"
+msgstr ""
+
+#: sepa_family_merge.php:233
+msgid "Move all other records"
+msgstr ""
+
+#: sepa_family_merge.php:233
+msgid "Enrolments, attendance and everything else of the other user move to the kept user. The other user is set to Left and can not log in. Without it, only the family link and the chosen data are merged."
+msgstr ""
+
+#: sepa_family_merge.php:239
+msgid "Merge families"
+msgstr ""
+
+#: sepa_family_merge.php:241
+msgid "Check and merge"
+msgstr ""
+
+#: sepa_family_merge.php:242
+msgid "The merge changes the data of the users and the SEPA and can not be undone. Make a database backup first."
+msgstr ""
+
+#: sepa_family_merge.php:262
+msgid "This family has no SEPA."
+msgstr ""
+
+#: sepa_family_merge.php:272
+msgid "Payments / adjustments"
+msgstr ""
+
+#: sepa_family_merge.php:278
+msgid "Name"
+msgstr ""
+
+#: sepa_family_merge.php:280
+msgid "Address"
+msgstr ""
+
+#: sepa_family_merge.php:312
+msgid "Keep in family"
+msgstr ""
+
+#: sepa_family_merge.php:312
+msgid "Remove from family"
+msgstr ""
+
+#: sepa_family_merge.php:314
+msgid "Move to the family to keep"
+msgstr ""
+
+#: sepa_family_merge.php:314
+msgid "Remove from family (do not move)"
+msgstr ""
+
+#: sepa_family_merge.php:318
+#, php-format
+msgid "Same user as %s (merge)"
+msgstr ""
+
+#: sepa_family_merge.php:324
+msgid "None"
+msgstr ""
+
+#: sepa_family_merge.php:331
+msgid "SEPA"
+msgstr ""
+
+#: sepa_family_merge.php:345
+#, php-format
+msgid "Keep: %s"
+msgstr ""
+
+#: sepa_family_merge.php:346
+#, php-format
+msgid "Merge into it: %s"
+msgstr ""
+
+#: sepa_family_merge.php:349
+msgid "Swap the two families"
+msgstr ""
+
+#: sepa_family_merge.php:352
+msgid "Choose per user what happens. Users registered in both families are suggested as \"Same user\"; the field-by-field choice follows in the next step."
+msgstr ""
+
+#: sepa_family_merge.php:356
+msgid "Next: choose the data"
+msgstr ""
+
+#: sepa_family_merge.php:358
+msgid "Compare the families"
+msgstr ""
+
+#: sepa_family_my_sepa.php:31 sepa_family_my_sepa.php:53 sepa_family_my_sepa_edit.php:32
+msgid "My Family SEPA"
+msgstr ""
+
+#: sepa_family_my_sepa.php:43 sepa_family_my_sepa_edit.php:40
+msgid "The SEPA information is missing for your family. Please ask the school's administration for more information."
+msgstr ""
+
+#: sepa_family_my_sepa.php:46 sepa_payment_view_per_family.php:51
+msgid "You are added to multiple families. Please ask the school's administration for more information"
+msgstr ""
+
+#: sepa_family_my_sepa.php:72
+msgid "You can change this data. Your changes are checked by the school administration first; until then the data below stays valid."
+msgstr ""
+
+#: sepa_family_my_sepa.php:80
+msgid "SEPA information is not available for this family."
+msgstr ""
+
+#: sepa_family_my_sepa.php:80
+msgid "Please contact the school administration."
+msgstr ""
+
+#: sepa_family_my_sepa.php:84
+msgid "There is no SEPA for your family yet. You can enter the SEPA data here; the school administration checks it before it is used."
+msgstr ""
+
+#: sepa_family_my_sepa.php:88
+msgid "More than one SEPA record is entered for this family. Please contact the school administration."
+msgstr ""
+
+#: sepa_family_my_sepa.php:92 sepa_family_my_sepa.php:135
+msgid "not available"
+msgstr ""
+
+#: sepa_family_my_sepa.php:116 sepa_family_view.php:111
+msgid "History of changes"
+msgstr ""
+
+#: sepa_family_my_sepa.php:130 sepa_family_my_sepa_edit.php:33 sepa_family_my_sepa_edit.php:70
+msgid "Change my SEPA data"
+msgstr ""
+
+#: sepa_family_my_sepa.php:130 sepa_family_my_sepa_edit.php:70
+msgid "Enter my SEPA data"
+msgstr ""
+
+#: sepa_family_my_sepa.php:138
+msgid "Your changes are waiting for approval"
+msgstr ""
+
+#: sepa_family_my_sepa.php:138
+msgid "Your SEPA data is waiting for approval"
+msgstr ""
+
+#: sepa_family_my_sepa.php:140
+#, php-format
+msgid "Entered on %s. The school administration has to approve them; until then the current data is used."
+msgstr ""
+
+#: sepa_family_my_sepa.php:141
+#, php-format
+msgid "Entered on %s. The school administration has to approve it before the SEPA is used."
+msgstr ""
+
+#: sepa_family_my_sepa.php:142
+msgid "Entered (waiting for approval)"
+msgstr ""
+
+#: sepa_family_my_sepa.php:163 sepa_family_my_sepa.php:194
+msgid "The IBAN is also used by another family."
+msgstr ""
+
+#: sepa_family_my_sepa.php:167
+msgid "Change my entries"
+msgstr ""
+
+#: sepa_family_my_sepa.php:171
+msgid "Discard my changes"
+msgstr ""
+
+#: sepa_family_my_sepa.php:187
+msgid "Check of your SEPA data"
+msgstr ""
+
+#: sepa_family_my_sepa.php:196
+msgid "The IBAN is not available."
+msgstr ""
+
+#: sepa_family_my_sepa.php:201
+msgid "Please contact the school administration to correct this."
+msgstr ""
+
+#: sepa_family_my_sepa_edit.php:46
+msgid "You can not change the SEPA data of this family. Please contact the school administration."
+msgstr ""
+
+#: sepa_family_my_sepa_edit.php:72
+msgid "Your family has no SEPA yet. What you enter is checked by the school administration before it is used. You can change or discard your entries at any time."
+msgstr ""
+
+#: sepa_family_my_sepa_edit.php:73
+msgid "Your changes are checked by the school administration before they apply. Until then, the current data stays valid. You can change or discard your entries at any time."
+msgstr ""
+
+#: sepa_family_my_sepa_edit.php:80
+msgid "First and last name of the owner of the bank account."
+msgstr ""
+
+#: sepa_family_my_sepa_edit.php:85
+msgid "IBAN of the bank account the money is withdrawn from."
+msgstr ""
+
+#: sepa_family_my_sepa_edit.php:89
+msgid "The IBAN you entered. Change it if needed."
+msgstr ""
+
+#: sepa_family_my_sepa_edit.php:90
+#, php-format
+msgid "Current IBAN: %s. Leave empty to keep it."
+msgstr ""
+
+#: sepa_family_my_sepa_edit.php:108
+#, php-format
+msgid "Can not be earlier than the existing date (%s)."
+msgstr ""
+
+#: sepa_family_my_sepa_edit.php:118
+msgid "Save for approval"
+msgstr ""
+
+#: sepa_family_my_sepa_editProcess.php:62
+msgid "Your changes have been discarded."
+msgstr ""
+
+#: sepa_family_my_sepa_editProcess.php:91
+#, php-format
+msgid "The date of the SEPA signature can not be earlier than the existing date (%s)."
+msgstr ""
+
+#: sepa_family_my_sepa_editProcess.php:117
+msgid "Nothing is different from the current data, so there is nothing to approve."
+msgstr ""
+
+#: sepa_family_my_sepa_editProcess.php:131
+msgid "Your changes could not be saved completely. Please tell the school administration (the SEPA module may need its database update)."
+msgstr ""
+
+#: sepa_family_totals.php:82
+msgid "Unpaid without SEPA"
+msgstr ""
+
+#: sepa_family_totals.php:84
+msgid "Family ID"
+msgstr ""
+
+#: sepa_family_view.php:40
+msgid "Family's SEPA"
+msgstr ""
+
+#: sepa_family_view.php:62
+msgid "Payer, custom fields"
+msgstr ""
+
+#: sepa_family_view.php:98
+msgid "Error while reading the custom fields"
+msgstr ""
+
+#: sepa_family_view.php:112
+msgid "Open the full log"
+msgstr ""
+
+#: sepa_family_view.php:120 sepa_payment_adjustment_manage.php:58 sepa_payment_manage.php:57
+msgid "Add"
+msgstr ""
+
+#: sepa_merge.php:34 sepa_merge.php:72 sepa_merge.php:150
+msgid "Merge SEPA"
+msgstr ""
+
+#: sepa_merge.php:73
+#, php-format
+msgid "SEPA to merge away: %s"
+msgstr ""
+
+#: sepa_merge.php:74
+msgid "Its payments, adjustments and snapshots move to the SEPA you choose, then this SEPA is deleted. The family and users are not changed; use Merge Families for that."
+msgstr ""
+
+#: sepa_merge.php:102
+msgid "Merge into SEPA"
+msgstr ""
+
+#: sepa_merge.php:102
+msgid "A SEPA with the same IBAN is preselected."
+msgstr ""
+
+#: sepa_merge.php:121
+#, php-format
+msgid "%d payments, %d adjustments and %d snapshots move to the SEPA of %s."
+msgstr ""
+
+#: sepa_merge.php:136
+#, php-format
+msgid "Keep SEPA %s"
+msgstr ""
+
+#: sepa_merge.php:136
+#, php-format
+msgid "SEPA %s"
+msgstr ""
+
+#: sepa_merge.php:146
+msgid "This changes the SEPA data and can not be undone. Make a database backup first."
+msgstr ""
+
+#: sepa_payment_add.php:30 sepa_payment_delete.php:32 sepa_payment_edit.php:36
+msgid "Manage SEPA Payment Entries"
+msgstr ""
+
+#: sepa_payment_add.php:31
+msgid "Add Payment Entry"
+msgstr ""
+
+#: sepa_payment_add.php:56 sepa_payment_adjustment_add.php:50 sepa_payment_adjustment_edit.php:66
+msgid "Please select..."
+msgstr ""
+
+#: sepa_payment_add.php:61 sepa_payment_adjustment_add.php:58 sepa_payment_adjustment_edit.php:70
+msgid "SEPA Account"
+msgstr ""
+
+#: sepa_payment_add.php:93
+msgid "Transaction Message from the bank"
+msgstr ""
+
+#: sepa_payment_add.php:97
+msgid "Note: additional information"
+msgstr ""
+
+#: sepa_payment_adjustment_add.php:26
+msgid "Payment adjustment"
+msgstr ""
+
+#: sepa_payment_adjustment_add.php:27
+msgid "Add payment_adjustment"
+msgstr ""
+
+#: sepa_payment_adjustment_delete.php:33 sepa_payment_adjustment_edit.php:36 sepa_payment_adjustment_manage.php:25
+msgid "Payment Adjustment"
+msgstr ""
+
+#: sepa_payment_adjustment_delete.php:34
+msgid "Delete Ajustment"
+msgstr ""
+
+#: sepa_payment_adjustment_delete.php:41
+msgid "The specified payment_adjustment cannot be found."
+msgstr ""
+
+#: sepa_payment_adjustment_delete.php:53
+msgid "Are you sure you want to delete this payment_adjustment?"
+msgstr ""
+
+#: sepa_payment_adjustment_delete.php:54
+msgid "This operation cannot be undone, and may lead to loss of vital data in your system. PROCEED WITH CAUTION!"
+msgstr ""
+
+#: sepa_payment_adjustment_edit.php:37
+msgid "Edit Payment Adjustment"
+msgstr ""
+
+#: sepa_payment_adjustment_edit.php:44
+msgid "The specified Adjustment cannot be found."
+msgstr ""
+
+#: sepa_payment_adjustment_edit.php:80 sepa_payment_adjustment_manage.php:67
+msgid "PaymentAdjustment Amount"
+msgstr ""
+
+#: sepa_payment_adjustment_manage.php:43
+msgid "description, note"
+msgstr ""
+
+#: sepa_payment_adjustment_manage.php:76
+msgid "User"
+msgstr ""
+
+#: sepa_payment_delete.php:27 sepa_payment_deleteProcess.php:27 sepa_payment_edit.php:31
+msgid "Invalid payment entry."
+msgstr ""
+
+#: sepa_payment_delete.php:33
+msgid "Delete Payment Entry"
+msgstr ""
+
+#: sepa_payment_delete.php:39 sepa_payment_edit.php:47 sepa_payment_unlink.php:35
+msgid "Payment entry not found."
+msgstr ""
+
+#: sepa_payment_delete.php:50
+msgid "Are you sure you want to delete this payment entry? This action cannot be undone."
+msgstr ""
+
+#: sepa_payment_delete.php:53 sepa_payment_unlink.php:48
+msgid "Booking Date: "
+msgstr ""
+
+#: sepa_payment_delete.php:56 sepa_payment_unlink.php:51
+msgid "Payer Name: "
+msgstr ""
+
+#: sepa_payment_delete.php:59 sepa_payment_unlink.php:54
+msgid "Amount: "
+msgstr ""
+
+#: sepa_payment_edit.php:37
+msgid "Edit Payment Entry"
+msgstr ""
+
+#: sepa_payment_manage.php:42
+msgid "payer, booking date, amount, transaction message, transaction reference, note"
+msgstr ""
+
+#: sepa_payment_manage.php:64
+msgid "Card"
+msgstr ""
+
+#: sepa_payment_manage.php:65
+msgid "Cash"
+msgstr ""
+
+#: sepa_payment_manage.php:66
+msgid "Bank Transfer"
+msgstr ""
+
+#: sepa_payment_manage.php:72
+msgid "payer"
+msgstr ""
+
+#: sepa_payment_manage.php:101
+msgid "Entry User"
+msgstr ""
+
+#: sepa_payment_manage.php:104
+msgid "Entry Timestamp"
+msgstr ""
+
+#: sepa_payment_report.php:25
+msgid "Payment Report by Date Range"
+msgstr ""
+
+#: sepa_payment_report.php:46
+msgid "Select Date Range and SEPA Account"
+msgstr ""
+
+#: sepa_payment_report.php:51 sepa_payment_report.php:149
+msgid "From Date"
+msgstr ""
+
+#: sepa_payment_report.php:57 sepa_payment_report.php:150
+msgid "To Date"
+msgstr ""
+
+#: sepa_payment_report.php:64
+msgid "All SEPA Accounts"
+msgstr ""
+
+#: sepa_payment_report.php:74
+msgid "Generate Report"
+msgstr ""
+
+#: sepa_payment_report.php:82
+msgid "Please select a specific SEPA account to generate the report."
+msgstr ""
+
+#: sepa_payment_report.php:90 sepa_payment_report_print.php:42
+msgid "From Date must be before or equal to To Date"
+msgstr ""
+
+#: sepa_payment_report.php:118
+msgid "Family Information"
+msgstr ""
+
+#: sepa_payment_report.php:126
+msgid "First Adult"
+msgstr ""
+
+#: sepa_payment_report.php:126
+msgid "Second Adult"
+msgstr ""
+
+#: sepa_payment_report.php:148
+msgid "Summary"
+msgstr ""
+
+#: sepa_payment_report.php:152
+msgid "Total Amount"
+msgstr ""
+
+#: sepa_payment_report.php:170
+msgid "Print Report"
+msgstr ""
+
+#: sepa_payment_report_print.php:36
+msgid "Please provide both from and to dates."
+msgstr ""
+
+#: sepa_payment_unlink.php:29
+msgid "Unlink Payment Entry"
+msgstr ""
+
+#: sepa_payment_unlink.php:45
+msgid "Are you sure you want to unlink this payment entry from the family? This will set the gibbonSEPAID to null."
+msgstr ""
+
+#: sepa_payment_view_per_family.php:48
+msgid "The payment information is missing for your Family. Please ask the school's administration for more infomration."
+msgstr ""
+
+#: sepa_payment_view_per_family.php:68
+msgid "This module is under development. If you notice any inconsistencies, please help us by informing the school administration."
+msgstr ""
+
+#: sepa_unlinked_payment_view.php:34
+msgid "Unlinked SEPA Payment Entries"
+msgstr ""
+
+#: sepa_unlinked_payment_view.php:57
+msgid "Auto-link completed:"
+msgstr ""
+
+#: sepa_unlinked_payment_view.php:58
+msgid "Successfully linked:"
+msgstr ""
+
+#: sepa_unlinked_payment_view.php:60
+msgid "Multiple matches found (not linked):"
+msgstr ""
+
+#: sepa_unlinked_payment_view.php:63
+msgid "No match found:"
+msgstr ""
+
+#: sepa_unlinked_payment_view.php:81
+msgid "View Unlinked Payment Entries"
+msgstr ""
+
+#: sepa_unlinked_payment_view.php:87
+msgid "Auto-Link All Payments"
+msgstr ""
+
+#: sepa_unlinked_payment_view.php:94
+msgid "SEPA owner"
+msgstr ""
+
+#: sepa_unlinked_payment_view.php:100
+msgid "Message"
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:153
+msgid "Choose the two families."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:168
+#, php-format
+msgid "Family %s has more than one SEPA. Fix this first."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:199
+#, php-format
+msgid "User %s can only be merged with a user of the same type (adult / child) of the family to keep."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:203
+#, php-format
+msgid "User %s is merged with more than one user."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:207
+#, php-format
+msgid "User %s is removed from the family and can not be merged."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:292
+#, php-format
+msgid "Family data taken over from the other family: %s"
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:311
+msgid "The SEPA of the other family now belongs to the family to keep."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:332
+#, php-format
+msgid "SEPA merged: %d payments, %d adjustments and %d snapshots moved to the SEPA of the family to keep, the other SEPA is deleted."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:377
+msgid "A SEPA can not be merged into itself."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:380
+msgid "The SEPA to keep must belong to an existing family."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:404
+#, php-format
+msgid "SEPA %s merged into SEPA %s (%s): %d payments, %d adjustments and %d snapshots moved, the first SEPA is deleted."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:442
+#, php-format
+msgid "Users merged into %s (data taken over: %s)."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:448
+#, php-format
+msgid "All records of user %s (enrolments, attendance, ...) now belong to %s; the old user is set to Left and can not log in."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:450
+#, php-format
+msgid "Warning: %d record(s) in %s stay with the old user %s, they would duplicate existing records of %s."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:453
+#, php-format
+msgid "The other records of user %s were not moved; the old user is still active."
+msgstr ""
+
+#: src/Domain/FamilyMerger.php:519
+#, php-format
+msgid "%d user(s) moved to the family to keep, %d removed from a family."
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:791 src/Domain/SepaGateway.php:936
+msgid "The IBAN can not be decrypted (wrong key or damaged data)"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:793 src/Domain/SepaGateway.php:938
+msgid "IBAN is missing"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:795
+msgid "Only a masked IBAN is entered, the full IBAN is needed"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:799 src/Domain/SepaGateway.php:944
+msgid "IBAN is incomplete (only the country code or a few characters)"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:801 src/Domain/SepaGateway.php:946
+msgid "IBAN is not valid (format or checksum)"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:803 src/Domain/SepaGateway.php:950
+#, php-format
+msgid "The same IBAN is used by: %s"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:810 src/Domain/SepaGateway.php:960
+msgid "Account holder is missing"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:813 src/Domain/SepaGateway.php:963
+msgid "The account holder looks incomplete or wrong (needs first and last name, no digits)"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:823 src/Domain/SepaGateway.php:974
+msgid "The account holder does not match the surname of any parent"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:830
+msgid "The BIC does not look valid (8 or 11 characters)"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:835
+msgid "Withdrawal cadence is not valid"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:839 src/Domain/SepaGateway.php:984
+msgid "Preferred withdrawal day is missing"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:846 src/Domain/SepaGateway.php:981
+msgid "Date of SEPA signature is missing"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:850
+#, php-format
+msgid "The date of the SEPA signature is earlier than the existing date (%s)"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:852
+msgid "The date of the SEPA signature is in the future"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:855
+msgid "The date of the SEPA signature is changed"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:861
+msgid "New SEPA: the family has no SEPA yet, it is created on approval"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:865
+msgid "The IBAN is changed"
+msgstr ""
+
+#: src/Domain/SepaChangeRequestGateway.php:868
+msgid "The account holder is changed"
+msgstr ""
+
+#: src/Domain/SepaGateway.php:53
+msgid "Monthly"
+msgstr ""
+
+#: src/Domain/SepaGateway.php:54
+msgid "Half-yearly"
+msgstr ""
+
+#: src/Domain/SepaGateway.php:55
+msgid "Yearly"
+msgstr ""
+
+#: src/Domain/SepaGateway.php:671
+msgid "Unenrolled before enrolled"
+msgstr ""
+
+#: src/Domain/SepaGateway.php:674
+msgid "Left before enrolled"
+msgstr ""
+
+#: src/Domain/SepaGateway.php:677
+msgid "Calc. end before calc. start"
+msgstr ""
+
+#: src/Domain/SepaGateway.php:904
+msgid "The family of this SEPA does not exist (deleted)"
+msgstr ""
+
+#: src/Domain/SepaGateway.php:910
+msgid "No SEPA for a family with enrolled students"
+msgstr ""
+
+#: src/Domain/SepaGateway.php:916
+#, php-format
+msgid "%d SEPA records for one family"
+msgstr ""
+
+#: src/Domain/SepaGateway.php:940
+msgid "Only a masked IBAN is stored, the full IBAN has to be entered again"
+msgstr ""
+
+#: src/Domain/SepaGateway.php:953
+msgid "The IBAN is not encrypted yet (it is encrypted when the record is saved)"
+msgstr ""
+
+#: src/Domain/SepaGateway.php:987
+msgid "The family has no enrolled students in the selected academic year"
+msgstr ""

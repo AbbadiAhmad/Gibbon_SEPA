@@ -59,7 +59,7 @@ $sepa = $sepas[0] ?? SepaChangeRequestGateway::emptySepa();
 // Discard the entries waiting for approval
 if (($_POST['action'] ?? '') === 'discard') {
     $requestGateway->discardPending($sepa['gibbonSEPAID'], $personID, $gibbonFamilyID);
-    $_SESSION[$guid]['sepaMyNotice'] = __('Your changes have been discarded.');
+    $_SESSION[$guid]['sepaMyNotice'] = __m('Your changes have been discarded.');
     header('Location: ' . $URLView . '&return=success0');
     exit;
 }
@@ -88,7 +88,7 @@ if ($isNew) {
 } elseif ($signed === '') {
     $signed = $existingSigned;
 } elseif ($existingSigned !== '' && $signed < $existingSigned) {
-    $_SESSION[$guid]['sepaMyError'] = sprintf(__('The date of the SEPA signature can not be earlier than the existing date (%s).'), Format::date($existingSigned));
+    $_SESSION[$guid]['sepaMyError'] = sprintf(__m('The date of the SEPA signature can not be earlier than the existing date (%s).'), Format::date($existingSigned));
     header('Location: ' . $URL);
     exit;
 }
@@ -114,7 +114,7 @@ $old = SepaChangeRequestGateway::clearValues($sepa);
 $sameIban = IbanCipher::normalize((string) $new['IBAN']) === IbanCipher::normalize((string) $old['IBAN']);
 if (!$isNew && $sameIban && $new['payer'] === $old['payer'] && $new['BIC'] === $old['BIC'] && $new['withdrawCadence'] === $old['withdrawCadence'] && (string) $new['withdrawDay'] === (string) $old['withdrawDay'] && $new['SEPA_signedDate'] === $old['SEPA_signedDate']) {
     $requestGateway->discardPending($sepa['gibbonSEPAID'], $personID, $gibbonFamilyID);
-    $_SESSION[$guid]['sepaMyNotice'] = __('Nothing is different from the current data, so there is nothing to approve.');
+    $_SESSION[$guid]['sepaMyNotice'] = __m('Nothing is different from the current data, so there is nothing to approve.');
     header('Location: ' . $URLView . '&return=success0');
     exit;
 }
@@ -128,7 +128,7 @@ try {
 
 // Read back what is stored: the family must not be told "saved" when it is not
 if (!SepaChangeRequestGateway::holdsValues($requestGateway->getPending($sepa['gibbonSEPAID'], $gibbonFamilyID), $values)) {
-    $_SESSION[$guid]['sepaMyError'] = __('Your changes could not be saved completely. Please tell the school administration (the SEPA module may need its database update).');
+    $_SESSION[$guid]['sepaMyError'] = __m('Your changes could not be saved completely. Please tell the school administration (the SEPA module may need its database update).');
     header('Location: ' . $URL . '&return=error2');
     exit;
 }

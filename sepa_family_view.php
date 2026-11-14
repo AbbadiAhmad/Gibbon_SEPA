@@ -32,12 +32,12 @@ require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php')) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
     
-    $page->breadcrumbs->add(__('Family\'s SEPA')); // show page navigation link
+    $page->breadcrumbs->add(__m('Family\'s SEPA')); // show page navigation link
     
     $search = isset($_GET['search']) ? $_GET['search'] : '';
     $SepaGateway = $container->get(SepaGateway::class);
@@ -58,16 +58,16 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
     $form = Form::createSearch();
 
     $row = $form->addRow();
-        $row->addLabel('search', __('Search For'))
-            ->description(__('Payer, custom fields'));
+        $row->addLabel('search', __m('Search For'))
+            ->description(__m('Payer, custom fields'));
         $row->addTextField('search')->setValue($criteria->getSearchText());
 
-    $form->addRow()->addSearchSubmit('', __('Clear Search'));
+    $form->addRow()->addSearchSubmit('', __m('Clear Search'));
 
     echo $form->getOutput();
 
     echo '<h2>';
-    echo __('View');
+    echo __m('View');
     echo '</h2>';
 
     // QUERY
@@ -84,18 +84,18 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
                 $customFields = $CustomFieldsGateway->getCustomFields();
                 $output_text = '';
                 $cadences = SepaGateway::getWithdrawCadenceOptions();
-                $output_text .= "<p>SEPA IBAN: " . htmlspecialchars(IbanCipher::format(IbanCipher::decryptForDisplay($row['IBAN'] ?? '')), ENT_QUOTES, 'UTF-8') . "</p>";
-                $output_text .= "<p>SEPA BIC: " . htmlspecialchars($row['BIC'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
-                $output_text .= "<p>" . __('Withdrawal cadence') . ": " . htmlspecialchars($cadences[$row['withdrawCadence']] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
-                $output_text .= "<p>" . __('Preferred withdrawal day') . ": " . htmlspecialchars($row['withdrawDay'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
-                $output_text .= "<p>Note: " . htmlspecialchars($row['note'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+                $output_text .= "<p>" . __m('SEPA IBAN') . ": " . htmlspecialchars(IbanCipher::format(IbanCipher::decryptForDisplay($row['IBAN'] ?? '')), ENT_QUOTES, 'UTF-8') . "</p>";
+                $output_text .= "<p>" . __m('BIC') . ": " . htmlspecialchars($row['BIC'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+                $output_text .= "<p>" . __m('Withdrawal cadence') . ": " . htmlspecialchars($cadences[$row['withdrawCadence']] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+                $output_text .= "<p>" . __m('Preferred withdrawal day') . ": " . htmlspecialchars($row['withdrawDay'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
+                $output_text .= "<p>" . __m('Note') . ": " . htmlspecialchars($row['note'] ?? '', ENT_QUOTES, 'UTF-8') . "</p>";
 
                 $jsonData = [];
                 if (isset($row['customData']) && trim($row['customData']) !== '') {
                     $jsonData = json_decode($row['customData'], true);
                 }
                 if (json_last_error() !== JSON_ERROR_NONE) {
-                    $output_text = 'Error while reading Custome fields';
+                    $output_text = __m('Error while reading the custom fields');
                 } else {
                     foreach ($customFields as $field) {
                         $id = $CustomFieldsGateway->getCustomeFieldPrefix() . intval($field["gibbonSEPACustomFieldID"]);
@@ -108,8 +108,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
                 if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_change_log.php')) {
                     $history = $container->get(\Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway::class)->selectLog($row['gibbonSEPAID'], 10);
                     if (!empty($history)) {
-                        $output_text .= '<h4>' . __('History of changes') . '</h4>' . sepaRenderChangeLog($history, false)
-                            . '<p><a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_log.php&sepa=' . (int) $row['gibbonSEPAID'] . '">' . __('Open the full log') . '</a></p>';
+                        $output_text .= '<h4>' . __m('History of changes') . '</h4>' . sepaRenderChangeLog($history, false)
+                            . '<p><a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_log.php&sepa=' . (int) $row['gibbonSEPAID'] . '">' . __m('Open the full log') . '</a></p>';
                     }
                 }
                 return $output_text;
@@ -117,53 +117,53 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_view.php
         );
 
 
-    $table->addHeaderAction('add', __('Add'))
+    $table->addHeaderAction('add', __m('Add'))
         ->setURL('/modules/Sepa/sepa_family_add.php')
         ->addParam('search', $search)
         ->displayLabel();
 
-    $table->addColumn('payer', __('Payer'));
+    $table->addColumn('payer', __m('Payer'));
 
-    $table->addColumn('adults', __('Adults'))
+    $table->addColumn('adults', __m('Adults'))
         ->notSortable()
         ->format(function ($row) {
             array_walk($row['adults'], function (&$person) {
                 if ($person['status'] == 'Left' || $person['status'] == 'Expected') {
-                    $person['surname'] .= ' <i>(' . __($person['status']) . ')</i>';
+                    $person['surname'] .= ' <i>(' . __m($person['status']) . ')</i>';
                 }
             });
             return Format::nameList($row['adults'], 'Parent');
         });
 
-    $table->addColumn('children', __('Children'))
+    $table->addColumn('children', __m('Children'))
         ->notSortable()
         ->format(function ($row) {
             array_walk($row['children'], function (&$person) {
                 if ($person['status'] == 'Left' || $person['status'] == 'Expected') {
-                    $person['surname'] .= ' <i>(' . __($person['status']) . ')</i>';
+                    $person['surname'] .= ' <i>(' . __m($person['status']) . ')</i>';
                 }
             });
             return Format::nameList($row['children'], 'Student');
         });
 
-    $table->addColumn('withdrawCadence', __('Withdrawal'))
+    $table->addColumn('withdrawCadence', __m('Withdrawal'))
         ->format(function ($row) {
             $cadences = SepaGateway::getWithdrawCadenceOptions();
             $text = $cadences[$row['withdrawCadence']] ?? '';
-            return $row['withdrawDay'] ? $text . ' (' . __('day') . ' ' . (int) $row['withdrawDay'] . ')' : $text;
+            return $row['withdrawDay'] ? $text . ' (' . __m('day') . ' ' . (int) $row['withdrawDay'] . ')' : $text;
         });
 
-    $table->addColumn('SEPA_signedDate', __('Date'));
+    $table->addColumn('SEPA_signedDate', __m('Date'));
 
     // ACTIONS
     $table->addActionColumn()
         ->addParam('gibbonSEPAID')
         ->addParam('search', $criteria->getSearchText(true))
         ->format(function ($row, $actions) {
-            $actions->addAction('edit', __(''))
+            $actions->addAction('edit', '')
                 ->setURL('/modules/Sepa/sepa_family_edit.php');
 
-            $actions->addAction('delete', __(''))
+            $actions->addAction('delete', '')
                 ->setURL('/modules/Sepa/sepa_family_delete.php');
 
         });

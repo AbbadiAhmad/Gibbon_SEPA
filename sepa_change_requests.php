@@ -27,11 +27,11 @@ use Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway;
 require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_change_requests.php')) {
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
     return;
 }
 
-$page->breadcrumbs->add(__('Approve SEPA Changes'));
+$page->breadcrumbs->add(__m('Approve SEPA Changes'));
 
 $_GET = $container->get(Validator::class)->sanitize($_GET);
 $gateway = $container->get(SepaChangeRequestGateway::class);
@@ -42,9 +42,9 @@ $form = Form::create('statusFilter', $session->get('absoluteURL') . '/index.php'
 $form->setClass('noIntBorder fullWidth');
 $form->addHiddenValue('q', '/modules/Sepa/sepa_change_requests.php');
 $row = $form->addRow();
-$row->addLabel('status', __('Status'));
-$row->addSelect('status')->fromArray(['Pending' => __('Waiting for approval'), 'Approved' => __('Approved'), 'Rejected' => __('Rejected'), 'All' => __('All')])->selected($status);
-$form->addRow()->addSubmit(__('Go'));
+$row->addLabel('status', __m('Status'));
+$row->addSelect('status')->fromArray(['Pending' => __m('Waiting for approval'), 'Approved' => __m('Approved'), 'Rejected' => __m('Rejected'), 'All' => __m('All')])->selected($status);
+$form->addRow()->addSubmit(__m('Go'));
 echo $form->getOutput();
 
 $requests = $gateway->selectRequests($status === 'All' ? '' : $status);
@@ -57,40 +57,40 @@ foreach ($requests as &$request) {
 }
 unset($request);
 
-echo '<h2>' . __('SEPA changes entered by families') . '</h2>';
+echo '<h2>' . __m('SEPA changes entered by families') . '</h2>';
 
 $table = DataTable::create('sepaChangeRequests');
 if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_change_log.php')) {
-    $table->addHeaderAction('log', __('Log'))
+    $table->addHeaderAction('log', __m('Log'))
         ->setURL('/modules/Sepa/sepa_change_log.php')
         ->displayLabel();
 }
-$table->addColumn('familyName', __('Family'));
-$table->addColumn('payer', __('Account holder'));
-$table->addColumn('submittedBy', __('Entered by'));
-$table->addColumn('timestampSubmitted', __('Date'))->format(function ($row) {
+$table->addColumn('familyName', __m('Family'));
+$table->addColumn('payer', __m('Account holder'));
+$table->addColumn('submittedBy', __m('Entered by'));
+$table->addColumn('timestampSubmitted', __m('Date'))->format(function ($row) {
     return Format::dateTime($row['timestampUpdated'] ?: $row['timestampSubmitted']);
 });
-$table->addColumn('status', __('Status'))->format(function ($row) {
-    return ['Pending' => __('Waiting for approval'), 'Approved' => __('Approved'), 'Rejected' => __('Rejected')][$row['status']] ?? $row['status'];
+$table->addColumn('status', __m('Status'))->format(function ($row) {
+    return ['Pending' => __m('Waiting for approval'), 'Approved' => __m('Approved'), 'Rejected' => __m('Rejected')][$row['status']] ?? $row['status'];
 });
-$table->addColumn('check', __('Check'))->format(function ($row) {
+$table->addColumn('check', __m('Check'))->format(function ($row) {
     if ($row['status'] !== 'Pending') {
         return '';
     }
     $text = [];
     if ($row['errors']) {
-        $text[] = '<span style="color: red; font-weight: bold;">' . sprintf(__('%d error(s)'), $row['errors']) . '</span>';
+        $text[] = '<span style="color: red; font-weight: bold;">' . sprintf(__m('%d error(s)'), $row['errors']) . '</span>';
     }
     if ($row['warnings']) {
-        $text[] = '<span style="color: #c60;">' . sprintf(__('%d warning(s)'), $row['warnings']) . '</span>';
+        $text[] = '<span style="color: #c60;">' . sprintf(__m('%d warning(s)'), $row['warnings']) . '</span>';
     }
-    return $text ? implode(', ', $text) : __('No problems');
+    return $text ? implode(', ', $text) : __m('No problems');
 });
 $table->addActionColumn()
     ->addParam('gibbonSEPAChangeRequestID')
     ->format(function ($row, $actions) {
-        $actions->addAction('view', $row['status'] === 'Pending' ? __('Review') : __('View'))
+        $actions->addAction('view', $row['status'] === 'Pending' ? __m('Review') : __m('View'))
             ->setURL('/modules/Sepa/sepa_change_review.php');
     });
 

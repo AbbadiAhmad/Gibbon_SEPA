@@ -13,7 +13,7 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_add.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
 
     $_POST = $container->get(Validator::class)->sanitize($_POST);

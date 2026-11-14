@@ -26,12 +26,12 @@ use Gibbon\Module\Sepa\Security\IbanCipher;
 require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_merge.php')) {
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
     return;
 }
 
-$page->breadcrumbs->add(__('Check SEPA Data'), 'sepa_check.php');
-$page->breadcrumbs->add(__('Merge SEPA'));
+$page->breadcrumbs->add(__m('Check SEPA Data'), 'sepa_check.php');
+$page->breadcrumbs->add(__m('Merge SEPA'));
 
 $_GET = $container->get(Validator::class)->sanitize($_GET);
 $esc = function ($value) {
@@ -53,12 +53,12 @@ if (!empty($_SESSION[$guid]['sepaMergeReport'])) {
 
 $dropID = FamilyMerger::id($_GET['gibbonSEPAID'] ?? 0);
 if ($dropID <= 0) {
-    echo '<p><a href="' . $esc($checkURL) . '">' . __('Back') . '</a></p>';
+    echo '<p><a href="' . $esc($checkURL) . '">' . __m('Back') . '</a></p>';
     return;
 }
 $drop = $merger->getSepa($dropID);
 if (!$drop) {
-    $page->addError(__('The specified record cannot be found.'));
+    $page->addError(__m('The specified record cannot be found.'));
     return;
 }
 
@@ -66,12 +66,12 @@ $ibanOf = function ($sepa) {
     return empty($sepa['IBAN']) ? '' : IbanCipher::format(IbanCipher::decryptForDisplay($sepa['IBAN']));
 };
 $describe = function ($sepa) use ($ibanOf) {
-    return ($sepa['familyName'] ?? __('(family deleted)')) . ' - ' . $sepa['payer'] . ' - ' . $ibanOf($sepa) . ' (' . FamilyMerger::id($sepa['gibbonSEPAID']) . ')';
+    return ($sepa['familyName'] ?? __m('(family deleted)')) . ' - ' . $sepa['payer'] . ' - ' . $ibanOf($sepa) . ' (' . FamilyMerger::id($sepa['gibbonSEPAID']) . ')';
 };
 
-echo '<h2>' . __('Merge SEPA') . '</h2>';
-echo '<p>' . sprintf(__('SEPA to merge away: %s'), '<strong>' . $esc($describe($drop)) . '</strong>') . '</p>';
-echo '<p>' . __('Its payments, adjustments and snapshots move to the SEPA you choose, then this SEPA is deleted. The family and users are not changed; use Merge Families for that.') . '</p>';
+echo '<h2>' . __m('Merge SEPA') . '</h2>';
+echo '<p>' . sprintf(__m('SEPA to merge away: %s'), '<strong>' . $esc($describe($drop)) . '</strong>') . '</p>';
+echo '<p>' . __m('Its payments, adjustments and snapshots move to the SEPA you choose, then this SEPA is deleted. The family and users are not changed; use Merge Families for that.') . '</p>';
 
 // the SEPAs it can be merged into: of existing families only
 $targets = [];
@@ -99,14 +99,14 @@ $form->setClass('noIntBorder fullWidth');
 $form->addHiddenValue('q', '/modules/Sepa/sepa_merge.php');
 $form->addHiddenValue('gibbonSEPAID', $dropID);
 $row = $form->addRow();
-$row->addLabel('targetSEPAID', __('Merge into SEPA'))->description(__('A SEPA with the same IBAN is preselected.'));
+$row->addLabel('targetSEPAID', __m('Merge into SEPA'))->description(__m('A SEPA with the same IBAN is preselected.'));
 $row->addSelect('targetSEPAID')->fromArray($targets)->selected($keepID ?: '')->placeholder()->required();
 $row = $form->addRow();
-$row->addSubmit(__('Compare'));
+$row->addSubmit(__m('Compare'));
 echo $form->getOutput();
 
 if ($keepID <= 0 || !isset($targets[$keepID])) {
-    echo '<p><a href="' . $esc($checkURL) . '">' . __('Back') . '</a></p>';
+    echo '<p><a href="' . $esc($checkURL) . '">' . __m('Back') . '</a></p>';
     return;
 }
 $keep = $merger->getSepa($keepID);
@@ -118,7 +118,7 @@ $form->addHiddenValue('gibbonSEPAID', $dropID);
 $form->addHiddenValue('targetSEPAID', $keepID);
 
 $counts = $merger->getSepaLinkCounts($dropID);
-$html = '<p>' . sprintf(__('%d payments, %d adjustments and %d snapshots move to the SEPA of %s.'), $counts['payments'], $counts['adjustments'], $counts['snapshots'], $esc($keep['familyName'])) . '</p>';
+$html = '<p>' . sprintf(__m('%d payments, %d adjustments and %d snapshots move to the SEPA of %s.'), $counts['payments'], $counts['adjustments'], $counts['snapshots'], $esc($keep['familyName'])) . '</p>';
 
 $rows = [];
 foreach (FamilyMerger::SEPA_FIELDS as $field) {
@@ -131,9 +131,9 @@ foreach (FamilyMerger::SEPA_FIELDS as $field) {
     }
 }
 if (empty($rows)) {
-    $html .= '<p><em>' . __('Nothing differs, nothing to choose.') . '</em></p>';
+    $html .= '<p><em>' . __m('Nothing differs, nothing to choose.') . '</em></p>';
 } else {
-    $html .= '<table class="fullWidth colorOddEven"><thead><tr><th>' . __('Field') . '</th><th>' . $esc(sprintf(__('Keep SEPA %s'), $keepID)) . '</th><th>' . $esc(sprintf(__('SEPA %s'), $dropID)) . '</th></tr></thead><tbody>';
+    $html .= '<table class="fullWidth colorOddEven"><thead><tr><th>' . __m('Field') . '</th><th>' . $esc(sprintf(__m('Keep SEPA %s'), $keepID)) . '</th><th>' . $esc(sprintf(__m('SEPA %s'), $dropID)) . '</th></tr></thead><tbody>';
     foreach ($rows as $field => [$left, $right]) {
         $takeRight = trim((string) $left) === '' && trim((string) $right) !== '';
         $name = 'sepaFields[' . $field . ']';
@@ -143,10 +143,10 @@ if (empty($rows)) {
     }
     $html .= '</tbody></table>';
 }
-$form->addRow()->addContent('<div class="warning">' . __('This changes the SEPA data and can not be undone. Make a database backup first.') . '</div>' . $html);
+$form->addRow()->addContent('<div class="warning">' . __m('This changes the SEPA data and can not be undone. Make a database backup first.') . '</div>' . $html);
 
 $row = $form->addRow();
-$row->addContent('<a href="' . $esc($checkURL) . '">' . __('Back') . '</a>');
-$row->addSubmit(__('Merge SEPA'));
+$row->addContent('<a href="' . $esc($checkURL) . '">' . __m('Back') . '</a>');
+$row->addSubmit(__m('Merge SEPA'));
 
 echo $form->getOutput();

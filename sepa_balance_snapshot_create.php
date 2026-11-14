@@ -35,11 +35,11 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot.php')) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $page->breadcrumbs
-        ->add(__('Balance Snapshot'), 'sepa_balance_snapshot.php')
-        ->add(__('Create Snapshot'));
+        ->add(__m('Balance Snapshot'), 'sepa_balance_snapshot.php')
+        ->add(__m('Create Snapshot'));
 
     $SepaGateway = $container->get(SepaGateway::class);
     $SnapshotGateway = $container->get(SnapshotGateway::class);
@@ -188,20 +188,20 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
         // Redirect with success message
         if ($successCount > 0) {
-            $page->addMessage(__('Snapshot created successfully for {count} families.', ['count' => $successCount]));
+            $page->addMessage(__m('Snapshot created successfully for {count} families.', ['count' => $successCount]));
         }
         if ($errorCount > 0) {
-            $page->addError(__('Failed to create snapshot for {count} families.', ['count' => $errorCount]));
+            $page->addError(__m('Failed to create snapshot for {count} families.', ['count' => $errorCount]));
         }
 
         echo '<div class="linkTop">';
-        echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot.php&schoolYearID=' . $schoolYearID . '&search=' . urlencode($search) . '">' . __('Back to Snapshots') . '</a>';
+        echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot.php&schoolYearID=' . $schoolYearID . '&search=' . urlencode($search) . '">' . __m('Back to Snapshots') . '</a>';
         echo '</div>';
     } else {
         // Display confirmation form
         echo sepaMissingFeesWarning($SepaGateway, $schoolYearID, $session->get('absoluteURL'));
         echo '<h2>';
-        echo __('Create Balance Snapshot');
+        echo __m('Create Balance Snapshot');
         echo '</h2>';
 
         // Get families with balance changes
@@ -235,31 +235,31 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
         if ($familiesWithChanges == 0) {
             echo '<div class="message">';
-            echo __('No families with changes in fees or adjustments found.');
+            echo __m('No families with changes in fees or adjustments found.');
             echo '</div>';
 
             echo '<div class="linkTop">';
-            echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot.php&schoolYearID=' . $schoolYearID . '">' . __('Back to Snapshots') . '</a>';
+            echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot.php&schoolYearID=' . $schoolYearID . '">' . __m('Back to Snapshots') . '</a>';
             echo '</div>';
         } else {
             echo '<p>';
-            echo __('This will create a snapshot for {count} families with changes in fees or adjustments since the last snapshot.', ['count' => $familiesWithChanges]);
+            echo __m('This will create a snapshot for {count} families with changes in fees or adjustments since the last snapshot.', ['count' => $familiesWithChanges]);
             echo '</p>';
 
             echo '<p>';
-            echo __('The snapshot will record the current balance, fees, payments, and adjustments for each family.');
+            echo __m('The snapshot will record the current balance, fees, payments, and adjustments for each family.');
             echo '</p>';
 
             $form = Form::create('snapshotCreate', $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot_create.php&schoolYearID=' . $schoolYearID);
             $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
             $row = $form->addRow();
-            $row->addLabel('info', __('Families to snapshot'))->description(__('Number of families'));
+            $row->addLabel('info', __m('Families to snapshot'))->description(__m('Number of families'));
             $row->addTextField('info')->readonly()->setValue($familiesWithChanges);
 
             $row = $form->addRow();
             $row->addFooter();
-            $row->addSubmit(__('Create Snapshot'));
+            $row->addSubmit(__m('Create Snapshot'));
 
             echo $form->getOutput();
         }

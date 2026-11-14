@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/src/i18n.php';
 /*
 Gibbon: the flexible, open school platform
 Founded by Ross Parker at ICHK Secondary. Built by Ross Parker, Sandra Kuipers and the Gibbon community
@@ -12,7 +13,7 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
 
     $data = $_SESSION[$guid]['sepaValidData'] ?? [0 => ['Error' => 'No data available']];
@@ -60,15 +61,15 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         ->addMetaData('filename', $filename);
 
     // Add columns
-    $table->addColumn('Row', __('Row'));
-    $table->addColumn('Status', __('Status'));
-    $table->addColumn('Payer', __('Payer'));
-    //$table->addColumn('IBAN', __('IBAN'));
-    //$table->addColumn('BIC', __('BIC'));
-    $table->addColumn('Cadence', __('Cadence'));
-    $table->addColumn('Day', __('Day'));
-    $table->addColumn('SEPA Signed Date', __('SEPA Signed Date'));
-    $table->addColumn('Note', __('Note'));
+    $table->addColumn('Row', __m('Row'));
+    $table->addColumn('Status', __m('Status'));
+    $table->addColumn('Payer', __m('Payer'));
+    //$table->addColumn('IBAN', __m('IBAN'));
+    //$table->addColumn('BIC', __m('BIC'));
+    $table->addColumn('Cadence', __m('Cadence'));
+    $table->addColumn('Day', __m('Day'));
+    $table->addColumn('SEPA Signed Date', __m('SEPA Signed Date'));
+    $table->addColumn('Note', __m('Note'));
 
     echo $table->render($exportData);
 }

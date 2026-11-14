@@ -19,10 +19,10 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $page->breadcrumbs
-        ->add(__('Payment Report by Date Range'));
+        ->add(__m('Payment Report by Date Range'));
 
     $SepaGateway = $container->get(SepaGateway::class);
 
@@ -43,25 +43,25 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
 
     // Create form for date range and SEPA selection
     $form = Form::create('dateRangeForm', $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_payment_report.php');
-    $form->setTitle(__('Select Date Range and SEPA Account'));
+    $form->setTitle(__m('Select Date Range and SEPA Account'));
     $form->setMethod('GET');
     $form->addHiddenValue('q', '/modules/Sepa/sepa_payment_report.php');
 
     $row = $form->addRow();
-    $row->addLabel('fromDate', __('From Date'));
+    $row->addLabel('fromDate', __m('From Date'));
     $row->addDate('fromDate')
         ->required()
         ->setValue($fromDate);
 
     $row = $form->addRow();
-    $row->addLabel('toDate', __('To Date'));
+    $row->addLabel('toDate', __m('To Date'));
     $row->addDate('toDate')
         ->required()
         ->setValue($toDate);
 
     $row = $form->addRow();
-    $row->addLabel('gibbonSEPAID', __('SEPA Account'));
-    $sepaOptions = ['all' => __('All SEPA Accounts')];
+    $row->addLabel('gibbonSEPAID', __m('SEPA Account'));
+    $sepaOptions = ['all' => __m('All SEPA Accounts')];
     foreach ($sepaList as $sepa) {
 
         $sepaOptions[$sepa['gibbonSEPAID']] = $sepa['payer'];
@@ -71,7 +71,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
         ->selected($gibbonSEPAID);
 
     $row = $form->addRow();
-    $row->addSubmit(__('Generate Report'));
+    $row->addSubmit(__m('Generate Report'));
 
     echo $form->getOutput();
 
@@ -79,7 +79,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
     if (!empty($fromDate) && !empty($toDate)) {
         // Check if a specific SEPA account is selected
         if (empty($gibbonSEPAID) || $gibbonSEPAID === 'all') {
-            echo "<div class='message'>" . __('Please select a specific SEPA account to generate the report.') . "</div>";
+            echo "<div class='message'>" . __m('Please select a specific SEPA account to generate the report.') . "</div>";
         } else {
             // Convert dates from display format to database format if needed
             $fromDateDB = Format::dateConvert($fromDate);
@@ -87,7 +87,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
 
             // Validate date range
             if (strtotime($fromDateDB) > strtotime($toDateDB)) {
-                echo "<div class='error'>" . __('From Date must be before or equal to To Date') . "</div>";
+                echo "<div class='error'>" . __m('From Date must be before or equal to To Date') . "</div>";
             } else {
                 // CRITERIA
                 $criteria = $SepaGateway->newQueryCriteria(true)
@@ -115,15 +115,15 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
                             $adults = $SepaGateway->selectAdultsByFamily($sepaData['gibbonFamilyID'])->fetchAll();
                             $children = $SepaGateway->selectChildrenByFamily($sepaData['gibbonFamilyID'])->fetchAll();
 
-                            $familyInfo .= "<h3>" . __('Family Information') . "</h3>";
-                            $familyInfo .= "<p><strong>" . __('Family') . ":</strong> " . htmlspecialchars($sepaData['payer']) . "</p>";
+                            $familyInfo .= "<h3>" . __m('Family Information') . "</h3>";
+                            $familyInfo .= "<p><strong>" . __m('Family') . ":</strong> " . htmlspecialchars($sepaData['payer']) . "</p>";
 
                             if (!empty($adults)) {
                                 $adultCount = 0;
                                 foreach ($adults as $adult) {
                                     $adultCount++;
                                     $adultName = $adult['preferredName'] . ' ' . $adult['surname'];
-                                    $adultLabel = ($adultCount === 1) ? __('First Adult') : __('Second Adult');
+                                    $adultLabel = ($adultCount === 1) ? __m('First Adult') : __m('Second Adult');
                                     $familyInfo .= "<p><strong>" . $adultLabel . ":</strong> " . htmlspecialchars($adultName) . "</p>";
                                     if ($adultCount >= 2)
                                         break; // Only show first 2 adults
@@ -131,7 +131,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
                             }
 
                             if (!empty($children)) {
-                                $familyInfo .= "<p><strong>" . __('Children') . ":</strong></p><ul>";
+                                $familyInfo .= "<p><strong>" . __m('Children') . ":</strong></p><ul>";
                                 foreach ($children as $child) {
                                     $childName = $child['preferredName'] . ' ' . $child['surname'];
                                     $familyInfo .= "<li>" . htmlspecialchars($childName) . "</li>";
@@ -145,11 +145,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
                 // Display summary with RTL support
                 $textDir = ($session->get('i18n')['direction'] ?? 'ltr');
                 echo "<div dir='" . $textDir . "'>";
-                echo "<h3>" . __('Summary') . "</h3>";
-                echo "<p><strong>" . __('From Date') . ":</strong>" . Format::date($fromDateDB) . "</p>";
-                echo "<p><strong>" . __('To Date') . ":</strong> " . Format::date($toDateDB) . "</p>";
-                echo "<p><strong>" . __('Total Payments') . ":</strong> " . $payments->getResultCount() . "</p>";
-                echo "<p><strong>" . __('Total Amount') . ":</strong> " . number_format($totalSum, 2) . "</p>";
+                echo "<h3>" . __m('Summary') . "</h3>";
+                echo "<p><strong>" . __m('From Date') . ":</strong>" . Format::date($fromDateDB) . "</p>";
+                echo "<p><strong>" . __m('To Date') . ":</strong> " . Format::date($toDateDB) . "</p>";
+                echo "<p><strong>" . __m('Total Payments') . ":</strong> " . $payments->getResultCount() . "</p>";
+                echo "<p><strong>" . __m('Total Amount') . ":</strong> " . number_format($totalSum, 2) . "</p>";
                 echo "</div>";
 
                 // Display family info with RTL support
@@ -167,46 +167,46 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
                 if ($sepaFilter) {
                     echo "<input type='hidden' name='gibbonSEPAID' value='" . htmlspecialchars($sepaFilter) . "'>";
                 }
-                echo "<button type='submit' class='button'>" . __('Print Report') . "</button>";
+                echo "<button type='submit' class='button'>" . __m('Print Report') . "</button>";
                 echo "</form>";
                 echo "</div></p>";
 
                 // DATA TABLE - Showing only Date and Amount
                 $table = DataTable::createPaginated('paymentsReport', $criteria);
-                $table->setTitle(__('Payment Report'));
+                $table->setTitle(__m('Payment Report'));
 
-                $table->addColumn('booking_date', __('Booking Date'))
+                $table->addColumn('booking_date', __m('Booking Date'))
                     ->sortable(['booking_date']);
 
-                $table->addColumn('amount', __('Amount'))
+                $table->addColumn('amount', __m('Amount'))
                     ->format(function ($row) {
                         return number_format($row['amount'], 2);
                     })
                     ->sortable(['amount']);
 
 
-                $table->addColumn('payer', __('Payer'))
+                $table->addColumn('payer', __m('Payer'))
                     ->sortable(['payer']);
 
-                $table->addColumn('familyName', __('Family Name'))
+                $table->addColumn('familyName', __m('Family Name'))
                     ->sortable(['familyName']);
 
-                $table->addColumn('payment_method', __('Payment Method'))
+                $table->addColumn('payment_method', __m('Payment Method'))
                     ->sortable(['payment_method']);
 
-                $table->addColumn('transaction_message', __('Transaction Message'))
+                $table->addColumn('transaction_message', __m('Transaction Message'))
                     ->sortable(['transaction_message']);
 
-                $table->addColumn('IBAN', __('IBAN'))
+                $table->addColumn('IBAN', __m('IBAN'))
                     ->notSortable()
                     ->format(function ($row) {
                         return htmlspecialchars(IbanCipher::format(IbanCipher::decryptForDisplay($row['IBAN'])), ENT_QUOTES, 'UTF-8');
                     });
 
-                $table->addColumn('transaction_reference', __('Transaction Reference'))
+                $table->addColumn('transaction_reference', __m('Transaction Reference'))
                     ->sortable(['transaction_reference']);
 
-                $table->addColumn('note', __('Note'))
+                $table->addColumn('note', __m('Note'))
                     ->sortable(['note']);
 
                 echo $table->render($payments);

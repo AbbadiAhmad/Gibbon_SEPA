@@ -26,9 +26,9 @@ use Gibbon\Data\Validator;
 require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.php')) {
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
-    $page->breadcrumbs->add(__('My Family SEPA'));
+    $page->breadcrumbs->add(__m('My Family SEPA'));
 
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $SepaGateway = $container->get(SepaGateway::class);
@@ -40,19 +40,19 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
     $schoolYearID = $_SESSION[$guid]['gibbonSchoolYearID'];
 
     if (empty($gibbonFamilyIDs)) {
-        echo __('The SEPA information is missing for your family. Please ask the school\'s administration for more information.');
+        echo __m('The SEPA information is missing for your family. Please ask the school\'s administration for more information.');
         return;
     } elseif (count($gibbonFamilyIDs) > 1) {
-        echo __('You are added to multiple families. Please ask the school\'s administration for more information');
+        echo __m('You are added to multiple families. Please ask the school\'s administration for more information');
         return;
     }
     $gibbonFamilyID = array_values($gibbonFamilyIDs)[0];
     $familyInfo = $SepaGateway->getFamilyInfo($gibbonFamilyID);
     $FamilySEPA = $SepaGateway->getFamilySEPA($gibbonFamilyID);
 
-    echo '<h2>' . __('My Family SEPA') . '</h2>';
+    echo '<h2>' . __m('My Family SEPA') . '</h2>';
     if (!empty($familyInfo)) {
-        echo '<h3>' . __('Family: ') . $e($familyInfo[0]['name'] ?? '') . '</h3>';
+        echo '<h3>' . __m('Family: ') . $e($familyInfo[0]['name'] ?? '') . '</h3>';
     }
 
     // Families with the permission enter changes themselves (approved by the school administration),
@@ -69,7 +69,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
     // Only when there is exactly one SEPA the family can change it
     if ($canEdit && count($FamilySEPA) === 1) {
         echo "<div class='message'>"
-            . __('You can change this data. Your changes are checked by the school administration first; until then the data below stays valid.')
+            . __m('You can change this data. Your changes are checked by the school administration first; until then the data below stays valid.')
             . '</div>';
     }
 
@@ -77,28 +77,28 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
     $hasSepa = !empty($FamilySEPA);
     if (!$hasSepa && !$canEdit) {
         // No SEPA for this family and no right to enter one: nothing to show, change or check
-        echo "<div class='error'>" . __('SEPA information is not available for this family.') . ' ' . __('Please contact the school administration.') . '</div>';
+        echo "<div class='error'>" . __m('SEPA information is not available for this family.') . ' ' . __m('Please contact the school administration.') . '</div>';
         return;
     }
     if (!$hasSepa) {
-        echo "<div class='warning'>" . __('There is no SEPA for your family yet. You can enter the SEPA data here; the school administration checks it before it is used.') . '</div>';
+        echo "<div class='warning'>" . __m('There is no SEPA for your family yet. You can enter the SEPA data here; the school administration checks it before it is used.') . '</div>';
     }
     {
         if (count($FamilySEPA) > 1) {
-            echo "<div class='error'>" . __('More than one SEPA record is entered for this family. Please contact the school administration.') . '</div>';
+            echo "<div class='error'>" . __m('More than one SEPA record is entered for this family. Please contact the school administration.') . '</div>';
         }
         foreach ($FamilySEPA as $sepa) {
             $iban = IbanCipher::decrypt($sepa['IBAN'] ?? '');
-            $ibanText = $iban === null ? __('not available') : IbanCipher::maskForDisplay($iban);
+            $ibanText = $iban === null ? __m('not available') : IbanCipher::maskForDisplay($iban);
 
             echo "<table class='smallIntBorder fullWidth' cellspacing='0'><tbody>";
             $rows = [
-                __('Account holder') => $sepa['payer'],
-                __('IBAN') => $ibanText,
-                __('BIC') => $sepa['BIC'],
-                __('Withdrawal cadence') => $cadences[$sepa['withdrawCadence']] ?? '',
-                __('Preferred withdrawal day') => $sepa['withdrawDay'],
-                __('Date of SEPA signature') => !empty($sepa['SEPA_signedDate']) && strpos($sepa['SEPA_signedDate'], '0000') !== 0 ? \Gibbon\Services\Format::date($sepa['SEPA_signedDate']) : '',
+                __m('Account holder') => $sepa['payer'],
+                __m('IBAN') => $ibanText,
+                __m('BIC') => $sepa['BIC'],
+                __m('Withdrawal cadence') => $cadences[$sepa['withdrawCadence']] ?? '',
+                __m('Preferred withdrawal day') => $sepa['withdrawDay'],
+                __m('Date of SEPA signature') => !empty($sepa['SEPA_signedDate']) && strpos($sepa['SEPA_signedDate'], '0000') !== 0 ? \Gibbon\Services\Format::date($sepa['SEPA_signedDate']) : '',
             ];
             foreach ($rows as $label => $value) {
                 echo '<tr><td style="width: 35%;"><strong>' . $e($label) . '</strong></td><td>' . $e($value) . '</td></tr>';
@@ -113,7 +113,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
                 : $requestGateway->selectLog(null, 20, $gibbonFamilyID);
             if (!empty($history)) {
                 // folded by default
-                echo '<details style="margin: 1em 0;"><summary style="cursor: pointer; font-weight: bold;">' . __('History of changes') . ' (' . count($history) . ')</summary>';
+                echo '<details style="margin: 1em 0;"><summary style="cursor: pointer; font-weight: bold;">' . __m('History of changes') . ' (' . count($history) . ')</summary>';
                 echo sepaRenderChangeLog($history, false, true);
                 echo '</details>';
             }
@@ -127,26 +127,26 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
             $pending = $requestGateway->getPending($sepa['gibbonSEPAID'], $gibbonFamilyID);
 
             if (!$pending) {
-                echo '<p><a class="button" href="' . $e($editURL) . '">' . ($hasSepa ? __('Change my SEPA data') : __('Enter my SEPA data')) . '</a></p>';
+                echo '<p><a class="button" href="' . $e($editURL) . '">' . ($hasSepa ? __m('Change my SEPA data') : __m('Enter my SEPA data')) . '</a></p>';
             } else {
                 $current = SepaChangeRequestGateway::clearValues($sepa);
                 $entered = SepaChangeRequestGateway::enteredValues($pending, $sepa);
                 $maskIban = function ($iban) {
-                    return $iban === null ? __('not available') : IbanCipher::maskForDisplay($iban);
+                    return $iban === null ? __m('not available') : IbanCipher::maskForDisplay($iban);
                 };
 
-                echo '<h3>' . ($hasSepa ? __('Your changes are waiting for approval') : __('Your SEPA data is waiting for approval')) . '</h3>';
+                echo '<h3>' . ($hasSepa ? __m('Your changes are waiting for approval') : __m('Your SEPA data is waiting for approval')) . '</h3>';
                 echo '<p>' . sprintf($hasSepa
-                    ? __('Entered on %s. The school administration has to approve them; until then the current data is used.')
-                    : __('Entered on %s. The school administration has to approve it before the SEPA is used.'), $e(\Gibbon\Services\Format::dateTime($pending['timestampUpdated'] ?: $pending['timestampSubmitted']))) . '</p>';
-                echo "<table class='smallIntBorder fullWidth' cellspacing='0'><thead><tr><th></th><th>" . __('Current') . '</th><th>' . __('Entered (waiting for approval)') . '</th></tr></thead><tbody>';
+                    ? __m('Entered on %s. The school administration has to approve them; until then the current data is used.')
+                    : __m('Entered on %s. The school administration has to approve it before the SEPA is used.'), $e(\Gibbon\Services\Format::dateTime($pending['timestampUpdated'] ?: $pending['timestampSubmitted']))) . '</p>';
+                echo "<table class='smallIntBorder fullWidth' cellspacing='0'><thead><tr><th></th><th>" . __m('Current') . '</th><th>' . __m('Entered (waiting for approval)') . '</th></tr></thead><tbody>';
                 $compare = [
-                    __('Account holder') => [$current['payer'], $entered['payer']],
-                    __('IBAN') => [$maskIban($current['IBAN']), $maskIban($entered['IBAN'])],
-                    __('BIC') => [$current['BIC'], $entered['BIC']],
-                    __('Withdrawal cadence') => [$cadences[$current['withdrawCadence']] ?? '', $cadences[$entered['withdrawCadence']] ?? ''],
-                    __('Preferred withdrawal day') => [$current['withdrawDay'], $entered['withdrawDay']],
-                    __('Date of SEPA signature') => [$current['SEPA_signedDate'] ? \Gibbon\Services\Format::date($current['SEPA_signedDate']) : '', $entered['SEPA_signedDate'] ? \Gibbon\Services\Format::date($entered['SEPA_signedDate']) : ''],
+                    __m('Account holder') => [$current['payer'], $entered['payer']],
+                    __m('IBAN') => [$maskIban($current['IBAN']), $maskIban($entered['IBAN'])],
+                    __m('BIC') => [$current['BIC'], $entered['BIC']],
+                    __m('Withdrawal cadence') => [$cadences[$current['withdrawCadence']] ?? '', $cadences[$entered['withdrawCadence']] ?? ''],
+                    __m('Preferred withdrawal day') => [$current['withdrawDay'], $entered['withdrawDay']],
+                    __m('Date of SEPA signature') => [$current['SEPA_signedDate'] ? \Gibbon\Services\Format::date($current['SEPA_signedDate']) : '', $entered['SEPA_signedDate'] ? \Gibbon\Services\Format::date($entered['SEPA_signedDate']) : ''],
                 ];
                 foreach ($compare as $label => [$old, $new]) {
                     $changed = (string) $old !== (string) $new;
@@ -160,15 +160,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
                     if (in_array($flag['code'], ['ibanChanged', 'payerChanged', 'signedChanged', 'newSepa'], true)) {
                         continue;
                     }
-                    $text = $flag['code'] === 'sharedIban' ? __('The IBAN is also used by another family.') : $flag['text'];
-                    echo "<div class='" . ($flag['severity'] === 'Error' ? 'error' : 'warning') . "'><strong>" . ($flag['severity'] === 'Error' ? __('Error') : __('Warning')) . ':</strong> ' . $e($text) . '</div>';
+                    $text = $flag['code'] === 'sharedIban' ? __m('The IBAN is also used by another family.') : $flag['text'];
+                    echo "<div class='" . ($flag['severity'] === 'Error' ? 'error' : 'warning') . "'><strong>" . ($flag['severity'] === 'Error' ? __m('Error') : __m('Warning')) . ':</strong> ' . $e($text) . '</div>';
                 }
 
-                echo '<p><a class="button" href="' . $e($editURL) . '">' . __('Change my entries') . '</a></p>';
+                echo '<p><a class="button" href="' . $e($editURL) . '">' . __m('Change my entries') . '</a></p>';
                 $discard = Form::create('discardChanges', $session->get('absoluteURL') . '/modules/Sepa/sepa_family_my_sepa_editProcess.php');
                 $discard->addHiddenValue('address', $session->get('address'));
                 $discard->addHiddenValue('action', 'discard');
-                $discard->addRow()->addSubmit(__('Discard my changes'));
+                $discard->addRow()->addSubmit(__m('Discard my changes'));
                 echo $discard->getOutput();
             }
         }
@@ -184,20 +184,20 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
         return $issue['code'] !== 'internal';
     });
 
-    echo '<h3>' . __('Check of your SEPA data') . '</h3>';
+    echo '<h3>' . __m('Check of your SEPA data') . '</h3>';
     if (empty($issues)) {
-        echo "<div class='success'>" . __('No problems found.') . '</div>';
+        echo "<div class='success'>" . __m('No problems found.') . '</div>';
     } else {
         foreach ($issues as $issue) {
             $text = $issue['problem'];
             if ($issue['code'] === 'sharedIban') {
-                $text = __('The IBAN is also used by another family.');
+                $text = __m('The IBAN is also used by another family.');
             } elseif ($issue['code'] === 'decrypt') {
-                $text = __('The IBAN is not available.');
+                $text = __m('The IBAN is not available.');
             }
             echo "<div class='" . ($issue['severity'] === 'Error' ? 'error' : 'warning') . "'>"
-                . '<strong>' . ($issue['severity'] === 'Error' ? __('Error') : __('Warning')) . ':</strong> ' . $e($text) . '</div>';
+                . '<strong>' . ($issue['severity'] === 'Error' ? __m('Error') : __m('Warning')) . ':</strong> ' . $e($text) . '</div>';
         }
-        echo '<p>' . __('Please contact the school administration to correct this.') . '</p>';
+        echo '<p>' . __m('Please contact the school administration to correct this.') . '</p>';
     }
 }

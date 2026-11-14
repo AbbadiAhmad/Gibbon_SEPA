@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/src/i18n.php';
 /*
 Gibbon, Flexible & Open School System
 Copyright (C) 2010, Ross Parker
@@ -25,7 +26,7 @@ use Gibbon\Module\Sepa\Security\IbanCipher;
 require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.php') == false) {
-    echo __('You do not have access to this action.');
+    echo __m('You do not have access to this action.');
     exit;
 }
 

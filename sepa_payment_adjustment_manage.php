@@ -19,10 +19,10 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustment_manage.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $page->breadcrumbs
-        ->add(__('Payment Adjustment'));
+        ->add(__m('Payment Adjustment'));
 
     $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
@@ -39,13 +39,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $form = Form::createSearch();
 
     $row = $form->addRow();
-    $row->addLabel('search', __('Search For'))
-        ->description(__('description, note'));
+    $row->addLabel('search', __m('Search For'))
+        ->description(__m('description, note'));
     $row->addTextField('search')->setValue($criteria->getSearchText());
 
     sepaAddSchoolYearRow($form, $schoolYears, $schoolYearID);
 
-    $form->addRow()->addSearchSubmit('', __('Clear Search'));
+    $form->addRow()->addSearchSubmit('', __m('Clear Search'));
 
     echo $form->getOutput();
 
@@ -53,40 +53,40 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
 
     // DATA TABLE
     $table = DataTable::createPaginated('adjustment', $criteria);
-    $table->setTitle(__('Payment Adjustment'));
+    $table->setTitle(__m('Payment Adjustment'));
 
-    $table->addHeaderAction('add', __('Add'))
+    $table->addHeaderAction('add', __m('Add'))
         ->setURL('/modules/Sepa/sepa_payment_adjustment_add.php')
         ->addParam('search', $search)
         ->addParam('schoolYearID', $schoolYearID)
         ->displayLabel();
 
-    $table->addColumn('familyName', __('Family Name'))
+    $table->addColumn('familyName', __m('Family Name'))
         ->sortable(['familyName']);
 
-    $table->addColumn('amount', __('PaymentAdjustment Amount'))
+    $table->addColumn('amount', __m('PaymentAdjustment Amount'))
         ->sortable(['amount']);
 
-    $table->addColumn('description', __('Description'))
+    $table->addColumn('description', __m('Description'))
         ->sortable(['description']);
 
-    $table->addColumn('note', __('Note'))
+    $table->addColumn('note', __m('Note'))
         ->sortable(['note']);
 
-    $table->addColumn('gibbonPersonID', __('User'));
+    $table->addColumn('gibbonPersonID', __m('User'));
 
-    $table->addColumn('yearName', __('Academic Year'))
+    $table->addColumn('yearName', __m('Academic Year'))
         ->sortable(['yearName']);
 
-    $table->addColumn('timestamp', __('Timestamp'))
+    $table->addColumn('timestamp', __m('Timestamp'))
         ->sortable(['timestamp']);
 
     $table->addActionColumn()
         ->addParam('gibbonSEPAPaymentAdjustmentID')
         ->format(function ($values, $actions) {
-            $actions->addAction('edit', __('Edit'))
+            $actions->addAction('edit', __m('Edit'))
                 ->setURL('/modules/Sepa/sepa_payment_adjustment_edit.php');
-            $actions->addAction('delete', __('Delete'))
+            $actions->addAction('delete', __m('Delete'))
                 ->setURL('/modules/Sepa/sepa_payment_adjustment_delete.php');
         });
 

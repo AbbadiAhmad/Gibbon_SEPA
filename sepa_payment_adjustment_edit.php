@@ -16,7 +16,7 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustment_edit.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
 
 
@@ -28,20 +28,20 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
 
 
     if (empty($gibbonSEPAPaymentAdjustmentID)) {
-        $page->addError(__('You have not specified one or more required parameters.'));
+        $page->addError(__m('You have not specified one or more required parameters.'));
         return;
     }
 
     $page->breadcrumbs
-        ->add(__('Payment Adjustment'), '/sepa_payment_adjustment_manage.php')
-        ->add(__('Edit Payment Adjustment'));
+        ->add(__m('Payment Adjustment'), '/sepa_payment_adjustment_manage.php')
+        ->add(__m('Edit Payment Adjustment'));
 
     $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
     $payment_adjustment = $adjustmentGateway->getAdjustmentByID($gibbonSEPAPaymentAdjustmentID);
 
     if (empty($payment_adjustment)) {
-        $page->addError(__('The specified Adjustment cannot be found.'));
+        $page->addError(__m('The specified Adjustment cannot be found.'));
         return;
     }
 
@@ -58,18 +58,18 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $schoolYears = $SepaGateway->getAllSchoolYears();
 
     $row = $form->addRow();
-    $row->addLabel('academicYear', __('Academic Year'));
+    $row->addLabel('academicYear', __m('Academic Year'));
     $row->addSelect('academicYear')
         ->fromArray($schoolYears)
         ->required()
         ->selected($payment_adjustment['academicYear'])
-        ->placeholder(__('Please select...'));
+        ->placeholder(__m('Please select...'));
 
     $sepaList = $SepaGateway->getSEPAList($criteria, null);
     $row = $form->addRow();
-    $row->addLabel('gibbonSEPAID', __('SEPA Account'));
+    $row->addLabel('gibbonSEPAID', __m('SEPA Account'));
     $sepaOptions = array_column($sepaList->toArray(), 'payer', 'gibbonSEPAID');
-    $select = $row->addSelect('gibbonSEPAID')->fromArray($sepaOptions)->placeholder(__(''))->required();
+    $select = $row->addSelect('gibbonSEPAID')->fromArray($sepaOptions)->placeholder('')->required();
     if ($gibbonSEPAID && array_key_exists($gibbonSEPAID, $sepaOptions)) {
         $select->selected($gibbonSEPAID)->disabled();
         $form->addHiddenValue('gibbonSEPAID', $gibbonSEPAID);
@@ -77,15 +77,15 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
 
 
     $row = $form->addRow();
-    $row->addLabel('amount', __('PaymentAdjustment Amount'));
+    $row->addLabel('amount', __m('PaymentAdjustment Amount'));
     $row->addNumber('amount')->required()->decimalPlaces(2)->minimum(0.01)->setValue($payment_adjustment['amount']);
 
     $row = $form->addRow();
-    $row->addLabel('description', __('Description'));
+    $row->addLabel('description', __m('Description'));
     $row->addTextArea('description')->required()->setRows(3)->setValue($payment_adjustment['description']);
 
     $row = $form->addRow();
-    $row->addLabel('note', __('Note'));
+    $row->addLabel('note', __m('Note'));
     $row->addTextArea('note')->setRows(3)->setValue($payment_adjustment['note']);
 
     $row = $form->addRow();

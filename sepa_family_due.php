@@ -27,10 +27,10 @@ require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php')) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
-    $page->breadcrumbs->add(__('Family Totals'), 'sepa_family_totals.php');
-    $page->breadcrumbs->add(__('Family Due in Period'));
+    $page->breadcrumbs->add(__m('Family Totals'), 'sepa_family_totals.php');
+    $page->breadcrumbs->add(__m('Family Due in Period'));
 
     $_GET = $container->get(Validator::class)->sanitize($_GET);
 
@@ -53,30 +53,30 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
     $form->addHiddenValue('q', '/modules/Sepa/sepa_family_due.php');
 
     $row = $form->addRow();
-    $row->addLabel('schoolYearID', __('Academic Year'));
+    $row->addLabel('schoolYearID', __m('Academic Year'));
     $row->addSelect('schoolYearID')->fromArray($SepaGateway->getAllSchoolYears())->selected($schoolYearID);
 
     $row = $form->addRow();
-    $row->addLabel('periodFrom', __('Period from'))->description(__('The whole month of this date is included.'));
+    $row->addLabel('periodFrom', __m('Period from'))->description(__m('The whole month of this date is included.'));
     $row->addDate('periodFrom')->setValue(Format::date($periodFrom))->required();
 
     $row = $form->addRow();
-    $row->addLabel('periodTo', __('Period to'))->description(__('The whole month of this date is included.'));
+    $row->addLabel('periodTo', __m('Period to'))->description(__m('The whole month of this date is included.'));
     $row->addDate('periodTo')->setValue(Format::date($periodTo))->required();
 
     $row = $form->addRow();
-    $row->addLabel('search', __('Search For'))->description(__('Family Name, Payer'));
+    $row->addLabel('search', __m('Search For'))->description(__m('Family Name, Payer'));
     $row->addTextField('search')->setValue($search);
 
     $row = $form->addRow();
-    $row->addSearchSubmit($session, __('Clear Filters'));
+    $row->addSearchSubmit($session, __m('Clear Filters'));
 
     echo $form->getOutput();
 
     echo sepaMissingFeesWarning($SepaGateway, $schoolYearID, $session->get('absoluteURL'));
-    echo '<h2>' . __('Family Balance and Due in Period') . '</h2>';
+    echo '<h2>' . __m('Family Balance and Due in Period') . '</h2>';
     echo '<p>' . sprintf(
-        __('Due in period: fees of the billable months from %1$s to %2$s. Balance: payments and adjustments minus all fees of the academic year (negative means the family owes money). Withdraw amount: the amount due in the period, or the open balance if that is smaller; nothing when the balance is not negative.'),
+        __m('Due in period: fees of the billable months from %1$s to %2$s. Balance: payments and adjustments minus all fees of the academic year (negative means the family owes money). Withdraw amount: the amount due in the period, or the open balance if that is smaller; nothing when the balance is not negative.'),
         Format::date($periodFrom),
         Format::date($periodTo)
     ) . '</p>';
@@ -103,7 +103,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
 
     $table = DataTable::createPaginated('familyDue', $criteria);
 
-    $table->addHeaderAction('export', __('Export to Excel'))
+    $table->addHeaderAction('export', __m('Export to Excel'))
         ->setURL('/modules/Sepa/sepa_family_balance_export.php')
         ->addParam('schoolYearID', $schoolYearID)
         ->addParam('periodFrom', Format::date($periodFrom))
@@ -112,7 +112,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
         ->directLink()
         ->displayLabel();
 
-    $table->addHeaderAction('exportWithdraw', __('Export Withdrawals (incl. missing SEPA)'))
+    $table->addHeaderAction('exportWithdraw', __m('Export Withdrawals (incl. missing SEPA)'))
         ->setURL('/modules/Sepa/sepa_family_balance_export.php')
         ->addParam('schoolYearID', $schoolYearID)
         ->addParam('periodFrom', Format::date($periodFrom))
@@ -122,38 +122,38 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
         ->directLink()
         ->displayLabel();
 
-    $table->addColumn('familyName', __('Family Name'));
-    $table->addColumn('payer', __('Payer'));
-    $table->addColumn('withdrawCadence', __('Withdrawal'))->notSortable()->format(function ($row) use ($cadences) {
+    $table->addColumn('familyName', __m('Family Name'));
+    $table->addColumn('payer', __m('Payer'));
+    $table->addColumn('withdrawCadence', __m('Withdrawal'))->notSortable()->format(function ($row) use ($cadences) {
         if (empty($row['gibbonSEPAID'])) {
-            return '<span style="color: red;">' . __('No SEPA') . '</span>';
+            return '<span style="color: red;">' . __m('No SEPA') . '</span>';
         }
         $text = $cadences[$row['withdrawCadence']] ?? '';
-        return $row['withdrawDay'] ? $text . ' (' . __('day') . ' ' . (int) $row['withdrawDay'] . ')' : $text;
+        return $row['withdrawDay'] ? $text . ' (' . __m('day') . ' ' . (int) $row['withdrawDay'] . ')' : $text;
     });
-    $table->addColumn('totalDept', __('Total Dept'))->format(function ($row) {
+    $table->addColumn('totalDept', __m('Total Dept'))->format(function ($row) {
         return number_format($row['totalDept'], 2);
     });
-    $table->addColumn('payments', __('Payments'))->format(function ($row) {
+    $table->addColumn('payments', __m('Payments'))->format(function ($row) {
         return number_format($row['payments'], 2);
     });
-    $table->addColumn('paymentsAdjustment', __('Payments Adjustment'))->format(function ($row) {
+    $table->addColumn('paymentsAdjustment', __m('Payments Adjustment'))->format(function ($row) {
         return number_format($row['paymentsAdjustment'], 2);
     });
-    $table->addColumn('balance', __('Balance'))->format(function ($row) {
+    $table->addColumn('balance', __m('Balance'))->format(function ($row) {
         return number_format($row['balance'], 2);
     });
-    $table->addColumn('dueInPeriod', __('Due in Period'))->format(function ($row) {
+    $table->addColumn('dueInPeriod', __m('Due in Period'))->format(function ($row) {
         return number_format($row['dueInPeriod'], 2);
     });
-    $table->addColumn('withdrawAmount', __('Withdraw Amount'))->notSortable()->format(function ($row) {
+    $table->addColumn('withdrawAmount', __m('Withdraw Amount'))->notSortable()->format(function ($row) {
         return '<strong>' . number_format(SepaGateway::calculateWithdrawAmount($row['balance'], $row['dueInPeriod']), 2) . '</strong>';
     });
 
     $table->addActionColumn()
         ->addParam('schoolYearID', $schoolYearID)
         ->format(function ($row, $actions) {
-            $actions->addAction('view', __('View Details'))
+            $actions->addAction('view', __m('View Details'))
                 ->setURL('/modules/Sepa/sepa_family_details.php')
                 ->addParam('gibbonFamilyID', $row['gibbonFamilyID']);
         });

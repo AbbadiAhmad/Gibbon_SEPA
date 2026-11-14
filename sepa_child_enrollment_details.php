@@ -32,9 +32,9 @@ require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_child_enrollment_details.php')) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
-    $page->breadcrumbs->add(__('Child Enrollment Details'));
+    $page->breadcrumbs->add(__m('Child Enrollment Details'));
 
     $schoolYearID = sepaSelectedSchoolYear($_GET, $session->get('gibbonSchoolYearID'));
     $search = isset($_GET['search']) ? $_GET['search'] : '';
@@ -48,19 +48,19 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_child_enrollmen
 
     $form = Form::createSearch();
     $row = $form->addRow();
-    $row->addLabel('search', __('Search For'))
-        ->description(__('Student name'));
+    $row->addLabel('search', __m('Search For'))
+        ->description(__m('Student name'));
     $row->addTextField('search')->setValue($criteria->getSearchText());
     sepaAddSchoolYearRow($form, $SepaGateway->getAllSchoolYears(), $schoolYearID);
 
-    $form->addRow()->addSearchSubmit('', __('Clear Search'));
+    $form->addRow()->addSearchSubmit('', __m('Clear Search'));
     echo $form->getOutput();
 
     echo '<h2>';
-    echo __('Child Enrollment Details');
+    echo __m('Child Enrollment Details');
     echo '</h2>';
     echo sepaMissingFeesWarning($SepaGateway, $schoolYearID, $session->get('absoluteURL'));
-    echo '<p>' . __('Rows in red: the end date lies before the start date (see the Issue column).') . '</p>';
+    echo '<p>' . __m('Rows in red: the end date lies before the start date (see the Issue column).') . '</p>';
 
     $enrollmentDetails = $SepaGateway->getChildEnrollmentDetails($schoolYearID, $criteria);
 
@@ -72,24 +72,24 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_child_enrollmen
     });
 
 
-   // $table->addColumn('childID', __('Child ID'));
-    $table->addColumn('student_name', __('Student Name'));
+   // $table->addColumn('childID', __m('Child ID'));
+    $table->addColumn('student_name', __m('Student Name'));
     
-    $table->addColumn('familyName', __('Family'));
+    $table->addColumn('familyName', __m('Family'));
     if ($schoolYearID === 'all') {
-        $table->addColumn('yearName', __('Academic Year'));
+        $table->addColumn('yearName', __m('Academic Year'));
     }
-    //$table->addColumn('gibbonCourseClassID', __('ClassID'));
-    $table->addColumn('shortName', __('Course'));
-    $table->addColumn('dateEnrolled', __('dateEnrolled'));
-    $table->addColumn('dateUnenrolled', __('dateUnenrolled'));
-    $table->addColumn('personDateEnd', __('Left date'));
-    $table->addColumn('startDate', __('Calc. start'));
-    $table->addColumn('lastDate', __('Calc. end'));
-    $table->addColumn('monthsEnrolled', __('Months Enrolled'));
-    $table->addColumn('courseFee', __('Course Fee'));
-    $table->addColumn('total', __('Total'));
-    $table->addColumn('issue', __('Issue'))
+    //$table->addColumn('gibbonCourseClassID', __m('ClassID'));
+    $table->addColumn('shortName', __m('Course'));
+    $table->addColumn('dateEnrolled', __m('dateEnrolled'));
+    $table->addColumn('dateUnenrolled', __m('dateUnenrolled'));
+    $table->addColumn('personDateEnd', __m('Left date'));
+    $table->addColumn('startDate', __m('Calc. start'));
+    $table->addColumn('lastDate', __m('Calc. end'));
+    $table->addColumn('monthsEnrolled', __m('Months Enrolled'));
+    $table->addColumn('courseFee', __m('Course Fee'));
+    $table->addColumn('total', __m('Total'));
+    $table->addColumn('issue', __m('Issue'))
         ->notSortable()
         ->format(function ($row) {
             return implode('<br>', array_map('htmlspecialchars', SepaGateway::getEnrollmentDateProblems($row)));

@@ -14,7 +14,7 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustment_edit.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -22,7 +22,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $family_details = $_POST['family_details'] ?? '';
 
     if (empty($gibbonSEPAPaymentAdjustmentID)) {
-        $page->addError(__('You have not specified one or more required parameters.'));
+        $page->addError(__m('You have not specified one or more required parameters.'));
         return;
     }
 
@@ -37,7 +37,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
      ];
 
     if (empty($data['amount']) || empty($data['description'])) {
-        $page->addError(__('You have not specified one or more required parameters.'));
+        $page->addError(__m('You have not specified one or more required parameters.'));
         return;
     }
 

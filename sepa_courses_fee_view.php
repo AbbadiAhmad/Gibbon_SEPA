@@ -27,9 +27,9 @@ require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_courses_fee_view.php')) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
-    $page->breadcrumbs->add(__('SEPA Payment Entries')); // show page navigation link
+    $page->breadcrumbs->add(__m('SEPA Payment Entries')); // show page navigation link
 
     $CoursesFeeGateway = $container->get(CoursesFeeGateway::class);
     $criteria = $CoursesFeeGateway->newQueryCriteria(true)
@@ -42,21 +42,21 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_courses_fee_vie
     $filter->setClass('noIntBorder fullWidth');
     $filter->addHiddenValue('q', '/modules/Sepa/sepa_courses_fee_view.php');
     sepaAddSchoolYearRow($filter, $container->get(SepaGateway::class)->getAllSchoolYears(), $schoolYearID);
-    $filter->addRow()->addSubmit(__('Go'));
+    $filter->addRow()->addSubmit(__m('Go'));
     echo $filter->getOutput();
 
     //
     echo '<h2>';
-    echo __('View Payment Entries');
+    echo __m('View Payment Entries');
     echo '</h2>';
 
     // Result of a copy from the previous year (set by the copy process)
     if (!empty($_SESSION[$guid]['sepaFeesCopyReport'])) {
         $copy = $_SESSION[$guid]['sepaFeesCopyReport'];
         unset($_SESSION[$guid]['sepaFeesCopyReport']);
-        $text = sprintf(__('%1$d fee(s) copied from %2$s.'), $copy['copied'], htmlspecialchars($copy['previousYear'], ENT_QUOTES, 'UTF-8'));
+        $text = sprintf(__m('%1$d fee(s) copied from %2$s.'), $copy['copied'], htmlspecialchars($copy['previousYear'], ENT_QUOTES, 'UTF-8'));
         if (!empty($copy['unmatched'])) {
-            $text .= ' ' . sprintf(__('No match with a fee in that year (left empty): %s'), htmlspecialchars(implode(', ', $copy['unmatched']), ENT_QUOTES, 'UTF-8'));
+            $text .= ' ' . sprintf(__m('No match with a fee in that year (left empty): %s'), htmlspecialchars(implode(', ', $copy['unmatched']), ENT_QUOTES, 'UTF-8'));
         }
         echo '<div class="' . (empty($copy['unmatched']) ? 'success' : 'warning') . '">' . $text . '</div>';
     }
@@ -66,7 +66,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_courses_fee_vie
         return $course['gibbonSepaCoursesCostID'] === null;
     });
     if (!empty($withoutFee)) {
-        echo '<div class="warning">' . sprintf(__('%d course(s) have no fee yet. The balances and totals count them with 0.'), count($withoutFee)) . '</div>';
+        echo '<div class="warning">' . sprintf(__m('%d course(s) have no fee yet. The balances and totals count them with 0.'), count($withoutFee)) . '</div>';
 
         // Copy the fees of the previous academic year
         $previousYear = $schoolYearID !== 'all' ? $CoursesFeeGateway->getPreviousSchoolYear($schoolYearID) : null;
@@ -75,8 +75,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_courses_fee_vie
             $copyForm->addHiddenValue('address', $session->get('address'));
             $copyForm->addHiddenValue('schoolYearID', $schoolYearID);
             $row = $copyForm->addRow();
-            $row->addContent(sprintf(__('Courses are compared by name with %s; matching courses get the same fee, courses without a match stay empty. Fees that are set are not changed.'), htmlspecialchars($previousYear['name'], ENT_QUOTES, 'UTF-8')));
-            $row->addSubmit(sprintf(__('Copy fees from %s'), $previousYear['name']));
+            $row->addContent(sprintf(__m('Courses are compared by name with %s; matching courses get the same fee, courses without a match stay empty. Fees that are set are not changed.'), htmlspecialchars($previousYear['name'], ENT_QUOTES, 'UTF-8')));
+            $row->addSubmit(sprintf(__m('Copy fees from %s'), $previousYear['name']));
             echo $copyForm->getOutput();
         }
     }
@@ -91,13 +91,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_courses_fee_vie
     $form->addHiddenValue('schoolYearID', $schoolYearID);
 
     // BASIC INFORMATION
-    $form->addRow()->addHeading('Courses Fee', __('Courses Fee'));
+    $form->addRow()->addHeading('Courses Fee', __m('Courses Fee'));
     $textField = [];
     foreach ($coursesFee as $course) {
         $row = $form->addRow();
         $label = $schoolYearID === 'all' ? $course['nameShort'] . ' (' . $course['yearName'] . ')' : $course['nameShort'];
         if ($course['gibbonSepaCoursesCostID'] === null) {
-            $label .= ' - ' . __('not set');
+            $label .= ' - ' . __m('not set');
         }
         $row->addLabel($course['nameShort'], $label);
         $textField = $row->addTextField($course['gibbonCourseID'])->setValue($course['Fees'])->maxLength(5);

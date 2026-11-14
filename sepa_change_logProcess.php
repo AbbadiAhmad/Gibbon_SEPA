@@ -44,6 +44,6 @@ try {
     exit;
 }
 
-$_SESSION[$guid]['sepaLogNotice'] = sprintf(__('%1$d log line(s) and %2$d decided request(s) older than two years were deleted.'), $deleted['log'], $deleted['requests']);
+$_SESSION[$guid]['sepaLogNotice'] = sprintf(__m('%1$d log line(s) and %2$d decided request(s) older than two years were deleted.'), $deleted['log'], $deleted['requests']);
 header('Location: ' . $URL . '&return=success0');
 exit;

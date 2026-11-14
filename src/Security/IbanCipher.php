@@ -1,6 +1,8 @@
 <?php
 namespace Gibbon\Module\Sepa\Security;
 
+require_once __DIR__ . '/../../src/i18n.php';
+
 /**
  * Encrypts / decrypts bank account numbers (IBAN) stored in the database.
  *
@@ -93,7 +95,7 @@ class IbanCipher
     public static function decryptForDisplay($value)
     {
         $plain = self::decrypt($value);
-        return $plain === null ? '[' . __('cannot decrypt - check the encryption key') . ']' : $plain;
+        return $plain === null ? '[' . __m('cannot decrypt - check the encryption key') . ']' : $plain;
     }
 
     /**

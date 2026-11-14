@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+require_once __DIR__ . '/src/i18n.php';
+
 function convertToFloat($strNumber, $decimalSep)
 {
     if ($decimalSep == ','){
@@ -119,8 +121,8 @@ function sepaSelectedSchoolYear($source, $default)
 function sepaAddSchoolYearRow($form, array $schoolYears, $selected)
 {
     $row = $form->addRow();
-    $row->addLabel('schoolYearID', __('Academic Year'));
-    $row->addSelect('schoolYearID')->fromArray(['all' => __('All')] + $schoolYears)->selected($selected);
+    $row->addLabel('schoolYearID', __m('Academic Year'));
+    $row->addSelect('schoolYearID')->fromArray(['all' => __m('All')] + $schoolYears)->selected($selected);
 }
 
 /**
@@ -148,14 +150,14 @@ function sepaMissingFeesWarning($gateway, $schoolYearID, $absoluteURL, $gibbonFa
     foreach ($courses as $course) {
         $years[$course['gibbonSchoolYearID']] = $course['yearName'];
     }
-    $more = count($courses) > 12 ? ' ' . sprintf(__('and %d more'), count($courses) - 12) : '';
+    $more = count($courses) > 12 ? ' ' . sprintf(__m('and %d more'), count($courses) - 12) : '';
 
     $links = [];
     foreach ($years as $yearID => $yearName) {
-        $links[] = '<a href="' . $absoluteURL . '/index.php?q=/modules/Sepa/sepa_courses_fee_view.php&schoolYearID=' . (int) $yearID . '">' . sprintf(__('Set the course fees of %s'), htmlspecialchars($yearName, ENT_QUOTES, 'UTF-8')) . '</a>';
+        $links[] = '<a href="' . $absoluteURL . '/index.php?q=/modules/Sepa/sepa_courses_fee_view.php&schoolYearID=' . (int) $yearID . '">' . sprintf(__m('Set the course fees of %s'), htmlspecialchars($yearName, ENT_QUOTES, 'UTF-8')) . '</a>';
     }
 
-    return '<div class="warning"><strong>' . sprintf(__('The fee is not set for %d course(s) with enrolled students; they are counted with 0, so the results below are not complete.'), count($courses)) . '</strong><br>'
+    return '<div class="warning"><strong>' . sprintf(__m('The fee is not set for %d course(s) with enrolled students; they are counted with 0, so the results below are not complete.'), count($courses)) . '</strong><br>'
         . implode(', ', $names) . $more . '<br>' . implode(' | ', $links) . '</div>';
 }
 
@@ -168,7 +170,7 @@ function sepaFormatLogChanges($json, $forFamily = false)
     $e = function ($value) {
         return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
     };
-    $labels = ['payer' => __('Account holder'), 'IBAN' => __('IBAN'), 'BIC' => __('BIC'), 'withdrawCadence' => __('Withdrawal cadence'), 'withdrawDay' => __('Preferred withdrawal day'), 'SEPA_signedDate' => __('Date of SEPA signature')];
+    $labels = ['payer' => __m('Account holder'), 'IBAN' => __m('IBAN'), 'BIC' => __m('BIC'), 'withdrawCadence' => __m('Withdrawal cadence'), 'withdrawDay' => __m('Preferred withdrawal day'), 'SEPA_signedDate' => __m('Date of SEPA signature')];
 
     [$changes, $note, $extra] = \Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway::readLogChanges($json);
     $lines = [];
@@ -190,20 +192,20 @@ function sepaFormatLogChanges($json, $forFamily = false)
         }, $fields));
     };
     if (!empty($extra['rejected'])) {
-        $lines[] = '<em>' . __('Not accepted') . ': ' . $names($extra['rejected']) . '</em>';
+        $lines[] = '<em>' . __m('Not accepted') . ': ' . $names($extra['rejected']) . '</em>';
     }
     if (!empty($extra['edited'])) {
-        $lines[] = '<em>' . __('Corrected by the school administration') . ': ' . $names($extra['edited']) . '</em>';
+        $lines[] = '<em>' . __m('Corrected by the school administration') . ': ' . $names($extra['edited']) . '</em>';
     }
     if ($note !== '') {
-        $lines[] = '<em>' . __('Note') . ': ' . $e($note) . '</em>';
+        $lines[] = '<em>' . __m('Note') . ': ' . $e($note) . '</em>';
     }
     return $lines ? implode('<br>', $lines) : '-';
 }
 
 function sepaLogEventLabel($event)
 {
-    return ['Submitted' => __('Entered'), 'Updated' => __('Entries changed'), 'Discarded' => __('Discarded'), 'Approved' => __('Approved'), 'Rejected' => __('Rejected')][$event] ?? $event;
+    return ['Submitted' => __m('Entered'), 'Updated' => __m('Entries changed'), 'Discarded' => __m('Discarded'), 'Approved' => __m('Approved'), 'Rejected' => __m('Rejected')][$event] ?? $event;
 }
 
 /**
@@ -221,12 +223,12 @@ function sepaRenderChangeLog(array $logRows, $showFamily = true, $forFamily = fa
     };
 
     if (empty($logRows)) {
-        return '<p><em>' . __('The log is empty.') . '</em></p>';
+        return '<p><em>' . __m('The log is empty.') . '</em></p>';
     }
-    $html = '<table class="fullWidth colorOddEven"><thead><tr><th>' . __('When') . '</th><th>' . __('Who') . '</th>'
-        . ($showFamily ? '<th>' . __('Family') . '</th>' : '') . '<th>' . __('What') . '</th><th>' . __('Changes (old -> new)') . '</th></tr></thead><tbody>';
+    $html = '<table class="fullWidth colorOddEven"><thead><tr><th>' . __m('When') . '</th><th>' . __m('Who') . '</th>'
+        . ($showFamily ? '<th>' . __m('Family') . '</th>' : '') . '<th>' . __m('What') . '</th><th>' . __m('Changes (old -> new)') . '</th></tr></thead><tbody>';
     foreach ($logRows as $row) {
-        $who = $forFamily && in_array($row['event'], ['Approved', 'Rejected'], true) ? __('School administration') : $row['personName'];
+        $who = $forFamily && in_array($row['event'], ['Approved', 'Rejected'], true) ? __m('School administration') : $row['personName'];
         $html .= '<tr><td>' . $e(\Gibbon\Services\Format::dateTime($row['timestamp'])) . '</td><td>' . $e($who) . '</td>'
             . ($showFamily ? '<td>' . $e($row['familyName']) . '</td>' : '')
             . '<td>' . $e(sepaLogEventLabel($row['event'])) . '</td><td>' . sepaFormatLogChanges($row['changes'], $forFamily) . '</td></tr>';

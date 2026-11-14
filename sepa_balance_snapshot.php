@@ -30,9 +30,9 @@ require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot.php')) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
-    $page->breadcrumbs->add(__('Balance Snapshot'));
+    $page->breadcrumbs->add(__m('Balance Snapshot'));
 
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -45,12 +45,12 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     $SepaPaymentAdjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
     echo '<h2>';
-    echo __('Balance Snapshot');
+    echo __m('Balance Snapshot');
     echo '</h2>';
 
     // Get available snapshot dates
     $snapshotDates = $SnapshotGateway->getSnapshotDates($schoolYearID);
-    $snapshotOptions = ['current' => __('Current Status (Families with changes)')];
+    $snapshotOptions = ['current' => __m('Current Status (Families with changes)')];
 
     foreach ($snapshotDates as $snapshot) {
         $date = date('Y-m-d H:i', strtotime($snapshot['snapshotDate']));
@@ -63,34 +63,34 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
 
     $row = $form->addRow();
-    $row->addLabel('snapshotDate', __('Select Snapshot'));
+    $row->addLabel('snapshotDate', __m('Select Snapshot'));
     $row->addSelect('snapshotDate')
         ->fromArray($snapshotOptions)
         ->selected($selectedSnapshot);
 
     $row = $form->addRow();
-    $row->addLabel('search', __('Search For'))
-        ->description(__('Family Name, Payer Name'));
+    $row->addLabel('search', __m('Search For'))
+        ->description(__m('Family Name, Payer Name'));
     $row->addTextField('search')->setValue($search);
-    $form->addRow()->addSearchSubmit('', __('Clear Search'));
+    $form->addRow()->addSearchSubmit('', __m('Clear Search'));
 
     echo $form->getOutput();
 
     // Buttons for actions
     echo '<div class="linkTop">';
     if ($selectedSnapshot == 'current') {
-        echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot_create.php&schoolYearID=' . $schoolYearID . '&search=' . urlencode($search) . '">' . __('Create Snapshot') . '</a> | ';
+        echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot_create.php&schoolYearID=' . $schoolYearID . '&search=' . urlencode($search) . '">' . __m('Create Snapshot') . '</a> | ';
     }
-    echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/modules/Sepa/sepa_balance_snapshot_export.php?schoolYearID=' . $schoolYearID . '&snapshotDate=' . urlencode($selectedSnapshot) . '">' . __('Export to Excel') . '</a>';
+    echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/modules/Sepa/sepa_balance_snapshot_export.php?schoolYearID=' . $schoolYearID . '&snapshotDate=' . urlencode($selectedSnapshot) . '">' . __m('Export to Excel') . '</a>';
     echo '</div>';
 
     echo '<h3>';
     if ($selectedSnapshot == 'current') {
-        echo __('Families with Changes in Fees or Adjustments Since Last Snapshot');
+        echo __m('Families with Changes in Fees or Adjustments Since Last Snapshot');
     } elseif (!empty($selectedSnapshot) && strtotime($selectedSnapshot) !== false) {
-        echo __('Snapshot from ') . date('Y-m-d H:i', strtotime($selectedSnapshot));
+        echo __m('Snapshot from ') . date('Y-m-d H:i', strtotime($selectedSnapshot));
     } else {
-        echo __('Invalid Snapshot');
+        echo __m('Invalid Snapshot');
     }
     echo '</h3>';
 
@@ -164,51 +164,51 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         $table = DataTable::createPaginated('balanceSnapshot', $criteria);
     }
 
-    $table->addColumn('familyName', __('Family Name'));
-    $table->addColumn('payer', __('Payer'));
+    $table->addColumn('familyName', __m('Family Name'));
+    $table->addColumn('payer', __m('Payer'));
 
     if ($selectedSnapshot == 'current') {
-        $table->addColumn('lastBalance', __('Last Balance (Snapshot)'))->format(function ($row) {
+        $table->addColumn('lastBalance', __m('Last Balance (Snapshot)'))->format(function ($row) {
             return number_format($row['lastBalance'], 2) . ' €';
         });
-        $table->addColumn('balance', __('Current Balance'))->format(function ($row) {
+        $table->addColumn('balance', __m('Current Balance'))->format(function ($row) {
             $balance = $row['balance'];
             $color = $balance < 0 ? 'red' : 'green';
             return '<span style="color: ' . $color . ';">' . number_format($balance, 2) . ' €</span>';
         });
-        $table->addColumn('lastTotalFees', __('Last Total Fees'))->format(function ($row) {
+        $table->addColumn('lastTotalFees', __m('Last Total Fees'))->format(function ($row) {
             return number_format($row['lastTotalFees'], 2) . ' €';
         });
-        $table->addColumn('currentTotalFees', __('Current Total Fees'))->format(function ($row) {
+        $table->addColumn('currentTotalFees', __m('Current Total Fees'))->format(function ($row) {
             return number_format($row['currentTotalFees'], 2) . ' €';
         });
-        $table->addColumn('lastTotalAdjustments', __('Last Adjustments'))->format(function ($row) {
+        $table->addColumn('lastTotalAdjustments', __m('Last Adjustments'))->format(function ($row) {
             return number_format($row['lastTotalAdjustments'], 2) . ' €';
         });
-        $table->addColumn('currentTotalAdjustments', __('Current Adjustments'))->format(function ($row) {
+        $table->addColumn('currentTotalAdjustments', __m('Current Adjustments'))->format(function ($row) {
             return number_format($row['currentTotalAdjustments'], 2) . ' €';
         });
-        $table->addColumn('lastFeesAndAdjustments', __('Last Fees+Adj Sum'))->format(function ($row) {
+        $table->addColumn('lastFeesAndAdjustments', __m('Last Fees+Adj Sum'))->format(function ($row) {
             return number_format($row['lastFeesAndAdjustments'], 2) . ' €';
         });
-        $table->addColumn('currentFeesAndAdjustments', __('Current Fees+Adj Sum'))->format(function ($row) {
+        $table->addColumn('currentFeesAndAdjustments', __m('Current Fees+Adj Sum'))->format(function ($row) {
             $value = $row['currentFeesAndAdjustments'];
             $color = $value < 0 ? 'red' : 'green';
             return '<span style="color: ' . $color . ';">' . number_format($value, 2) . ' €</span>';
         });
     } else {
-        $table->addColumn('balance', __('Balance'))->format(function ($row) {
+        $table->addColumn('balance', __m('Balance'))->format(function ($row) {
             $balance = $row['balance'];
             $color = $balance < 0 ? 'red' : 'green';
             return '<span style="color: ' . $color . ';">' . number_format($balance, 2) . ' €</span>';
         });
-        $table->addColumn('totalFees', __('Total Fees'))->format(function ($row) {
+        $table->addColumn('totalFees', __m('Total Fees'))->format(function ($row) {
             return number_format($row['totalFees'] ?? 0, 2) . ' €';
         });
-        $table->addColumn('totalAdjustments', __('Adjustments'))->format(function ($row) {
+        $table->addColumn('totalAdjustments', __m('Adjustments'))->format(function ($row) {
             return number_format($row['totalAdjustments'] ?? 0, 2) . ' €';
         });
-        $table->addColumn('feesAndAdjustments', __('Fees+Adj Sum'))->format(function ($row) {
+        $table->addColumn('feesAndAdjustments', __m('Fees+Adj Sum'))->format(function ($row) {
             $fees = $row['totalFees'] ?? 0;
             $adjustments = $row['totalAdjustments'] ?? 0;
             $sum = $fees + $adjustments;
@@ -222,7 +222,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         ->addParam('snapshotDate', $selectedSnapshot)
         ->addParam('search', $search)
         ->format(function ($row, $actions) use ($selectedSnapshot) {
-            $actions->addAction('view', __('View Details'))
+            $actions->addAction('view', __m('View Details'))
                 ->setURL('/modules/Sepa/sepa_balance_snapshot_details.php')
                 ->addParam('gibbonFamilyID', $row['gibbonFamilyID'])
                 ->addParam('snapshotID', isset($row['gibbonSEPABalanceSnapshotID']) ? $row['gibbonSEPABalanceSnapshotID'] : '');

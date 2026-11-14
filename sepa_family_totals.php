@@ -28,9 +28,9 @@ require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.php')) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
-    $page->breadcrumbs->add(__('Family Totals'));
+    $page->breadcrumbs->add(__m('Family Totals'));
 
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -61,51 +61,51 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
     $form = Form::createSearch();
 
     $row = $form->addRow();
-    $row->addLabel('search', __('Search For'))
-        ->description(__('Family Name, Payer'));
+    $row->addLabel('search', __m('Search For'))
+        ->description(__m('Family Name, Payer'));
     $row->addTextField('search')->setValue($search);
 
-    $form->addRow()->addSearchSubmit('', __('Clear Search'));
+    $form->addRow()->addSearchSubmit('', __m('Clear Search'));
 
     echo $form->getOutput();
 
     echo sepaMissingFeesWarning($SepaGateway, $schoolYearID, $session->get('absoluteURL'));
 
     echo '<h2>';
-    echo __('Family Totals');
+    echo __m('Family Totals');
     echo '</h2>';
 
     $familyTotals = $SepaGateway->getFamilyTotals($schoolYearID, $criteria);
 
     $table = DataTable::createPaginated('familyTotals', $criteria);
 
-    //$table->addMetaData('filterOptions', ['unpaidNoSepa' => __('Unpaid without SEPA')]);
+    //$table->addMetaData('filterOptions', ['unpaidNoSepa' => __m('Unpaid without SEPA')]);
 
-    //$table->addColumn('gibbonFamilyID', __('Family ID'));
-    $table->addHeaderAction('due', __('Due in Period'))
+    //$table->addColumn('gibbonFamilyID', __m('Family ID'));
+    $table->addHeaderAction('due', __m('Due in Period'))
         ->setURL('/modules/Sepa/sepa_family_due.php')
         ->addParam('schoolYearID', $schoolYearID)
         ->displayLabel();
 
-    $table->addHeaderAction('export', __('Export to Excel'))
+    $table->addHeaderAction('export', __m('Export to Excel'))
         ->setURL('/modules/Sepa/sepa_family_balance_export.php')
         ->addParam('schoolYearID', $schoolYearID)
         ->addParam('search', $search)
         ->directLink()
         ->displayLabel();
 
-    $table->addColumn('familyName', __('Family Name'));
-    $table->addColumn('payer', __('Payer'));
-    $table->addColumn('totalDept', __('Total Dept'))->format(function ($row) {
+    $table->addColumn('familyName', __m('Family Name'));
+    $table->addColumn('payer', __m('Payer'));
+    $table->addColumn('totalDept', __m('Total Dept'))->format(function ($row) {
         return number_format($row['totalDept'], 2);
     });
-    $table->addColumn('payments', __('Payments'))->format(function ($row) {
+    $table->addColumn('payments', __m('Payments'))->format(function ($row) {
         return number_format($row['payments'], 2);
     });
-    $table->addColumn('paymentsAdjustment', __('Payments Adjustment'))->format(function ($row) {
+    $table->addColumn('paymentsAdjustment', __m('Payments Adjustment'))->format(function ($row) {
         return number_format($row['paymentsAdjustment'], 2);
     });
-    $table->addColumn('balance', __('Balance'))->format(function ($row) {
+    $table->addColumn('balance', __m('Balance'))->format(function ($row) {
         return number_format($row['balance'], 2);
     });
 
@@ -113,7 +113,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         ->addParam('schoolYearID', $schoolYearID)
         ->addParam('search', $search)
         ->format(function ($row, $actions) {
-            $actions->addAction('view', __('View Details'))
+            $actions->addAction('view', __m('View Details'))
                 ->setURL('/modules/Sepa/sepa_family_details.php')
                 ->addParam('gibbonFamilyID', $row['gibbonFamilyID']);
             ;

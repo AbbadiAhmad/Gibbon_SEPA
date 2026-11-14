@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/src/i18n.php';
 /*
 Gibbon, Flexible & Open School System
 Copyright (C) 2010, Ross Parker
@@ -27,11 +28,11 @@ $_GET = $container->get(Validator::class)->sanitize($_GET);
 
 if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_delete.php")) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $gibbonSEPAID = htmlspecialchars($_GET['gibbonSEPAID'] ?? '', ENT_QUOTES, 'UTF-8');
     if ($gibbonSEPAID == '') {
-        $page->addError(__('You have not specified one or more required parameters.'));
+        $page->addError(__m('You have not specified one or more required parameters.'));
         return;
     } else {
 
@@ -41,19 +42,19 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_delete.p
         $result->execute($data);
 
         if ($result->rowCount() != 1) {
-            $page->addError(__('The specified record cannot be found.'));
+            $page->addError(__m('The specified record cannot be found.'));
             return;
         } else {
             $SepaGateway = $container->get(SepaGateway::class);
             $payment = $SepaGateway->getPaymentsBySEPAID($gibbonSEPAID);
             if (count($payment) > 0) {
-                $page->addError(__('The SEPA has linked payments. Can not be deleted'));
+                $page->addError(__m('The SEPA has linked payments. Can not be deleted'));
                 return;
             } else {
                 $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
                 $paymentAdjustment = $adjustmentGateway->getFamilyAdjustments($gibbonSEPAID);
                 if (count($paymentAdjustment) > 0) {
-                    $page->addError(__('The SEPA has linked Adjustments. Can not be deleted'));
+                    $page->addError(__m('The SEPA has linked Adjustments. Can not be deleted'));
                     return;
                 }
 
