@@ -34,6 +34,23 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
 
     $SepaGateway = $container->get(SepaGateway::class);
 
+    // Assigning an unlinked payment: only the SEPA account is taken from the form, never the payment values.
+    if (($_POST['linkOnly'] ?? '') === 'Y') {
+        $existing = $SepaGateway->getPaymentByID($gibbonSEPAPaymentRecordID);
+        $gibbonSEPAID = $_POST['gibbonSEPAID'] ?? '';
+        if (!$existing || !empty($existing['gibbonSEPAID']) || empty($gibbonSEPAID)) {
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_unlinked_payment_view.php&return=error1");
+            exit;
+        }
+        $SepaGateway->linkPaymentToSEPA($gibbonSEPAPaymentRecordID, $gibbonSEPAID);
+        if (!empty($family_details)) {
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_family_details.php&gibbonFamilyID={$family_details}&return=success0");
+        } else {
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_unlinked_payment_view.php&return=success1");
+        }
+        exit;
+    }
+
     $paymentData = [
         'booking_date' => $_POST['booking_date'] ?? '',
         'payer' => $_POST['payer'] ?? '',

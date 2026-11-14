@@ -48,6 +48,45 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
         return;
     }
 
+    // An unlinked payment (usually imported from a bank statement) is only assigned to a family:
+    // its values are shown read-only and cannot be changed here.
+    if (empty($payment['gibbonSEPAID'])) {
+        $form = Form::create('paymentLink', $session->get('absoluteURL') . '/modules/Sepa/sepa_payment_editProcess.php');
+        $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+        $form->addHiddenValue('gibbonSEPAPaymentRecordID', $gibbonSEPAPaymentRecordID);
+        $form->addHiddenValue('family_details', $family_details);
+        $form->addHiddenValue('linkOnly', 'Y');
+
+        $readOnly = [
+            __m('Booking Date') => $payment['booking_date'],
+            __m('Academic Year') => $schoolYears[$payment['academicYear']] ?? $payment['academicYear'],
+            __m('Payment Method') => $payment['payment_method'],
+            __m('Amount') => $payment['amount'],
+            __m('Payer') => $payment['payer'],
+            __m('IBAN') => IbanCipher::format(IbanCipher::decrypt($payment['IBAN'])),
+            __m('Transaction Reference') => $payment['transaction_reference'],
+            __m('Transaction Message') => $payment['transaction_message'],
+            __m('Note') => $payment['note'],
+        ];
+        foreach ($readOnly as $label => $value) {
+            $row = $form->addRow();
+            $row->addLabel('ro_' . md5($label), $label);
+            $row->addContent(htmlspecialchars((string) $value))->addClass('flex-1 text-right');
+        }
+
+        $row = $form->addRow();
+        $row->addLabel('gibbonSEPAID', __m('SEPA Account'));
+        $sepaOptions = array_column($sepaList->toArray(), 'payer', 'gibbonSEPAID');
+        $row->addSelect('gibbonSEPAID')->fromArray($sepaOptions)->placeholder('')->required();
+
+        $row = $form->addRow();
+        $row->addFooter();
+        $row->addSubmit(__m('Assign to Family'));
+
+        echo $form->getOutput();
+        return;
+    }
+
     $form = Form::create('paymentEdit', $session->get('absoluteURL') . '/modules/Sepa/sepa_payment_editProcess.php');
 
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
