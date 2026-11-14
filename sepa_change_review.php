@@ -214,8 +214,10 @@ if (!$isPending) {
 
     $row = $form->addRow();
     $row->addContent('<a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_requests.php">' . __('Back') . '</a>');
-    $row->addContent('<button type="submit" name="decision" value="approve">' . __('Approve the ticked changes') . '</button> '
-        . '<button type="submit" name="decision" value="reject">' . __('Reject all') . '</button>')->setClass('right');
+    // inline styles: the theme resets plain buttons to bare text
+    $buttonStyle = 'display: inline-block; padding: 8px 16px; margin-left: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; color: #fff; border: 1px solid ';
+    $row->addContent('<button type="submit" name="decision" value="reject" style="' . $buttonStyle . '#b91c1c; background: #dc2626;">' . __('Reject all') . '</button>'
+        . '<button type="submit" name="decision" value="approve" style="' . $buttonStyle . '#15803d; background: #16a34a;">' . __('Approve the ticked changes') . '</button>')->setClass('right');
 
     echo $form->getOutput();
 }
