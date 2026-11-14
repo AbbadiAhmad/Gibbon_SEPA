@@ -59,6 +59,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_child_enrollmen
     echo '<h2>';
     echo __('Child Enrollment Details');
     echo '</h2>';
+    echo sepaMissingFeesWarning($SepaGateway, $schoolYearID, $session->get('absoluteURL'));
     echo '<p>' . __('Rows in red: the end date lies before the start date (see the Issue column).') . '</p>';
 
     $enrollmentDetails = $SepaGateway->getChildEnrollmentDetails($schoolYearID, $criteria);

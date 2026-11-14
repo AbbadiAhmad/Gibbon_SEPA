@@ -77,6 +77,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
     $errors = count(array_filter($issues, function ($i) {
         return $i['severity'] === 'Error';
     }));
+    echo sepaMissingFeesWarning($SepaGateway, $schoolYearID, $session->get('absoluteURL'));
     echo '<h2>' . __('Check SEPA Data') . '</h2>';
     if (empty($issues)) {
         echo "<div class='success'>" . __('No problems found.') . '</div>';

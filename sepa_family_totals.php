@@ -69,6 +69,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
 
     echo $form->getOutput();
 
+    echo sepaMissingFeesWarning($SepaGateway, $schoolYearID, $session->get('absoluteURL'));
+
     echo '<h2>';
     echo __('Family Totals');
     echo '</h2>';

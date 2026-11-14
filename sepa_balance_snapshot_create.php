@@ -199,6 +199,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         echo '</div>';
     } else {
         // Display confirmation form
+        echo sepaMissingFeesWarning($SepaGateway, $schoolYearID, $session->get('absoluteURL'));
         echo '<h2>';
         echo __('Create Balance Snapshot');
         echo '</h2>';

@@ -44,9 +44,28 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_courses_fee_vie
     $error = false;
     foreach ($coursesFee as $course) {
 
+        $fee = trim((string) ($_POST[$course['gibbonCourseID']] ?? ''));
+        $fee = str_replace(',', '.', $fee);
+
+        // An empty field means "no fee set": nothing to save, or the saved fee is removed.
+        if ($fee === '') {
+            try {
+                if (!empty($course['gibbonSepaCoursesCostID'])) {
+                    $CoursesFeeGateway->deleteCourseFee($course['gibbonSepaCoursesCostID']);
+                }
+            } catch (PDOException $e) {
+                $error = true;
+            }
+            continue;
+        }
+        if (!is_numeric($fee) || (float) $fee < 0) {
+            $error = true;
+            continue;
+        }
+
         $data = array(
             'gibbonCourseID' => $course['gibbonCourseID'],
-            'fees' => $_POST[$course['gibbonCourseID']],
+            'fees' => $fee,
             'gibbonSepaCoursesCostID' => $course['gibbonSepaCoursesCostID']
         );
 

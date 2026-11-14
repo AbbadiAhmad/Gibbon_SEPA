@@ -1151,6 +1151,42 @@ class SepaGateway extends QueryableGateway
 
         return $query;
     }
+    /**
+     * Courses with enrolled students (children that belong to a family) that have no fee set,
+     * so the fee calculations count them with 0. A fee of 0 that was entered on purpose is "set".
+     *
+     * @param mixed $schoolYearID a school year ID, or 'all' / empty for every year
+     * @param mixed $gibbonFamilyID only the courses of this family's children
+     * @return array[] gibbonCourseID, nameShort, courseName, gibbonSchoolYearID, yearName
+     */
+    public function getCoursesWithoutFees($schoolYearID, $gibbonFamilyID = null)
+    {
+        $query = $this
+            ->newSelect()
+            ->cols(['gibbonCourse.gibbonCourseID', 'gibbonCourse.nameShort', 'gibbonCourse.name as courseName', 'gibbonCourse.gibbonSchoolYearID', 'gibbonSchoolYear.name as yearName', 'gibbonSchoolYear.sequenceNumber'])
+            ->distinct()
+            ->from('gibbonCourse')
+            ->innerJoin('gibbonSchoolYear', 'gibbonSchoolYear.gibbonSchoolYearID = gibbonCourse.gibbonSchoolYearID')
+            ->innerJoin('gibbonCourseClass', 'gibbonCourseClass.gibbonCourseID = gibbonCourse.gibbonCourseID')
+            ->innerJoin('gibbonCourseClassPerson', "gibbonCourseClassPerson.gibbonCourseClassID = gibbonCourseClass.gibbonCourseClassID AND gibbonCourseClassPerson.role = 'Student'")
+            ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonPersonID = gibbonCourseClassPerson.gibbonPersonID')
+            ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
+            ->where('gibbonSepaCoursesFees.gibbonSepaCoursesCostID IS NULL')
+            ->orderBy(['gibbonSchoolYear.sequenceNumber DESC', 'gibbonCourse.nameShort']);
+
+        if (!empty($schoolYearID) && $schoolYearID !== 'all') {
+            $query->where('gibbonCourse.gibbonSchoolYearID = :feesSchoolYearID')
+                ->bindValue('feesSchoolYearID', $schoolYearID);
+        }
+
+        if (!empty($gibbonFamilyID)) {
+            $query->where('gibbonFamilyChild.gibbonFamilyID = :feesFamilyID')
+                ->bindValue('feesFamilyID', $gibbonFamilyID);
+        }
+
+        return $this->runSelect($query)->fetchAll();
+    }
+
     public function getChildrenEnrollmentFees($gibbonFamilyID, $schoolYearID)
     {
         $query = $this->getEnrollmentFeesBaseQuery($schoolYearID, $gibbonFamilyID)
