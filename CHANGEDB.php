@@ -138,3 +138,61 @@ $count++;
 $sql[$count][0] = "2.5.1";
 $sql[$count][1] = "INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'Merge SEPA', 19, 'SEPA', 'Merge a SEPA (e.g. one whose family was deleted) into another SEPA', 'sepa_merge.php, sepa_mergeProcess.php', 'sepa_merge.php', 'Y', 'N', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
 INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='Merge SEPA' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.6.0 - families can enter changes of their SEPA data, the administration approves them
+$count++;
+$sql[$count][0] = "2.6.0";
+$sql[$count][1] = "CREATE TABLE IF NOT EXISTS `gibbonSEPAChangeRequest` (
+    `gibbonSEPAChangeRequestID` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `gibbonSEPAID` int(8) unsigned zerofill NOT NULL,
+    `gibbonFamilyID` int(7) unsigned zerofill NOT NULL,
+    `payer` varchar(255) NOT NULL,
+    `IBAN` varchar(255) DEFAULT NULL COMMENT 'AES-256-GCM encrypted, see IbanCipher',
+    `BIC` varchar(11) DEFAULT NULL,
+    `withdrawCadence` enum('Monthly','HalfYearly','Yearly') NOT NULL DEFAULT 'Monthly',
+    `withdrawDay` tinyint unsigned DEFAULT NULL,
+    `status` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending' COMMENT 'Entered by the family, applied to the SEPA when approved',
+    `gibbonPersonIDSubmitted` int(10) unsigned zerofill NOT NULL,
+    `timestampSubmitted` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `timestampUpdated` timestamp NULL DEFAULT NULL,
+    `gibbonPersonIDReviewed` int(10) unsigned zerofill DEFAULT NULL,
+    `timestampReviewed` timestamp NULL DEFAULT NULL,
+    `reviewNote` text DEFAULT NULL,
+    PRIMARY KEY (`gibbonSEPAChangeRequestID`),
+    KEY `gibbonSEPAID` (`gibbonSEPAID`),
+    KEY `status` (`status`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;end
+CREATE TABLE IF NOT EXISTS `gibbonSEPAChangeLog` (
+    `gibbonSEPAChangeLogID` int(12) unsigned NOT NULL AUTO_INCREMENT,
+    `gibbonSEPAID` int(8) unsigned zerofill NOT NULL,
+    `gibbonFamilyID` int(7) unsigned zerofill NOT NULL,
+    `gibbonSEPAChangeRequestID` int(10) unsigned DEFAULT NULL,
+    `event` enum('Submitted','Updated','Discarded','Approved','Rejected') NOT NULL,
+    `gibbonPersonID` int(10) unsigned zerofill NOT NULL COMMENT 'Who did it: the family member or the reviewer',
+    `changes` text DEFAULT NULL COMMENT 'JSON: field => [old, new]; the IBAN is stored masked',
+    `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`gibbonSEPAChangeLogID`),
+    KEY `gibbonSEPAID` (`gibbonSEPAID`),
+    KEY `gibbonFamilyID` (`gibbonFamilyID`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;end
+INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'Edit SEPA - my family', 6, 'SEPA', 'Families enter changes of their SEPA data, they apply after approval', 'sepa_family_my_sepa_edit.php, sepa_family_my_sepa_editProcess.php', 'sepa_family_my_sepa_edit.php', 'Y', 'N', 'Y', 'N', 'N', 'N', 'N', 'Y', 'Y', 'Y', 'Y' FROM gibbonModule WHERE name='Sepa';end
+INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='Edit SEPA - my family' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');end
+INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'Approve SEPA Changes', 20, 'SEPA', 'Review and approve or reject the SEPA changes entered by families', 'sepa_change_requests.php, sepa_change_review.php, sepa_change_reviewProcess.php', 'sepa_change_requests.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
+INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='Approve SEPA Changes' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.6.1 - families can also change the date of the SEPA signature (not earlier than the existing date)
+$count++;
+$sql[$count][0] = "2.6.1";
+$sql[$count][1] = "ALTER TABLE gibbonSEPAChangeRequest ADD COLUMN `SEPA_signedDate` date DEFAULT NULL AFTER `withdrawDay`;";
+
+// v2.7.0 - SEPA change log page (with data retention of two years)
+$count++;
+$sql[$count][0] = "2.7.0";
+$sql[$count][1] = "INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'SEPA Change Log', 21, 'SEPA', 'Log of the SEPA changes entered by families, with data retention', 'sepa_change_log.php, sepa_change_logProcess.php', 'sepa_change_log.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
+INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='SEPA Change Log' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.8.0 - families without SEPA can enter a new SEPA for approval (request / log without SEPA)
+$count++;
+$sql[$count][0] = "2.8.0";
+$sql[$count][1] = "ALTER TABLE gibbonSEPAChangeRequest MODIFY COLUMN `gibbonSEPAID` int(8) unsigned zerofill DEFAULT NULL COMMENT 'NULL: request for a new SEPA, the family has none yet';end
+ALTER TABLE gibbonSEPAChangeLog MODIFY COLUMN `gibbonSEPAID` int(8) unsigned zerofill DEFAULT NULL COMMENT 'NULL: request for a new SEPA';";

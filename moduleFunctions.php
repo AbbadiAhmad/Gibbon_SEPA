@@ -158,3 +158,78 @@ function sepaMissingFeesWarning($gateway, $schoolYearID, $absoluteURL, $gibbonFa
     return '<div class="warning"><strong>' . sprintf(__('The fee is not set for %d course(s) with enrolled students; they are counted with 0, so the results below are not complete.'), count($courses)) . '</strong><br>'
         . implode(', ', $names) . $more . '<br>' . implode(' | ', $links) . '</div>';
 }
+
+/**
+ * The changes of one log line as HTML lines (old -> new). The IBANs of the log are stored encrypted
+ * and are decrypted here; for families ($forFamily) the IBAN is shown half hidden.
+ */
+function sepaFormatLogChanges($json, $forFamily = false)
+{
+    $e = function ($value) {
+        return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
+    };
+    $labels = ['payer' => __('Account holder'), 'IBAN' => __('IBAN'), 'BIC' => __('BIC'), 'withdrawCadence' => __('Withdrawal cadence'), 'withdrawDay' => __('Preferred withdrawal day'), 'SEPA_signedDate' => __('Date of SEPA signature')];
+
+    [$changes, $note, $extra] = \Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway::readLogChanges($json);
+    $lines = [];
+    foreach ($changes as $field => [$old, $new]) {
+        if ($field === 'SEPA_signedDate') {
+            // dates in the date format of the installation
+            $old = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $old) ? \Gibbon\Services\Format::date($old) : $old;
+            $new = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $new) ? \Gibbon\Services\Format::date($new) : $new;
+        }
+        if ($forFamily && $field === 'IBAN') {
+            $old = \Gibbon\Module\Sepa\Security\IbanCipher::maskForDisplay($old);
+            $new = \Gibbon\Module\Sepa\Security\IbanCipher::maskForDisplay($new);
+        }
+        $lines[] = '<strong>' . $e($labels[$field] ?? $field) . ':</strong> ' . $e($old === '' ? '-' : $old) . ' &rarr; ' . $e($new === '' ? '-' : $new);
+    }
+    $names = function (array $fields) use ($labels, $e) {
+        return implode(', ', array_map(function ($field) use ($labels, $e) {
+            return $e($labels[$field] ?? $field);
+        }, $fields));
+    };
+    if (!empty($extra['rejected'])) {
+        $lines[] = '<em>' . __('Not accepted') . ': ' . $names($extra['rejected']) . '</em>';
+    }
+    if (!empty($extra['edited'])) {
+        $lines[] = '<em>' . __('Corrected by the school administration') . ': ' . $names($extra['edited']) . '</em>';
+    }
+    if ($note !== '') {
+        $lines[] = '<em>' . __('Note') . ': ' . $e($note) . '</em>';
+    }
+    return $lines ? implode('<br>', $lines) : '-';
+}
+
+function sepaLogEventLabel($event)
+{
+    return ['Submitted' => __('Entered'), 'Updated' => __('Entries changed'), 'Discarded' => __('Discarded'), 'Approved' => __('Approved'), 'Rejected' => __('Rejected')][$event] ?? $event;
+}
+
+/**
+ * HTML table of the SEPA change log (who, when, what). For the administration the IBANs are shown
+ * in full; for the family ($forFamily) they are half hidden and the decisions are by the school administration.
+ *
+ * @param array[] $logRows rows of SepaChangeRequestGateway::selectLog()
+ * @param bool $showFamily show the family column
+ * @param bool $forFamily the log is shown to the family itself
+ */
+function sepaRenderChangeLog(array $logRows, $showFamily = true, $forFamily = false)
+{
+    $e = function ($value) {
+        return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
+    };
+
+    if (empty($logRows)) {
+        return '<p><em>' . __('The log is empty.') . '</em></p>';
+    }
+    $html = '<table class="fullWidth colorOddEven"><thead><tr><th>' . __('When') . '</th><th>' . __('Who') . '</th>'
+        . ($showFamily ? '<th>' . __('Family') . '</th>' : '') . '<th>' . __('What') . '</th><th>' . __('Changes (old -> new)') . '</th></tr></thead><tbody>';
+    foreach ($logRows as $row) {
+        $who = $forFamily && in_array($row['event'], ['Approved', 'Rejected'], true) ? __('School administration') : $row['personName'];
+        $html .= '<tr><td>' . $e(\Gibbon\Services\Format::dateTime($row['timestamp'])) . '</td><td>' . $e($who) . '</td>'
+            . ($showFamily ? '<td>' . $e($row['familyName']) . '</td>' : '')
+            . '<td>' . $e(sepaLogEventLabel($row['event'])) . '</td><td>' . sepaFormatLogChanges($row['changes'], $forFamily) . '</td></tr>';
+    }
+    return $html . '</tbody></table>';
+}
