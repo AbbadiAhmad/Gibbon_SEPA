@@ -35,3 +35,11 @@ Keep the placeholders (`%s`, `%d`, `%1$s`, `{number}`) exactly as in the English
 Create `i18n/<locale>/LC_MESSAGES/Sepa.po` with `msgmerge`/`msginit` from `Sepa.pot`
 (the locale code is the one of the Gibbon language, e.g. `fr_FR`), translate and compile it.
 The language has to be installed in Gibbon (System Admin > Language Settings).
+
+## Menu texts
+
+The names of the actions in the Gibbon menu (e.g. "View SEPA - my family") and the menu groups
+(Entry, Reports, ...) are in `Sepa.po` too (marked `manifest.php (menu)`). If a Gibbon version
+translates the menu with its own `gibbon.po` instead of the module file, append the entries of
+`i18n/core-menu/<locale>.po` to Gibbon's `i18n/<locale>/LC_MESSAGES/gibbon.po` (skip texts that
+exist there) and compile it with `msgfmt`.

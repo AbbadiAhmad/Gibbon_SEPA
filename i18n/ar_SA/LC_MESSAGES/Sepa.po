@@ -228,7 +228,7 @@ msgstr "ليس لديكم صلاحية الوصول إلى هذا الإجراء
 msgid "SEPA Signed Date"
 msgstr "تاريخ توقيع SEPA"
 
-#: import_sepa_from_form.php:29
+#: import_sepa_from_form.php:29 manifest.php (menu)
 msgid "Import Family SEPA"
 msgstr "استيراد SEPA العائلات"
 
@@ -635,7 +635,7 @@ msgstr "الرصيد"
 msgid "Total Fees"
 msgstr "إجمالي الرسوم"
 
-#: sepa_balance_snapshot.php:208
+#: sepa_balance_snapshot.php:208 manifest.php (menu)
 msgid "Adjustments"
 msgstr "التعديلات"
 
@@ -747,7 +747,7 @@ msgstr "إجمالي المدفوعات"
 msgid "Total Adjustments"
 msgstr "إجمالي التعديلات"
 
-#: sepa_balance_snapshot_details.php:176 sepa_family_details.php:88 sepa_payment_view_per_family.php:94
+#: sepa_balance_snapshot_details.php:176 sepa_family_details.php:88 sepa_payment_view_per_family.php:92
 msgid "Fees Details"
 msgstr "تفاصيل الرسوم"
 
@@ -859,7 +859,7 @@ msgstr "تعديلات جديدة"
 msgid "No detailed changes found."
 msgstr "لم يتم العثور على تغييرات تفصيلية."
 
-#: sepa_change_log.php:34 sepa_change_log.php:88
+#: sepa_change_log.php:34 sepa_change_log.php:88 manifest.php (menu)
 msgid "SEPA Change Log"
 msgstr "سجل تغييرات SEPA"
 
@@ -925,7 +925,7 @@ msgstr "حذف"
 msgid "%1$d log line(s) and %2$d decided request(s) older than two years were deleted."
 msgstr "تم حذف %1$d سطر/أسطر من السجل و%2$d طلب/طلبات تم البت فيها كانت أقدم من سنتين."
 
-#: sepa_change_requests.php:34 sepa_change_review.php:35
+#: sepa_change_requests.php:34 sepa_change_review.php:35 manifest.php (menu)
 msgid "Approve SEPA Changes"
 msgstr "الموافقة على تغييرات SEPA"
 
@@ -1119,7 +1119,7 @@ msgstr "إضافة SEPA"
 msgid "Edit"
 msgstr "تعديل"
 
-#: sepa_child_enrollment_details.php:37 sepa_child_enrollment_details.php:60
+#: sepa_child_enrollment_details.php:37 sepa_child_enrollment_details.php:60 manifest.php (menu)
 msgid "Child Enrollment Details"
 msgstr "تفاصيل تسجيل الأطفال"
 
@@ -1300,35 +1300,35 @@ msgstr "إجماليات العائلات"
 msgid "Family: "
 msgstr "العائلة: "
 
-#: sepa_family_details.php:73 sepa_payment_view_per_family.php:79
+#: sepa_family_details.php:73 sepa_payment_view_per_family.php:77
 msgid "Fees Summary"
 msgstr "ملخص الرسوم"
 
-#: sepa_family_details.php:74 sepa_payment_view_per_family.php:80
+#: sepa_family_details.php:74 sepa_payment_view_per_family.php:78
 msgid "Total Fees Owed: "
 msgstr "إجمالي الرسوم المستحقة: "
 
-#: sepa_family_details.php:75 sepa_payment_view_per_family.php:81
+#: sepa_family_details.php:75 sepa_payment_view_per_family.php:79
 msgid "Total Adjustments: "
 msgstr "إجمالي التعديلات: "
 
-#: sepa_family_details.php:76 sepa_payment_view_per_family.php:82
+#: sepa_family_details.php:76 sepa_payment_view_per_family.php:80
 msgid "Total Payments: "
 msgstr "إجمالي المدفوعات: "
 
-#: sepa_family_details.php:77 sepa_payment_view_per_family.php:83
+#: sepa_family_details.php:77 sepa_payment_view_per_family.php:81
 msgid "Balance: "
 msgstr "الرصيد: "
 
-#: sepa_family_details.php:81 sepa_payment_view_per_family.php:87
+#: sepa_family_details.php:81 sepa_payment_view_per_family.php:85
 msgid "SEPA informaiton is not available for this family."
 msgstr "معلومات SEPA غير متوفرة لهذه العائلة."
 
-#: sepa_family_details.php:84 sepa_payment_view_per_family.php:90
+#: sepa_family_details.php:84 sepa_payment_view_per_family.php:88
 msgid "Databased Error: more than one SEPA informaiton is entered for this family."
 msgstr "خطأ في قاعدة البيانات: تم إدخال أكثر من معلومات SEPA لهذه العائلة."
 
-#: sepa_family_details.php:122 sepa_payment_view_per_family.php:115
+#: sepa_family_details.php:122 sepa_payment_view_per_family.php:113
 msgid "Adjustment Details"
 msgstr "تفاصيل التعديلات"
 
@@ -1336,7 +1336,7 @@ msgstr "تفاصيل التعديلات"
 msgid "Add Adjustment"
 msgstr "إضافة تعديل"
 
-#: sepa_family_details.php:132 sepa_payment_view_per_family.php:119
+#: sepa_family_details.php:132 sepa_payment_view_per_family.php:117
 msgid "Adjustment Amount"
 msgstr "مبلغ التعديل"
 
@@ -1344,7 +1344,7 @@ msgstr "مبلغ التعديل"
 msgid "user"
 msgstr "المستخدم"
 
-#: sepa_family_details.php:156 sepa_payment_view_per_family.php:129
+#: sepa_family_details.php:156 sepa_payment_view_per_family.php:127
 msgid "Payment Details"
 msgstr "تفاصيل المدفوعات"
 
@@ -1417,7 +1417,7 @@ msgstr "يوم"
 msgid "Total Dept"
 msgstr "إجمالي الديون"
 
-#: sepa_family_due.php:137 sepa_family_totals.php:102
+#: sepa_family_due.php:137 sepa_family_totals.php:102 manifest.php (menu)
 msgid "Payments"
 msgstr "المدفوعات"
 
@@ -1433,7 +1433,7 @@ msgstr "المستحق في الفترة"
 msgid "Withdraw Amount"
 msgstr "مبلغ السحب"
 
-#: sepa_family_edit.php:36
+#: sepa_family_edit.php:36 manifest.php (menu)
 msgid "Edit SEPA"
 msgstr "تعديل SEPA"
 
@@ -1441,7 +1441,7 @@ msgstr "تعديل SEPA"
 msgid "The stored IBAN can not be decrypted. Check the IBAN encryption key."
 msgstr "تعذّر فك تشفير IBAN المخزّن. تحققوا من مفتاح تشفير IBAN."
 
-#: sepa_family_merge.php:33
+#: sepa_family_merge.php:33 manifest.php (menu)
 msgid "Merge Families"
 msgstr "دمج العائلات"
 
@@ -1622,7 +1622,7 @@ msgstr "المستخدم نفسه كـ %s (دمج)"
 msgid "None"
 msgstr "لا شيء"
 
-#: sepa_family_merge.php:331
+#: sepa_family_merge.php:331 manifest.php (menu) manifest.php (menu)
 msgid "SEPA"
 msgstr "SEPA"
 
@@ -2001,7 +2001,7 @@ msgstr "المستخدم المُدخِل"
 msgid "Entry Timestamp"
 msgstr "الطابع الزمني للإدخال"
 
-#: sepa_payment_report.php:25
+#: sepa_payment_report.php:25 manifest.php (menu)
 msgid "Payment Report by Date Range"
 msgstr "تقرير المدفوعات حسب الفترة"
 
@@ -2072,10 +2072,6 @@ msgstr "هل أنتم متأكدون من إلغاء ربط قيد الدفعة 
 #: sepa_payment_view_per_family.php:48
 msgid "The payment information is missing for your Family. Please ask the school's administration for more infomration."
 msgstr "معلومات المدفوعات مفقودة لعائلتكم. يرجى سؤال إدارة المدرسة للمزيد من المعلومات."
-
-#: sepa_payment_view_per_family.php:68
-msgid "This module is under development. If you notice any inconsistencies, please help us by informing the school administration."
-msgstr "هذا الموديول قيد التطوير. إذا لاحظتم أي خطأ، يرجى مساعدتنا بإبلاغ إدارة المدرسة."
 
 #: sepa_unlinked_payment_view.php:34
 msgid "Unlinked SEPA Payment Entries"
@@ -2315,3 +2311,71 @@ msgstr "IBAN غير مشفّر بعد (يتم تشفيره عند حفظ الس�
 #: src/Domain/SepaGateway.php:987
 msgid "The family has no enrolled students in the selected academic year"
 msgstr "ليس لدى العائلة طلاب مسجلون في السنة الدراسية المحددة"
+
+#: manifest.php (menu)
+msgid "View Unlinked Payment"
+msgstr "عرض المدفوعات غير المرتبطة"
+
+#: manifest.php (menu)
+msgid "View Payments - my family"
+msgstr "عرض المدفوعات - عائلتي"
+
+#: manifest.php (menu)
+msgid "View SEPA - my family"
+msgstr "عرض SEPA - عائلتي"
+
+#: manifest.php (menu)
+msgid "Import SEPA Payment"
+msgstr "استيراد مدفوعات SEPA"
+
+#: manifest.php (menu) manifest.php (menu) manifest.php (menu)
+msgid "Entry"
+msgstr "الإدخال"
+
+#: manifest.php (menu)
+msgid "View Family SEPA"
+msgstr "عرض SEPA العائلات"
+
+#: manifest.php (menu)
+msgid "Add Family SEPA"
+msgstr "إضافة SEPA عائلة"
+
+#: manifest.php (menu)
+msgid "delete SEPA"
+msgstr "حذف SEPA"
+
+#: manifest.php (menu)
+msgid "Import SEPA from Registration Form"
+msgstr "استيراد SEPA من استمارة التسجيل"
+
+#: manifest.php (menu)
+msgid "Update Courses Fee"
+msgstr "تحديث رسوم المقررات"
+
+#: manifest.php (menu)
+msgid "Courses"
+msgstr "المقررات"
+
+#: manifest.php (menu)
+msgid "Family Balance"
+msgstr "رصيد العائلة"
+
+#: manifest.php (menu) manifest.php (menu) manifest.php (menu)
+msgid "Reports"
+msgstr "التقارير"
+
+#: manifest.php (menu)
+msgid "Edit Enrollment Dates"
+msgstr "تعديل تواريخ التسجيل"
+
+#: manifest.php (menu)
+msgid "Admin"
+msgstr "الإدارة"
+
+#: manifest.php (menu)
+msgid "Manage SEPA Payment Adjustments"
+msgstr "إدارة تعديلات مدفوعات SEPA"
+
+#: manifest.php (menu)
+msgid "Edit SEPA - my family"
+msgstr "تعديل SEPA - عائلتي"

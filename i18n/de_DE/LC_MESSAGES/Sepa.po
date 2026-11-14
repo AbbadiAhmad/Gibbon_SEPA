@@ -228,7 +228,7 @@ msgstr "Sie haben keinen Zugriff auf diese Aktion."
 msgid "SEPA Signed Date"
 msgstr "SEPA-Unterschriftsdatum"
 
-#: import_sepa_from_form.php:29
+#: import_sepa_from_form.php:29 manifest.php (menu)
 msgid "Import Family SEPA"
 msgstr "Familien-SEPA importieren"
 
@@ -635,7 +635,7 @@ msgstr "Saldo"
 msgid "Total Fees"
 msgstr "Gesamtgebühren"
 
-#: sepa_balance_snapshot.php:208
+#: sepa_balance_snapshot.php:208 manifest.php (menu)
 msgid "Adjustments"
 msgstr "Anpassungen"
 
@@ -747,7 +747,7 @@ msgstr "Zahlungen gesamt"
 msgid "Total Adjustments"
 msgstr "Anpassungen gesamt"
 
-#: sepa_balance_snapshot_details.php:176 sepa_family_details.php:88 sepa_payment_view_per_family.php:94
+#: sepa_balance_snapshot_details.php:176 sepa_family_details.php:88 sepa_payment_view_per_family.php:92
 msgid "Fees Details"
 msgstr "Gebührendetails"
 
@@ -859,7 +859,7 @@ msgstr "Neue Anpassungen"
 msgid "No detailed changes found."
 msgstr "Keine detaillierten Änderungen gefunden."
 
-#: sepa_change_log.php:34 sepa_change_log.php:88
+#: sepa_change_log.php:34 sepa_change_log.php:88 manifest.php (menu)
 msgid "SEPA Change Log"
 msgstr "SEPA-Änderungsprotokoll"
 
@@ -925,7 +925,7 @@ msgstr "Löschen"
 msgid "%1$d log line(s) and %2$d decided request(s) older than two years were deleted."
 msgstr "%1$d Protokollzeile(n) und %2$d entschiedene(r) Antrag/Anträge, die älter als zwei Jahre waren, wurden gelöscht."
 
-#: sepa_change_requests.php:34 sepa_change_review.php:35
+#: sepa_change_requests.php:34 sepa_change_review.php:35 manifest.php (menu)
 msgid "Approve SEPA Changes"
 msgstr "SEPA-Änderungen genehmigen"
 
@@ -1119,7 +1119,7 @@ msgstr "SEPA hinzufügen"
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: sepa_child_enrollment_details.php:37 sepa_child_enrollment_details.php:60
+#: sepa_child_enrollment_details.php:37 sepa_child_enrollment_details.php:60 manifest.php (menu)
 msgid "Child Enrollment Details"
 msgstr "Anmeldedetails der Kinder"
 
@@ -1300,35 +1300,35 @@ msgstr "Familiensalden"
 msgid "Family: "
 msgstr "Familie: "
 
-#: sepa_family_details.php:73 sepa_payment_view_per_family.php:79
+#: sepa_family_details.php:73 sepa_payment_view_per_family.php:77
 msgid "Fees Summary"
 msgstr "Gebührenübersicht"
 
-#: sepa_family_details.php:74 sepa_payment_view_per_family.php:80
+#: sepa_family_details.php:74 sepa_payment_view_per_family.php:78
 msgid "Total Fees Owed: "
 msgstr "Geschuldete Gebühren gesamt: "
 
-#: sepa_family_details.php:75 sepa_payment_view_per_family.php:81
+#: sepa_family_details.php:75 sepa_payment_view_per_family.php:79
 msgid "Total Adjustments: "
 msgstr "Anpassungen gesamt: "
 
-#: sepa_family_details.php:76 sepa_payment_view_per_family.php:82
+#: sepa_family_details.php:76 sepa_payment_view_per_family.php:80
 msgid "Total Payments: "
 msgstr "Zahlungen gesamt: "
 
-#: sepa_family_details.php:77 sepa_payment_view_per_family.php:83
+#: sepa_family_details.php:77 sepa_payment_view_per_family.php:81
 msgid "Balance: "
 msgstr "Saldo: "
 
-#: sepa_family_details.php:81 sepa_payment_view_per_family.php:87
+#: sepa_family_details.php:81 sepa_payment_view_per_family.php:85
 msgid "SEPA informaiton is not available for this family."
 msgstr "Für diese Familie sind keine SEPA-Informationen vorhanden."
 
-#: sepa_family_details.php:84 sepa_payment_view_per_family.php:90
+#: sepa_family_details.php:84 sepa_payment_view_per_family.php:88
 msgid "Databased Error: more than one SEPA informaiton is entered for this family."
 msgstr "Datenbankfehler: Für diese Familie sind mehrere SEPA-Informationen eingetragen."
 
-#: sepa_family_details.php:122 sepa_payment_view_per_family.php:115
+#: sepa_family_details.php:122 sepa_payment_view_per_family.php:113
 msgid "Adjustment Details"
 msgstr "Anpassungsdetails"
 
@@ -1336,7 +1336,7 @@ msgstr "Anpassungsdetails"
 msgid "Add Adjustment"
 msgstr "Anpassung hinzufügen"
 
-#: sepa_family_details.php:132 sepa_payment_view_per_family.php:119
+#: sepa_family_details.php:132 sepa_payment_view_per_family.php:117
 msgid "Adjustment Amount"
 msgstr "Anpassungsbetrag"
 
@@ -1344,7 +1344,7 @@ msgstr "Anpassungsbetrag"
 msgid "user"
 msgstr "Benutzer"
 
-#: sepa_family_details.php:156 sepa_payment_view_per_family.php:129
+#: sepa_family_details.php:156 sepa_payment_view_per_family.php:127
 msgid "Payment Details"
 msgstr "Zahlungsdetails"
 
@@ -1417,7 +1417,7 @@ msgstr "Tag"
 msgid "Total Dept"
 msgstr "Schulden gesamt"
 
-#: sepa_family_due.php:137 sepa_family_totals.php:102
+#: sepa_family_due.php:137 sepa_family_totals.php:102 manifest.php (menu)
 msgid "Payments"
 msgstr "Zahlungen"
 
@@ -1433,7 +1433,7 @@ msgstr "Fällig im Zeitraum"
 msgid "Withdraw Amount"
 msgstr "Einzugsbetrag"
 
-#: sepa_family_edit.php:36
+#: sepa_family_edit.php:36 manifest.php (menu)
 msgid "Edit SEPA"
 msgstr "SEPA bearbeiten"
 
@@ -1441,7 +1441,7 @@ msgstr "SEPA bearbeiten"
 msgid "The stored IBAN can not be decrypted. Check the IBAN encryption key."
 msgstr "Die gespeicherte IBAN kann nicht entschlüsselt werden. Prüfen Sie den IBAN-Verschlüsselungsschlüssel."
 
-#: sepa_family_merge.php:33
+#: sepa_family_merge.php:33 manifest.php (menu)
 msgid "Merge Families"
 msgstr "Familien zusammenführen"
 
@@ -1622,7 +1622,7 @@ msgstr "Derselbe Benutzer wie %s (zusammenführen)"
 msgid "None"
 msgstr "Keine"
 
-#: sepa_family_merge.php:331
+#: sepa_family_merge.php:331 manifest.php (menu) manifest.php (menu)
 msgid "SEPA"
 msgstr "SEPA"
 
@@ -2001,7 +2001,7 @@ msgstr "Eingegeben von"
 msgid "Entry Timestamp"
 msgstr "Zeitpunkt der Eingabe"
 
-#: sepa_payment_report.php:25
+#: sepa_payment_report.php:25 manifest.php (menu)
 msgid "Payment Report by Date Range"
 msgstr "Zahlungsbericht nach Zeitraum"
 
@@ -2072,10 +2072,6 @@ msgstr "Möchten Sie die Verknüpfung dieses Zahlungseintrags mit der Familie wi
 #: sepa_payment_view_per_family.php:48
 msgid "The payment information is missing for your Family. Please ask the school's administration for more infomration."
 msgstr "Die Zahlungsinformationen für Ihre Familie fehlen. Bitte wenden Sie sich an die Schulverwaltung."
-
-#: sepa_payment_view_per_family.php:68
-msgid "This module is under development. If you notice any inconsistencies, please help us by informing the school administration."
-msgstr "Dieses Modul befindet sich in der Entwicklung. Wenn Sie Unstimmigkeiten feststellen, helfen Sie uns bitte, indem Sie die Schulverwaltung informieren."
 
 #: sepa_unlinked_payment_view.php:34
 msgid "Unlinked SEPA Payment Entries"
@@ -2315,3 +2311,71 @@ msgstr "Die IBAN ist noch nicht verschlüsselt (sie wird beim Speichern des Date
 #: src/Domain/SepaGateway.php:987
 msgid "The family has no enrolled students in the selected academic year"
 msgstr "Die Familie hat im gewählten Schuljahr keine angemeldeten Schüler"
+
+#: manifest.php (menu)
+msgid "View Unlinked Payment"
+msgstr "Nicht verknüpfte Zahlungen anzeigen"
+
+#: manifest.php (menu)
+msgid "View Payments - my family"
+msgstr "Zahlungen anzeigen - meine Familie"
+
+#: manifest.php (menu)
+msgid "View SEPA - my family"
+msgstr "SEPA anzeigen - meine Familie"
+
+#: manifest.php (menu)
+msgid "Import SEPA Payment"
+msgstr "SEPA-Zahlungen importieren"
+
+#: manifest.php (menu) manifest.php (menu) manifest.php (menu)
+msgid "Entry"
+msgstr "Eingabe"
+
+#: manifest.php (menu)
+msgid "View Family SEPA"
+msgstr "Familien-SEPA anzeigen"
+
+#: manifest.php (menu)
+msgid "Add Family SEPA"
+msgstr "Familien-SEPA hinzufügen"
+
+#: manifest.php (menu)
+msgid "delete SEPA"
+msgstr "SEPA löschen"
+
+#: manifest.php (menu)
+msgid "Import SEPA from Registration Form"
+msgstr "SEPA aus Anmeldeformular importieren"
+
+#: manifest.php (menu)
+msgid "Update Courses Fee"
+msgstr "Kursgebühren aktualisieren"
+
+#: manifest.php (menu)
+msgid "Courses"
+msgstr "Kurse"
+
+#: manifest.php (menu)
+msgid "Family Balance"
+msgstr "Familiensaldo"
+
+#: manifest.php (menu) manifest.php (menu) manifest.php (menu)
+msgid "Reports"
+msgstr "Berichte"
+
+#: manifest.php (menu)
+msgid "Edit Enrollment Dates"
+msgstr "Anmeldedaten bearbeiten"
+
+#: manifest.php (menu)
+msgid "Admin"
+msgstr "Verwaltung"
+
+#: manifest.php (menu)
+msgid "Manage SEPA Payment Adjustments"
+msgstr "SEPA-Zahlungsanpassungen verwalten"
+
+#: manifest.php (menu)
+msgid "Edit SEPA - my family"
+msgstr "SEPA bearbeiten - meine Familie"
