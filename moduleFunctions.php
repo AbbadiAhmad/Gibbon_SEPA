@@ -91,3 +91,34 @@ function getSepaCheckReturnParams($source)
     }
     return $params;
 }
+
+/**
+ * The academic year filter of the list pages: 'all' or a school year ID.
+ * Without (or with an invalid) value the default is used, normally the current school year.
+ *
+ * @param array $source $_GET
+ * @param mixed $default school year ID used when nothing is selected
+ * @return string 'all' or a school year ID
+ */
+function sepaSelectedSchoolYear($source, $default)
+{
+    $value = $source['schoolYearID'] ?? '';
+    if ($value === 'all') {
+        return 'all';
+    }
+    return (is_string($value) || is_int($value)) && ctype_digit((string) $value) ? (string) $value : (string) $default;
+}
+
+/**
+ * Add the academic year select (All / every school year) to a filter form.
+ *
+ * @param \Gibbon\Forms\Form $form
+ * @param array $schoolYears [schoolYearID => name] as returned by SepaGateway::getAllSchoolYears()
+ * @param string $selected 'all' or a school year ID
+ */
+function sepaAddSchoolYearRow($form, array $schoolYears, $selected)
+{
+    $row = $form->addRow();
+    $row->addLabel('schoolYearID', __('Academic Year'));
+    $row->addSelect('schoolYearID')->fromArray(['all' => __('All')] + $schoolYears)->selected($selected);
+}

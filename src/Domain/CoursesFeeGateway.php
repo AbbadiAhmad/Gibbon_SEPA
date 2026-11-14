@@ -35,14 +35,20 @@ class CoursesFeeGateway extends QueryableGateway
                 'gibbonCourse.gibbonCourseID as gibbonCourseID',
                 'gibbonCourse.nameShort',
                 'gibbonCourse.name as courseName',
+                'gibbonSchoolYear.name as yearName',
                 'gibbonSepaCoursesFees.gibbonSepaCoursesCostID AS gibbonSepaCoursesCostID',
                 'gibbonSepaCoursesFees.fees as Fees',
             ])
             ->from('gibbonCourse')
             ->leftJoin('gibbonSepaCoursesFees', 'gibbonCourse.gibbonCourseID = gibbonSepaCoursesFees.gibbonCourseID')
             ->leftJoin('gibbonSchoolYear', 'gibbonSchoolYear.gibbonSchoolYearID = gibbonCourse.gibbonSchoolYearID')
-            ->where('gibbonCourse.gibbonSchoolYearID = :gibbonSchoolYearID')
-            ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID);
+            ->orderBy(['gibbonSchoolYear.sequenceNumber DESC', 'gibbonCourse.nameShort']);
+
+        // 'all' / empty: the courses of every academic year
+        if (!empty($gibbonSchoolYearID) && $gibbonSchoolYearID !== 'all') {
+            $query->where('gibbonCourse.gibbonSchoolYearID = :gibbonSchoolYearID')
+                ->bindValue('gibbonSchoolYearID', $gibbonSchoolYearID);
+        }
 
         $res = $this->runQuery($query, $criteria);
         return $res;

@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Gibbon\Forms\Form;
 use Gibbon\Module\Sepa\Domain\CoursesFeeGateway;
+use Gibbon\Module\Sepa\Domain\SepaGateway;
 
 // Module includes
 require_once __DIR__ . '/moduleFunctions.php';
@@ -33,7 +34,16 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_courses_fee_vie
     $CoursesFeeGateway = $container->get(CoursesFeeGateway::class);
     $criteria = $CoursesFeeGateway->newQueryCriteria(true)
         ->fromPOST();
-    $coursesFee = $CoursesFeeGateway->queryCoursesFees($criteria, $_SESSION[$guid]["gibbonSchoolYearID"]);
+    $schoolYearID = sepaSelectedSchoolYear($_GET, $session->get('gibbonSchoolYearID'));
+    $coursesFee = $CoursesFeeGateway->queryCoursesFees($criteria, $schoolYearID);
+
+    // Academic year filter
+    $filter = Form::create('schoolYearFilter', $session->get('absoluteURL') . '/index.php', 'get');
+    $filter->setClass('noIntBorder fullWidth');
+    $filter->addHiddenValue('q', '/modules/Sepa/sepa_courses_fee_view.php');
+    sepaAddSchoolYearRow($filter, $container->get(SepaGateway::class)->getAllSchoolYears(), $schoolYearID);
+    $filter->addRow()->addSubmit(__('Go'));
+    echo $filter->getOutput();
 
     //
     echo '<h2>';
@@ -47,13 +57,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_courses_fee_vie
     // DATA TABLE
     $form = Form::create('coursesFee', $session->get('absoluteURL') . '/modules/' . $session->get('module') . '/sepa_courses_fee_updateProcess.php');
     $form->addHiddenValue('address', $session->get('address'));
+    $form->addHiddenValue('schoolYearID', $schoolYearID);
 
     // BASIC INFORMATION
     $form->addRow()->addHeading('Courses Fee', __('Courses Fee'));
     $textField = [];
     foreach ($coursesFee as $course) {
         $row = $form->addRow();
-        $row->addLabel($course['nameShort'], $course['nameShort']);
+        $label = $schoolYearID === 'all' ? $course['nameShort'] . ' (' . $course['yearName'] . ')' : $course['nameShort'];
+        $row->addLabel($course['nameShort'], $label);
         $textField = $row->addTextField($course['gibbonCourseID'])->setValue($course['Fees'])->maxLength(5);
     }
     $row = $form->addRow();

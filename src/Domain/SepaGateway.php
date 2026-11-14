@@ -515,7 +515,7 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query)->fetch();
     }
 
-    public function getAllPayments(QueryCriteria $criteria)
+    public function getAllPayments(QueryCriteria $criteria, $schoolYearID = null)
     {
         $query = $this
             ->newQuery()
@@ -529,6 +529,12 @@ class SepaGateway extends QueryableGateway
             ->leftJoin('gibbonFamily', 'gibbonSEPA.gibbonFamilyID = gibbonFamily.gibbonFamilyID')
             ->leftJoin('gibbonSchoolYear', 'gibbonSEPAPaymentEntry.academicYear = gibbonSchoolYear.gibbonSchoolYearID')
             ->orderBy(['timestamp DESC']);
+
+        // 'all' / null: every academic year
+        if (!empty($schoolYearID) && $schoolYearID !== 'all') {
+            $query->where('gibbonSEPAPaymentEntry.academicYear = :filterSchoolYearID')
+                ->bindValue('filterSchoolYearID', $schoolYearID);
+        }
 
         $criteria->addFilterRules([
             'academicYear' => function ($query, $academicYear) {
@@ -641,6 +647,29 @@ class SepaGateway extends QueryableGateway
         return $result;
     }
 
+    /**
+     * Problems of an enrollment row whose end date lies before its start date:
+     * unenrolled / left before enrolled, or the calculated end before the calculated start.
+     *
+     * @param array $row a row of getChildEnrollmentDetails()
+     * @return string[] the problems, empty when the dates are fine
+     */
+    public static function getEnrollmentDateProblems(array $row)
+    {
+        $problems = [];
+        $enrolled = $row['dateEnrolled'] ?? null;
+        if (!empty($enrolled) && !empty($row['dateUnenrolled']) && $row['dateUnenrolled'] < $enrolled) {
+            $problems[] = __('Unenrolled before enrolled');
+        }
+        if (!empty($enrolled) && !empty($row['personDateEnd']) && $row['personDateEnd'] < $enrolled) {
+            $problems[] = __('Left before enrolled');
+        }
+        if (!empty($row['startDate']) && !empty($row['lastDate']) && $row['lastDate'] < $row['startDate']) {
+            $problems[] = __('Calc. end before calc. start');
+        }
+        return $problems;
+    }
+
     public function getChildEnrollmentDetails($schoolYearID, $criteria)
     {
         $query = $this
@@ -651,6 +680,7 @@ class SepaGateway extends QueryableGateway
                 'gibbonPerson.dateEnd as personDateEnd',
                 'gibbonFamilyChild.gibbonFamilyID',
                 'gibbonFamily.name as familyName',
+                'gibbonSchoolYear.name as yearName',
                 'gibbonCourseClass.gibbonCourseClassID',
                 'gibbonCourse.nameShort as shortName',
                 'gibbonCourseClassPerson.dateEnrolled',
@@ -669,10 +699,14 @@ class SepaGateway extends QueryableGateway
             ->innerJoin('gibbonCourse', 'gibbonCourse.gibbonCourseID = gibbonCourseClass.gibbonCourseID')
             ->innerJoin('gibbonSchoolYear', 'gibbonSchoolYear.gibbonSchoolYearID = gibbonCourse.gibbonSchoolYearID')
             ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
-            ->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
             ->where('gibbonCourseClassPerson.role = :role')
-            ->bindValue('schoolYearID', $schoolYearID)
             ->bindValue('role', 'Student');
+
+        // 'all' / empty: every academic year
+        if (!empty($schoolYearID) && $schoolYearID !== 'all') {
+            $query->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
+                ->bindValue('schoolYearID', $schoolYearID);
+        }
 
         // Apply search for student name if search term is provided
         $search = $criteria->getSearchText();

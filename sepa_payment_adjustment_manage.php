@@ -7,6 +7,7 @@ Copyright © 2010, Gibbon Foundation
 
 use Gibbon\Forms\Form;
 use Gibbon\Tables\DataTable;
+use Gibbon\Module\Sepa\Domain\SepaGateway;
 use Gibbon\Module\Sepa\Domain\SepaPaymentAdjustmentGateway;
 use Gibbon\Data\Validator;
 
@@ -26,6 +27,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
     $search = $_GET['search'] ?? '';
+    $schoolYears = $container->get(SepaGateway::class)->getAllSchoolYears();
+    $schoolYearID = sepaSelectedSchoolYear($_GET, $session->get('gibbonSchoolYearID'));
 
     // CRITERIA
     $criteria = $adjustmentGateway->newQueryCriteria(true)
@@ -40,11 +43,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
         ->description(__('description, note'));
     $row->addTextField('search')->setValue($criteria->getSearchText());
 
+    sepaAddSchoolYearRow($form, $schoolYears, $schoolYearID);
+
     $form->addRow()->addSearchSubmit('', __('Clear Search'));
 
     echo $form->getOutput();
 
-    $adjustment = $adjustmentGateway->getAllAdjustment($criteria);
+    $adjustment = $adjustmentGateway->getAllAdjustment($criteria, $schoolYearID);
 
     // DATA TABLE
     $table = DataTable::createPaginated('adjustment', $criteria);
@@ -53,6 +58,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $table->addHeaderAction('add', __('Add'))
         ->setURL('/modules/Sepa/sepa_payment_adjustment_add.php')
         ->addParam('search', $search)
+        ->addParam('schoolYearID', $schoolYearID)
         ->displayLabel();
 
     $table->addColumn('familyName', __('Family Name'))

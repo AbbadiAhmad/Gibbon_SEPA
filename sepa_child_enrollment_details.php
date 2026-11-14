@@ -36,7 +36,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_child_enrollmen
 } else {
     $page->breadcrumbs->add(__('Child Enrollment Details'));
 
-    $schoolYearID = isset($_GET['schoolYearID']) ? $_GET['schoolYearID'] : $_SESSION[$guid]["gibbonSchoolYearID"];
+    $schoolYearID = sepaSelectedSchoolYear($_GET, $session->get('gibbonSchoolYearID'));
     $search = isset($_GET['search']) ? $_GET['search'] : '';
 
 
@@ -51,22 +51,33 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_child_enrollmen
     $row->addLabel('search', __('Search For'))
         ->description(__('Student name'));
     $row->addTextField('search')->setValue($criteria->getSearchText());
+    sepaAddSchoolYearRow($form, $SepaGateway->getAllSchoolYears(), $schoolYearID);
+
     $form->addRow()->addSearchSubmit('', __('Clear Search'));
     echo $form->getOutput();
 
     echo '<h2>';
     echo __('Child Enrollment Details');
     echo '</h2>';
+    echo '<p>' . __('Rows in red: the end date lies before the start date (see the Issue column).') . '</p>';
 
     $enrollmentDetails = $SepaGateway->getChildEnrollmentDetails($schoolYearID, $criteria);
 
     $table = DataTable::createPaginated('enrollmentDetails', $criteria);
+
+    // Enrollments whose end date lies before the start date are marked red
+    $table->modifyRows(function ($row, $tableRow) {
+        return SepaGateway::getEnrollmentDateProblems($row) ? $tableRow->addClass('error') : $tableRow;
+    });
 
 
    // $table->addColumn('childID', __('Child ID'));
     $table->addColumn('student_name', __('Student Name'));
     
     $table->addColumn('familyName', __('Family'));
+    if ($schoolYearID === 'all') {
+        $table->addColumn('yearName', __('Academic Year'));
+    }
     //$table->addColumn('gibbonCourseClassID', __('ClassID'));
     $table->addColumn('shortName', __('Course'));
     $table->addColumn('dateEnrolled', __('dateEnrolled'));
@@ -77,6 +88,11 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_child_enrollmen
     $table->addColumn('monthsEnrolled', __('Months Enrolled'));
     $table->addColumn('courseFee', __('Course Fee'));
     $table->addColumn('total', __('Total'));
+    $table->addColumn('issue', __('Issue'))
+        ->notSortable()
+        ->format(function ($row) {
+            return implode('<br>', array_map('htmlspecialchars', SepaGateway::getEnrollmentDateProblems($row)));
+        });
 
     echo $table->render($enrollmentDetails);
 }
