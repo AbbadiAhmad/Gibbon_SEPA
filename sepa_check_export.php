@@ -54,7 +54,7 @@ foreach ($issues as $issue) {
         'BIC' => $sepa['BIC'] ?? '',
         'Withdraw Cadence' => $sepa ? ($cadences[$sepa['withdrawCadence']] ?? '') : '',
         'Withdraw Day' => $sepa['withdrawDay'] ?? '',
-        'SEPA Signed Date' => $sepa['SEPA_signedDate'] ?? '',
+        'SEPA Signed Date' => strpos((string) ($sepa['SEPA_signedDate'] ?? ''), '0000') === 0 ? '' : ($sepa['SEPA_signedDate'] ?? ''),
         'Note' => $sepa['note'] ?? '',
     ];
 }

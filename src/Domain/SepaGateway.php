@@ -974,7 +974,8 @@ class SepaGateway extends QueryableGateway
             }
 
             // Mandate and withdrawal data
-            if (empty($sepa['SEPA_signedDate'])) {
+            // a zero date (0000-00-00) is no date
+            if (empty($sepa['SEPA_signedDate']) || strpos((string) $sepa['SEPA_signedDate'], '0000') === 0) {
                 $report('Warning', __('Date of SEPA signature is missing'));
             }
             if (empty($sepa['withdrawDay'])) {
