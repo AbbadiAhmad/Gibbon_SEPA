@@ -26,6 +26,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
 
     $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
+    if (!empty($_SESSION[$guid]['sepaBulkNotice'])) {
+        echo "<div class='success'>" . htmlspecialchars($_SESSION[$guid]['sepaBulkNotice'], ENT_QUOTES, 'UTF-8') . '</div>';
+        unset($_SESSION[$guid]['sepaBulkNotice']);
+    }
+
     $search = $_GET['search'] ?? '';
     $schoolYears = $container->get(SepaGateway::class)->getAllSchoolYears();
     $schoolYearID = sepaSelectedSchoolYear($_GET, $session->get('gibbonSchoolYearID'));
@@ -33,7 +38,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     // CRITERIA
     $criteria = $adjustmentGateway->newQueryCriteria(true)
         ->searchBy(['description', 'note'], $search)
-        ->sortBy(['timestamp'])
+        ->sortBy(['familyName', 'timestamp'])
         ->fromPOST();
 
     $form = Form::createSearch();
@@ -61,8 +66,27 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
         ->addParam('schoolYearID', $schoolYearID)
         ->displayLabel();
 
+    if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_adjustment_bulk.php')) {
+        $table->addHeaderAction('bulk', __m('Bulk entry'))
+            ->setURL('/modules/Sepa/sepa_payment_adjustment_bulk.php')
+            ->setIcon('copy')
+            ->displayLabel();
+    }
+
+    // The family name opens the balance of the family (Family Details) for the year of the adjustment
+    $canViewDetails = isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_details.php');
+    $absoluteURL = $session->get('absoluteURL');
     $table->addColumn('familyName', __m('Family Name'))
-        ->sortable(['familyName']);
+        ->sortable(['familyName'])
+        ->format(function ($row) use ($canViewDetails, $absoluteURL) {
+            $name = htmlspecialchars((string) $row['familyName'], ENT_QUOTES, 'UTF-8');
+            if (!$canViewDetails || empty($row['gibbonFamilyID'])) {
+                return $name;
+            }
+            $url = $absoluteURL . '/index.php?q=/modules/Sepa/sepa_family_details.php&gibbonFamilyID=' . (int) $row['gibbonFamilyID']
+                . (!empty($row['academicYear']) ? '&schoolYearID=' . (int) $row['academicYear'] : '');
+            return '<a href="' . $url . '">' . $name . '</a>';
+        });
 
     $table->addColumn('amount', __m('PaymentAdjustment Amount'))
         ->sortable(['amount']);

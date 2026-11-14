@@ -100,7 +100,7 @@ msgstr "Exportieren"
 msgid "Export to Excel"
 msgstr "Nach Excel exportieren"
 
-#: import_sepa_data.php:317 import_sepa_from_form.php:390
+#: import_sepa_data.php:317 import_sepa_from_form.php:390 sepa_payment_adjustment_bulk.php:229
 msgid "Select All"
 msgstr "Alle auswählen"
 
@@ -280,7 +280,7 @@ msgstr "Die Anmeldeformulare dieses Schuljahres werden gelesen."
 msgid "Form Status"
 msgstr "Formularstatus"
 
-#: import_sepa_from_form.php:121 import_sepa_from_form.php:212
+#: import_sepa_from_form.php:121 import_sepa_from_form.php:212 sepa_payment_adjustment_bulk.php:114
 msgid "Next"
 msgstr "Weiter"
 
@@ -631,11 +631,11 @@ msgstr "Aktuelle Summe Gebühren+Anpassungen"
 msgid "Balance"
 msgstr "Saldo"
 
-#: sepa_balance_snapshot.php:205 sepa_balance_snapshot_details.php:151
+#: sepa_balance_snapshot.php:205 sepa_balance_snapshot_details.php:151 sepa_payment_adjustment_bulk.php:231
 msgid "Total Fees"
 msgstr "Gesamtgebühren"
 
-#: sepa_balance_snapshot.php:208 manifest.php (menu)
+#: sepa_balance_snapshot.php:208 sepa_payment_adjustment_bulk.php:231 manifest.php (menu)
 msgid "Adjustments"
 msgstr "Anpassungen"
 
@@ -1417,7 +1417,7 @@ msgstr "Tag"
 msgid "Total Dept"
 msgstr "Schulden gesamt"
 
-#: sepa_family_due.php:137 sepa_family_totals.php:102 manifest.php (menu)
+#: sepa_family_due.php:137 sepa_family_totals.php:102 sepa_payment_adjustment_bulk.php:231
 msgid "Payments"
 msgstr "Zahlungen"
 
@@ -1825,7 +1825,7 @@ msgstr "Fehler beim Lesen der benutzerdefinierten Felder"
 msgid "Open the full log"
 msgstr "Vollständiges Protokoll öffnen"
 
-#: sepa_family_view.php:120 sepa_payment_adjustment_manage.php:58 sepa_payment_manage.php:57
+#: sepa_family_view.php:120 sepa_payment_adjustment_manage.php:63 sepa_payment_manage.php:57
 msgid "Add"
 msgstr "Hinzufügen"
 
@@ -1901,9 +1901,193 @@ msgstr "Zahlungsanpassung"
 msgid "Add payment_adjustment"
 msgstr "Zahlungsanpassung hinzufügen"
 
-#: sepa_payment_adjustment_delete.php:33 sepa_payment_adjustment_edit.php:36 sepa_payment_adjustment_manage.php:25
+#: sepa_payment_adjustment_bulk.php:34 sepa_payment_adjustment_delete.php:33 sepa_payment_adjustment_edit.php:36
 msgid "Payment Adjustment"
 msgstr "Zahlungsanpassung"
+
+#: sepa_payment_adjustment_bulk.php:35 sepa_payment_adjustment_manage.php:70
+msgid "Bulk entry"
+msgstr "Sammeleingabe"
+
+#: sepa_payment_adjustment_bulk.php:65 sepa_payment_adjustment_bulk.php:101
+msgid "Discount"
+msgstr "Ermäßigung"
+
+#: sepa_payment_adjustment_bulk.php:65
+msgid "Filters"
+msgstr "Filter"
+
+#: sepa_payment_adjustment_bulk.php:65
+msgid "Check and enter"
+msgstr "Prüfen und eingeben"
+
+#: sepa_payment_adjustment_bulk.php:69
+#, php-format
+msgid "Step %d"
+msgstr "Schritt %d"
+
+#: sepa_payment_adjustment_bulk.php:74
+msgid "Bulk payment adjustment"
+msgstr "Zahlungsanpassung für mehrere Familien"
+
+#: sepa_payment_adjustment_bulk.php:81
+msgid "Enter the same adjustment (for example a discount) for many families at once. The balance is negative when a family owes money; an adjustment is a positive amount that reduces the debt, and it is never larger than what the family owes."
+msgstr "Geben Sie dieselbe Anpassung (zum Beispiel eine Ermäßigung) für viele Familien auf einmal ein. Der Saldo ist negativ, wenn eine Familie Geld schuldet; eine Anpassung ist ein positiver Betrag, der die Schuld verringert, und sie ist nie höher als das, was die Familie schuldet."
+
+#: sepa_payment_adjustment_bulk.php:92
+msgid "Discount type"
+msgstr "Art der Ermäßigung"
+
+#: sepa_payment_adjustment_bulk.php:93
+msgid "Percentage"
+msgstr "Prozentsatz"
+
+#: sepa_payment_adjustment_bulk.php:93
+msgid "Fixed value per family"
+msgstr "Fester Betrag pro Familie"
+
+#: sepa_payment_adjustment_bulk.php:97
+msgid "Percentage of"
+msgstr "Prozentsatz von"
+
+#: sepa_payment_adjustment_bulk.php:98
+msgid "The amount the family owes"
+msgstr "dem Betrag, den die Familie schuldet"
+
+#: sepa_payment_adjustment_bulk.php:98
+msgid "The total fees of the year"
+msgstr "den Gesamtgebühren des Jahres"
+
+#: sepa_payment_adjustment_bulk.php:101
+msgid "A percentage (for example 10) or an amount (for example 50), as chosen above."
+msgstr "Ein Prozentsatz (zum Beispiel 10) oder ein Betrag (zum Beispiel 50), wie oben gewählt."
+
+#: sepa_payment_adjustment_bulk.php:105
+msgid "Shown to the family. Can be changed per family later."
+msgstr "Wird der Familie angezeigt. Kann später pro Familie geändert werden."
+
+#: sepa_payment_adjustment_bulk.php:109
+msgid "For the administration. Can be changed per family later."
+msgstr "Für die Verwaltung. Kann später pro Familie geändert werden."
+
+#: sepa_payment_adjustment_bulk.php:124
+msgid "Only families with a SEPA and enrolled students in the academic year can get an adjustment. Leave a filter empty to not use it; all filters have to match."
+msgstr "Nur Familien mit SEPA und angemeldeten Schülern im Schuljahr können eine Anpassung erhalten. Lassen Sie einen Filter leer, um ihn nicht zu verwenden; alle Filter müssen zutreffen."
+
+#: sepa_payment_adjustment_bulk.php:138
+msgid "Nothing selected: all."
+msgstr "Nichts ausgewählt: alle."
+
+#: sepa_payment_adjustment_bulk.php:142
+msgid "Number of enrolled children"
+msgstr "Anzahl der angemeldeten Kinder"
+
+#: sepa_payment_adjustment_bulk.php:144 sepa_payment_adjustment_bulk.php:150 sepa_payment_adjustment_bulk.php:165
+msgid "Any"
+msgstr "Beliebig"
+
+#: sepa_payment_adjustment_bulk.php:144 sepa_payment_adjustment_bulk.php:150
+msgid "More than"
+msgstr "Mehr als"
+
+#: sepa_payment_adjustment_bulk.php:144
+msgid "Fewer than"
+msgstr "Weniger als"
+
+#: sepa_payment_adjustment_bulk.php:144
+msgid "Exactly"
+msgstr "Genau"
+
+#: sepa_payment_adjustment_bulk.php:148
+msgid "Amount owed"
+msgstr "Geschuldeter Betrag"
+
+#: sepa_payment_adjustment_bulk.php:148
+msgid "The balance is negative when a family owes money; enter the amount owed as a positive number."
+msgstr "Der Saldo ist negativ, wenn eine Familie Geld schuldet; geben Sie den geschuldeten Betrag als positive Zahl ein."
+
+#: sepa_payment_adjustment_bulk.php:150
+msgid "Less than"
+msgstr "Weniger als"
+
+#: sepa_payment_adjustment_bulk.php:155
+msgid "Families with a child in one of the selected courses. Nothing selected: all."
+msgstr "Familien mit einem Kind in einem der gewählten Kurse. Nichts ausgewählt: alle."
+
+#: sepa_payment_adjustment_bulk.php:160
+msgid "Nothing paid yet"
+msgstr "Noch nichts bezahlt"
+
+#: sepa_payment_adjustment_bulk.php:160
+msgid "Only families without any payment in the academic year."
+msgstr "Nur Familien ohne jede Zahlung im Schuljahr."
+
+#: sepa_payment_adjustment_bulk.php:164
+msgid "Existing adjustments"
+msgstr "Vorhandene Anpassungen"
+
+#: sepa_payment_adjustment_bulk.php:165
+msgid "Families that have an adjustment in this year"
+msgstr "Familien mit einer Anpassung in diesem Jahr"
+
+#: sepa_payment_adjustment_bulk.php:165
+msgid "Families without an adjustment in this year"
+msgstr "Familien ohne Anpassung in diesem Jahr"
+
+#: sepa_payment_adjustment_bulk.php:199
+#, php-format
+msgid "%s%% of the total fees"
+msgstr "%s %% der Gesamtgebühren"
+
+#: sepa_payment_adjustment_bulk.php:199
+#, php-format
+msgid "%s%% of the amount owed"
+msgstr "%s %% des geschuldeten Betrags"
+
+#: sepa_payment_adjustment_bulk.php:200
+#, php-format
+msgid "%s per family"
+msgstr "%s pro Familie"
+
+#: sepa_payment_adjustment_bulk.php:201
+#, php-format
+msgid "Academic year %1$s, discount: %2$s."
+msgstr "Schuljahr %1$s, Ermäßigung: %2$s."
+
+#: sepa_payment_adjustment_bulk.php:203
+#, php-format
+msgid "%d more families match the filters but owe nothing, they get no adjustment."
+msgstr "%d weitere Familien erfüllen die Filter, schulden aber nichts und erhalten keine Anpassung."
+
+#: sepa_payment_adjustment_bulk.php:213
+msgid "No family matches the filters."
+msgstr "Keine Familie erfüllt die Filter."
+
+#: sepa_payment_adjustment_bulk.php:227
+#, php-format
+msgid "%d families. Untick a family to skip it; the new adjustment, the description and the note can be changed."
+msgstr "%d Familien. Entfernen Sie das Häkchen, um eine Familie zu überspringen; die neue Anpassung, die Beschreibung und die Notiz können geändert werden."
+
+#: sepa_payment_adjustment_bulk.php:232
+msgid "New adjustment"
+msgstr "Neue Anpassung"
+
+#: sepa_payment_adjustment_bulk.php:232
+msgid "New balance"
+msgstr "Neuer Saldo"
+
+#: sepa_payment_adjustment_bulk.php:248
+msgid "Total of the ticked adjustments"
+msgstr "Summe der markierten Anpassungen"
+
+#: sepa_payment_adjustment_bulk.php:278
+msgid "Enter the adjustments"
+msgstr "Anpassungen eingeben"
+
+#: sepa_payment_adjustment_bulkProcess.php:113
+#, php-format
+msgid "%1$d adjustments entered, together %2$s."
+msgstr "%1$d Anpassungen eingegeben, zusammen %2$s."
 
 #: sepa_payment_adjustment_delete.php:34
 msgid "Delete Ajustment"
@@ -1929,15 +2113,15 @@ msgstr "Zahlungsanpassung bearbeiten"
 msgid "The specified Adjustment cannot be found."
 msgstr "Die angegebene Anpassung wurde nicht gefunden."
 
-#: sepa_payment_adjustment_edit.php:80 sepa_payment_adjustment_manage.php:67
+#: sepa_payment_adjustment_edit.php:80 sepa_payment_adjustment_manage.php:79
 msgid "PaymentAdjustment Amount"
 msgstr "Betrag der Zahlungsanpassung"
 
-#: sepa_payment_adjustment_manage.php:43
+#: sepa_payment_adjustment_manage.php:48
 msgid "description, note"
 msgstr "Beschreibung, Notiz"
 
-#: sepa_payment_adjustment_manage.php:76
+#: sepa_payment_adjustment_manage.php:88
 msgid "User"
 msgstr "Benutzer"
 
@@ -2108,6 +2292,26 @@ msgstr "SEPA-Inhaber"
 #: sepa_unlinked_payment_view.php:100
 msgid "Message"
 msgstr "Nachricht"
+
+#: src/Domain/BulkAdjustment.php:38
+msgid "Select the academic year."
+msgstr "Wählen Sie das Schuljahr."
+
+#: src/Domain/BulkAdjustment.php:41
+msgid "Enter a discount that is more than 0."
+msgstr "Geben Sie eine Ermäßigung größer als 0 ein."
+
+#: src/Domain/BulkAdjustment.php:43
+msgid "A percentage can not be more than 100."
+msgstr "Ein Prozentsatz kann nicht größer als 100 sein."
+
+#: src/Domain/BulkAdjustment.php:45
+msgid "The discount is too high."
+msgstr "Die Ermäßigung ist zu hoch."
+
+#: src/Domain/BulkAdjustment.php:48
+msgid "Enter a description."
+msgstr "Geben Sie eine Beschreibung ein."
 
 #: src/Domain/FamilyMerger.php:153
 msgid "Choose the two families."
@@ -2379,3 +2583,7 @@ msgstr "SEPA-Zahlungsanpassungen verwalten"
 #: manifest.php (menu)
 msgid "Edit SEPA - my family"
 msgstr "SEPA bearbeiten - meine Familie"
+
+#: manifest.php (menu)
+msgid "Bulk Payment Adjustments"
+msgstr "Zahlungsanpassungen für mehrere Familien"

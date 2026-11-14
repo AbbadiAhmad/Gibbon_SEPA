@@ -41,3 +41,6 @@ v2.8.0: Families without SEPA can enter a new SEPA for approval (same flow: ente
 v2.8.1: New SEPA entered by a family: withdrawal day defaults to 5 and the date of signature to the day the family entered the data.
 v2.8.2: The module texts are translated: German (de_DE) and Arabic (ar_SA) in i18n/, English texts use __m() (module translation domain 'Sepa'); a text without translation stays English.
 v2.8.3: Removed the development notice on the family payments page; the menu texts (action names) are translated too.
+v2.9.0: Bulk payment adjustments (own permission): a wizard on the payment adjustment page enters a discount (percentage of the amount owed / of the fees, or a fixed value) for the families that match filters (cadence, number of children, amount owed, course, nothing paid, existing adjustments); the families are listed with fees, payments, adjustments, balance and new balance, each amount, description and note can be changed and each family can be unticked.
+v2.9.1: Family's SEPA view: filter on the withdrawal cadence, cadence column.
+v2.9.2: Payment adjustments: the family name links to the family details (balance) of the adjustment's year; the list is sorted by family name by default.
