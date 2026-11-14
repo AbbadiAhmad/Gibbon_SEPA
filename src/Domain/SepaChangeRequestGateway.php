@@ -485,6 +485,28 @@ class SepaChangeRequestGateway extends QueryableGateway
     }
 
     /**
+     * True when a stored row (request or SEPA) holds the intended values. Used to verify a save,
+     * because a failing query does not always raise an error (e.g. a database that was not updated).
+     */
+    public static function holdsValues(?array $row, array $intended)
+    {
+        if (!$row) {
+            return false;
+        }
+        $stored = self::clearValues($row);
+        $wanted = self::clearValues($intended);
+        foreach (self::FIELDS as $field) {
+            $same = $field === 'IBAN'
+                ? IbanCipher::normalize((string) $stored[$field]) === IbanCipher::normalize((string) $wanted[$field])
+                : (string) $stored[$field] === (string) $wanted[$field];
+            if (!$same) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Clear values the family entered. A request without a date of signature (the family left it
      * empty, or the request is older than that field) means the date is not changed.
      */
@@ -492,7 +514,7 @@ class SepaChangeRequestGateway extends QueryableGateway
     {
         $entered = self::clearValues($request);
         if ($entered['SEPA_signedDate'] === '') {
-            $entered['SEPA_signedDate'] = (string) ($sepa['SEPA_signedDate'] ?? '');
+            $entered['SEPA_signedDate'] = self::clearValues($sepa)['SEPA_signedDate'];
         }
         return $entered;
     }
@@ -552,7 +574,7 @@ class SepaChangeRequestGateway extends QueryableGateway
             'BIC' => strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $get('BIC'))),
             'withdrawCadence' => in_array($get('withdrawCadence'), SepaGateway::WITHDRAW_CADENCES, true) ? $get('withdrawCadence') : (string) $entered['withdrawCadence'],
             'withdrawDay' => ((int) $day >= 1 && (int) $day <= 31) ? (string) (int) $day : '',
-            'SEPA_signedDate' => preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) ? $date : '',
+            'SEPA_signedDate' => self::inputDate($date),
         ];
     }
 
@@ -637,7 +659,8 @@ class SepaChangeRequestGateway extends QueryableGateway
             'BIC' => (string) ($row['BIC'] ?? ''),
             'withdrawCadence' => (string) ($row['withdrawCadence'] ?? ''),
             'withdrawDay' => (string) ($row['withdrawDay'] ?? ''),
-            'SEPA_signedDate' => (string) ($row['SEPA_signedDate'] ?? ''),
+            // MySQL zero dates are "no date"
+            'SEPA_signedDate' => strpos((string) ($row['SEPA_signedDate'] ?? ''), '0000') === 0 ? '' : (string) ($row['SEPA_signedDate'] ?? ''),
         ];
     }
 

@@ -78,6 +78,11 @@ try {
             $gateway->reject($id, $personID, $note);
         } else {
             $gateway->approve($id, $personID, $note, $decision);
+            // Read back: the SEPA must hold the approved values now
+            if (!SepaChangeRequestGateway::holdsValues($gateway->getSepaRow($request['gibbonSEPAID']), $decision['final'])) {
+                header('Location: ' . $URL . '&return=error2');
+                exit;
+            }
         }
     }
 } catch (\PDOException | \RuntimeException $e) {

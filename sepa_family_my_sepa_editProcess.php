@@ -72,7 +72,7 @@ $day = ($day >= 1 && $day <= 31) ? $day : null;
 
 // Date of the signature: empty keeps the existing date, never earlier than the existing date
 $signed = SepaChangeRequestGateway::inputDate($_POST['SEPA_signedDate'] ?? '');
-$existingSigned = (string) ($sepa['SEPA_signedDate'] ?? '');
+$existingSigned = SepaChangeRequestGateway::clearValues($sepa)['SEPA_signedDate'];
 if ($signed === '' && trim((string) ($_POST['SEPA_signedDate'] ?? '')) !== '') {
     // something was entered that is not a date
     header('Location: ' . $URL . '&return=error3');
@@ -115,6 +115,13 @@ if ($sameIban && $new['payer'] === $old['payer'] && $new['BIC'] === $old['BIC'] 
 try {
     $requestGateway->savePending($sepa['gibbonSEPAID'], $gibbonFamilyID, $values, $personID);
 } catch (\PDOException $e) {
+    header('Location: ' . $URL . '&return=error2');
+    exit;
+}
+
+// Read back what is stored: the family must not be told "saved" when it is not
+if (!SepaChangeRequestGateway::holdsValues($requestGateway->getPendingBySEPAID($sepa['gibbonSEPAID']), $values)) {
+    $_SESSION[$guid]['sepaMyError'] = __('Your changes could not be saved completely. Please tell the school administration (the SEPA module may need its database update).');
     header('Location: ' . $URL . '&return=error2');
     exit;
 }

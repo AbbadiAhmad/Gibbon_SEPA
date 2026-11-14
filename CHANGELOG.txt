@@ -35,3 +35,4 @@ v2.6.1: Families can also change the date of the SEPA signature, not earlier tha
 v2.7.0: The approval page lists only the requests; new SEPA Change Log page (filters, search, link to the family SEPA, delete of data older than two years); the family sees its history on its SEPA page, the SEPA view shows it to the administration.
 v2.7.1: Approval page: the approval comes first, then the last 10 log lines with a link to the log of that SEPA; the reviewer accepts or rejects each change with a checkbox and can correct the values.
 v2.7.2: Approval: rows the family did not change or left empty are not ticked by default; the date of the SEPA signature is shown correctly (empty = not changed, date field and log use the date format).
+v2.7.3: Signature date for a SEPA without a date: zero dates count as no date, the reviewer's date accepts any date format, and a save that did not store the values is reported instead of shown as success.

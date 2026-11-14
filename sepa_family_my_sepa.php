@@ -97,7 +97,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
                 __('BIC') => $sepa['BIC'],
                 __('Withdrawal cadence') => $cadences[$sepa['withdrawCadence']] ?? '',
                 __('Preferred withdrawal day') => $sepa['withdrawDay'],
-                __('Date of SEPA signature') => !empty($sepa['SEPA_signedDate']) ? \Gibbon\Services\Format::date($sepa['SEPA_signedDate']) : '',
+                __('Date of SEPA signature') => !empty($sepa['SEPA_signedDate']) && strpos($sepa['SEPA_signedDate'], '0000') !== 0 ? \Gibbon\Services\Format::date($sepa['SEPA_signedDate']) : '',
             ];
             foreach ($rows as $label => $value) {
                 echo '<tr><td style="width: 35%;"><strong>' . $e($label) . '</strong></td><td>' . $e($value) . '</td></tr>';
