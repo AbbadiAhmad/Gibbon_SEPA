@@ -66,20 +66,17 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
         unset($_SESSION[$guid]['sepaMyNotice']);
     }
 
-    if ($canEdit) {
+    // Only when there is exactly one SEPA the family can change it
+    if ($canEdit && count($FamilySEPA) === 1) {
         echo "<div class='message'>"
             . __('You can change this data. Your changes are checked by the school administration first; until then the data below stays valid.')
-            . '</div>';
-    } else {
-        echo "<div class='warning'>"
-            . __('If you want to change this data, please visit the school administration.')
-            . '<br/>Wenn Sie diese Daten ändern möchten, wenden Sie sich bitte an die Schulverwaltung.'
-            . '<br/>إذا أردتم تغيير هذه البيانات، يرجى مراجعة إدارة المدرسة.'
             . '</div>';
     }
 
     if (empty($FamilySEPA)) {
-        echo "<div class='error'>" . __('SEPA information is not available for this family.') . '</div>';
+        // No SEPA for this family: nothing to show, change or check
+        echo "<div class='error'>" . __('SEPA information is not available for this family.') . ' ' . __('Please contact the school administration.') . '</div>';
+        return;
     } else {
         if (count($FamilySEPA) > 1) {
             echo "<div class='error'>" . __('More than one SEPA record is entered for this family. Please contact the school administration.') . '</div>';
