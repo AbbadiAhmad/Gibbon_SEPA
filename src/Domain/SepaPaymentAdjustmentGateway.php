@@ -36,7 +36,7 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
         return $this->runSelect($query);
     }
  */
-    public function getAllAdjustment(QueryCriteria $criteria = null)
+    public function getAllAdjustment(QueryCriteria $criteria = null, $schoolYearID = null)
     {
         $query = $this
             ->newQuery()
@@ -52,6 +52,12 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
             ->leftJoin('gibbonSchoolYear', 'gibbonSEPAPaymentAdjustment.academicYear = gibbonSchoolYear.gibbonSchoolYearID')
             //->leftJoin('gibbonPerson', 'gibbonSEPAPaymentAdjustment.gibbonPersonID = gibbonPerson.gibbonPersonID')
         ;
+
+        // 'all' / null: every academic year
+        if (!empty($schoolYearID) && $schoolYearID !== 'all') {
+            $query->where('gibbonSEPAPaymentAdjustment.academicYear = :filterSchoolYearID')
+                ->bindValue('filterSchoolYearID', $schoolYearID);
+        }
 
         if ($criteria) {
             return $this->runQuery($query, $criteria);

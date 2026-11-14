@@ -91,3 +91,70 @@ function getSepaCheckReturnParams($source)
     }
     return $params;
 }
+
+/**
+ * The academic year filter of the list pages: 'all' or a school year ID.
+ * Without (or with an invalid) value the default is used, normally the current school year.
+ *
+ * @param array $source $_GET
+ * @param mixed $default school year ID used when nothing is selected
+ * @return string 'all' or a school year ID
+ */
+function sepaSelectedSchoolYear($source, $default)
+{
+    $value = $source['schoolYearID'] ?? '';
+    if ($value === 'all') {
+        return 'all';
+    }
+    return (is_string($value) || is_int($value)) && ctype_digit((string) $value) ? (string) $value : (string) $default;
+}
+
+/**
+ * Add the academic year select (All / every school year) to a filter form.
+ *
+ * @param \Gibbon\Forms\Form $form
+ * @param array $schoolYears [schoolYearID => name] as returned by SepaGateway::getAllSchoolYears()
+ * @param string $selected 'all' or a school year ID
+ */
+function sepaAddSchoolYearRow($form, array $schoolYears, $selected)
+{
+    $row = $form->addRow();
+    $row->addLabel('schoolYearID', __('Academic Year'));
+    $row->addSelect('schoolYearID')->fromArray(['all' => __('All')] + $schoolYears)->selected($selected);
+}
+
+/**
+ * Warning for pages that show results calculated with the course fees: lists the courses with
+ * enrolled students that have no fee set (they are counted with 0). Empty string when all is set.
+ *
+ * @param \Gibbon\Module\Sepa\Domain\SepaGateway $gateway
+ * @param mixed $schoolYearID school year ID, or 'all'
+ * @param string $absoluteURL
+ * @param mixed $gibbonFamilyID only the courses of this family (optional)
+ * @return string HTML
+ */
+function sepaMissingFeesWarning($gateway, $schoolYearID, $absoluteURL, $gibbonFamilyID = null)
+{
+    $courses = $gateway->getCoursesWithoutFees($schoolYearID, $gibbonFamilyID);
+    if (empty($courses)) {
+        return '';
+    }
+
+    $names = [];
+    $years = [];
+    foreach (array_slice($courses, 0, 12) as $course) {
+        $names[] = htmlspecialchars($course['nameShort'] . ($schoolYearID === 'all' ? ' (' . $course['yearName'] . ')' : ''), ENT_QUOTES, 'UTF-8');
+    }
+    foreach ($courses as $course) {
+        $years[$course['gibbonSchoolYearID']] = $course['yearName'];
+    }
+    $more = count($courses) > 12 ? ' ' . sprintf(__('and %d more'), count($courses) - 12) : '';
+
+    $links = [];
+    foreach ($years as $yearID => $yearName) {
+        $links[] = '<a href="' . $absoluteURL . '/index.php?q=/modules/Sepa/sepa_courses_fee_view.php&schoolYearID=' . (int) $yearID . '">' . sprintf(__('Set the course fees of %s'), htmlspecialchars($yearName, ENT_QUOTES, 'UTF-8')) . '</a>';
+    }
+
+    return '<div class="warning"><strong>' . sprintf(__('The fee is not set for %d course(s) with enrolled students; they are counted with 0, so the results below are not complete.'), count($courses)) . '</strong><br>'
+        . implode(', ', $names) . $more . '<br>' . implode(' | ', $links) . '</div>';
+}

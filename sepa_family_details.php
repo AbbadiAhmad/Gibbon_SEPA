@@ -50,6 +50,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_totals.p
         $academicYearData = $SepaGateway->getSchoolYearByID($schoolYearID);
 
 
+        echo sepaMissingFeesWarning($SepaGateway, $schoolYearID, $session->get('absoluteURL'), $gibbonFamilyID);
+
         echo '<h2>';
         echo __('Family Details');
         echo '</h2>';

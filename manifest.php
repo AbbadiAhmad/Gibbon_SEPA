@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.4.0';            // Version number
+$version = '2.5.1';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -505,6 +505,46 @@ $actionRows[] = [
     'entryURL' => 'sepa_payment_report.php',
     'entrySidebar' => 'Y',
     'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Merge Families',
+    'precedence' => '18',
+    'category' => 'SEPA',
+    'description' => 'Merge two families (users, family data and SEPA) that were registered twice',
+    'URLList' => 'sepa_family_merge.php, sepa_family_mergeProcess.php',
+    'entryURL' => 'sepa_family_merge.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Merge SEPA',
+    'precedence' => '19',
+    'category' => 'SEPA',
+    'description' => 'Merge a SEPA (e.g. one whose family was deleted) into another SEPA',
+    'URLList' => 'sepa_merge.php, sepa_mergeProcess.php',
+    'entryURL' => 'sepa_merge.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'N',
     'defaultPermissionAdmin' => 'Y',
     'defaultPermissionTeacher' => 'N',
     'defaultPermissionStudent' => 'N',

@@ -36,6 +36,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
     $SepaGateway = $container->get(SepaGateway::class);
     $criteria = $SepaGateway->newQueryCriteria(true)
         ->fromPOST();
+    $schoolYearID = sepaSelectedSchoolYear($_GET, $session->get('gibbonSchoolYearID'));
+
+    // Academic year filter
+    $filter = Form::create('schoolYearFilter', $session->get('absoluteURL') . '/index.php', 'get');
+    $filter->setClass('noIntBorder fullWidth');
+    $filter->addHiddenValue('q', '/modules/Sepa/sepa_unlinked_payment_view.php');
+    sepaAddSchoolYearRow($filter, $SepaGateway->getAllSchoolYears(), $schoolYearID);
+    $filter->addRow()->addSubmit(__('Go'));
+    echo $filter->getOutput();
 
     // Display auto-link results if available
     if (isset($_GET['return'])) {
@@ -66,7 +75,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
     }
 
     // QUERY to get unlinked payments
-    $unlinkedPayments = $SepaGateway->getUnlinkedPayments($criteria);
+    $unlinkedPayments = $SepaGateway->getUnlinkedPayments($criteria, $schoolYearID);
 
     // DATA TABLE
     echo '<h2>' . __('View Unlinked Payment Entries') . '</h2>';
@@ -84,6 +93,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
 
     $table->addColumn('payer', __('SEPA owner'));
     $table->addColumn('booking_date', __('Date'));
+    if ($schoolYearID === 'all') {
+        $table->addColumn('yearName', __('Academic Year'));
+    }
     $table->addColumn('amount', __('Amount'));
     $table->addColumn('transaction_message', __('Message'));
     

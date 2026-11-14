@@ -26,6 +26,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.p
     $SepaGateway = $container->get(SepaGateway::class);
 
     $search = $_GET['search'] ?? '';
+    $schoolYears = $SepaGateway->getAllSchoolYears();
+    $schoolYearID = sepaSelectedSchoolYear($_GET, $session->get('gibbonSchoolYearID'));
 
     // CRITERIA
     $criteria = $SepaGateway->newQueryCriteria(true)
@@ -40,11 +42,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.p
             ->description(__('payer, booking date, amount, transaction message, transaction reference, note'));
         $row->addTextField('search')->setValue($criteria->getSearchText());
 
+    sepaAddSchoolYearRow($form, $schoolYears, $schoolYearID);
+
     $form->addRow()->addSearchSubmit('', __('Clear Search'));
 
     echo $form->getOutput();
 
-    $payments = $SepaGateway->getAllPayments($criteria);
+    $payments = $SepaGateway->getAllPayments($criteria, $schoolYearID);
 
     // DATA TABLE
     $table = DataTable::createPaginated('payments', $criteria);
@@ -53,10 +57,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.p
     $table->addHeaderAction('add', __('Add'))
         ->setURL('/modules/Sepa/sepa_payment_add.php')
         ->addParam('search', $search)
+        ->addParam('schoolYearID', $schoolYearID)
         ->displayLabel();
 
     $table->addMetaData('filterOptions', [
-        'academicYear:' . $session->get('gibbonSchoolYearID') => __('Academic Year').': '.__('Current'),
         'payment_method:card' => __('Payment Method').': '.__('Card'),
         'payment_method:cash' => __('Payment Method').': '.__('Cash'),
         'payment_method:bank_transfer' => __('Payment Method').': '.__('Bank Transfer'),

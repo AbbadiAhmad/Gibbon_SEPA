@@ -20,6 +20,7 @@ use Gibbon\Services\Format;
 use Gibbon\Data\Validator;
 
 include '../../gibbon.php';
+require_once __DIR__ . '/moduleFunctions.php';
 use Gibbon\Module\Sepa\Domain\CoursesFeeGateway;
 
 
@@ -32,17 +33,39 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_courses_fee_vie
     $URL = $URL . '&return=error0';
     header("Location: {$URL}");
 } else {
+    // Back to the same academic year filter
+    $schoolYearID = sepaSelectedSchoolYear($_POST, $gibbon->session->get('gibbonSchoolYearID'));
+    $URL .= '&schoolYearID=' . urlencode($schoolYearID);
 
     $CoursesFeeGateway = $container->get(CoursesFeeGateway::class);
     $criteria = $CoursesFeeGateway->newQueryCriteria(true)
         ->fromPOST();
-    $coursesFee = $CoursesFeeGateway->queryCoursesFees($criteria, $_SESSION[$guid]["gibbonSchoolYearID"]);
+    $coursesFee = $CoursesFeeGateway->queryCoursesFees($criteria, $schoolYearID);
     $error = false;
     foreach ($coursesFee as $course) {
 
+        $fee = trim((string) ($_POST[$course['gibbonCourseID']] ?? ''));
+        $fee = str_replace(',', '.', $fee);
+
+        // An empty field means "no fee set": nothing to save, or the saved fee is removed.
+        if ($fee === '') {
+            try {
+                if (!empty($course['gibbonSepaCoursesCostID'])) {
+                    $CoursesFeeGateway->deleteCourseFee($course['gibbonSepaCoursesCostID']);
+                }
+            } catch (PDOException $e) {
+                $error = true;
+            }
+            continue;
+        }
+        if (!is_numeric($fee) || (float) $fee < 0) {
+            $error = true;
+            continue;
+        }
+
         $data = array(
             'gibbonCourseID' => $course['gibbonCourseID'],
-            'fees' => $_POST[$course['gibbonCourseID']],
+            'fees' => $fee,
             'gibbonSepaCoursesCostID' => $course['gibbonSepaCoursesCostID']
         );
 

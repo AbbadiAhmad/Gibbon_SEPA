@@ -404,14 +404,21 @@ class SepaGateway extends QueryableGateway
         return $result;
     }
 
-    public function getUnlinkedPayments($criteria)
+    public function getUnlinkedPayments($criteria, $schoolYearID = null)
     {
         $query = $this
             ->newQuery()
-            ->cols(['gibbonSEPAPaymentEntry.*'])
+            ->cols(['gibbonSEPAPaymentEntry.*', 'gibbonSchoolYear.name as yearName'])
             ->from('gibbonSEPAPaymentEntry')
+            ->leftJoin('gibbonSchoolYear', 'gibbonSEPAPaymentEntry.academicYear = gibbonSchoolYear.gibbonSchoolYearID')
             ->where("gibbonSEPAID is null")
             ->orderBy(['gibbonSEPAPaymentEntry.payer ASC']);
+
+        // 'all' / null: every academic year
+        if (!empty($schoolYearID) && $schoolYearID !== 'all') {
+            $query->where('gibbonSEPAPaymentEntry.academicYear = :filterSchoolYearID')
+                ->bindValue('filterSchoolYearID', $schoolYearID);
+        }
 
         $unlinkedPayments = $this->runQuery($query, $criteria);
         return $unlinkedPayments;
@@ -515,7 +522,7 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query)->fetch();
     }
 
-    public function getAllPayments(QueryCriteria $criteria)
+    public function getAllPayments(QueryCriteria $criteria, $schoolYearID = null)
     {
         $query = $this
             ->newQuery()
@@ -529,6 +536,12 @@ class SepaGateway extends QueryableGateway
             ->leftJoin('gibbonFamily', 'gibbonSEPA.gibbonFamilyID = gibbonFamily.gibbonFamilyID')
             ->leftJoin('gibbonSchoolYear', 'gibbonSEPAPaymentEntry.academicYear = gibbonSchoolYear.gibbonSchoolYearID')
             ->orderBy(['timestamp DESC']);
+
+        // 'all' / null: every academic year
+        if (!empty($schoolYearID) && $schoolYearID !== 'all') {
+            $query->where('gibbonSEPAPaymentEntry.academicYear = :filterSchoolYearID')
+                ->bindValue('filterSchoolYearID', $schoolYearID);
+        }
 
         $criteria->addFilterRules([
             'academicYear' => function ($query, $academicYear) {
@@ -641,6 +654,29 @@ class SepaGateway extends QueryableGateway
         return $result;
     }
 
+    /**
+     * Problems of an enrollment row whose end date lies before its start date:
+     * unenrolled / left before enrolled, or the calculated end before the calculated start.
+     *
+     * @param array $row a row of getChildEnrollmentDetails()
+     * @return string[] the problems, empty when the dates are fine
+     */
+    public static function getEnrollmentDateProblems(array $row)
+    {
+        $problems = [];
+        $enrolled = $row['dateEnrolled'] ?? null;
+        if (!empty($enrolled) && !empty($row['dateUnenrolled']) && $row['dateUnenrolled'] < $enrolled) {
+            $problems[] = __('Unenrolled before enrolled');
+        }
+        if (!empty($enrolled) && !empty($row['personDateEnd']) && $row['personDateEnd'] < $enrolled) {
+            $problems[] = __('Left before enrolled');
+        }
+        if (!empty($row['startDate']) && !empty($row['lastDate']) && $row['lastDate'] < $row['startDate']) {
+            $problems[] = __('Calc. end before calc. start');
+        }
+        return $problems;
+    }
+
     public function getChildEnrollmentDetails($schoolYearID, $criteria)
     {
         $query = $this
@@ -651,6 +687,7 @@ class SepaGateway extends QueryableGateway
                 'gibbonPerson.dateEnd as personDateEnd',
                 'gibbonFamilyChild.gibbonFamilyID',
                 'gibbonFamily.name as familyName',
+                'gibbonSchoolYear.name as yearName',
                 'gibbonCourseClass.gibbonCourseClassID',
                 'gibbonCourse.nameShort as shortName',
                 'gibbonCourseClassPerson.dateEnrolled',
@@ -669,10 +706,14 @@ class SepaGateway extends QueryableGateway
             ->innerJoin('gibbonCourse', 'gibbonCourse.gibbonCourseID = gibbonCourseClass.gibbonCourseID')
             ->innerJoin('gibbonSchoolYear', 'gibbonSchoolYear.gibbonSchoolYearID = gibbonCourse.gibbonSchoolYearID')
             ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
-            ->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
             ->where('gibbonCourseClassPerson.role = :role')
-            ->bindValue('schoolYearID', $schoolYearID)
             ->bindValue('role', 'Student');
+
+        // 'all' / empty: every academic year
+        if (!empty($schoolYearID) && $schoolYearID !== 'all') {
+            $query->where('gibbonCourse.gibbonSchoolYearID = :schoolYearID')
+                ->bindValue('schoolYearID', $schoolYearID);
+        }
 
         // Apply search for student name if search term is provided
         $search = $criteria->getSearchText();
@@ -809,6 +850,19 @@ class SepaGateway extends QueryableGateway
             return !$onlyNonZero || abs($balances[$familyID] ?? 0) >= 0.005;
         };
 
+        // SEPA records whose family does not exist (any more), e.g. the family was deleted
+        $orphans = [];
+        if ($onlyFamilyID === null) {
+            foreach ($sepas as $sepa) {
+                if ($sepa['familyName'] === null) {
+                    $orphans[] = $sepa;
+                }
+            }
+        }
+        $sepas = array_values(array_filter($sepas, function ($sepa) {
+            return $sepa['familyName'] !== null;
+        }));
+
         $sepasByFamily = [];
         foreach ($sepas as $sepa) {
             $sepasByFamily[$sepa['gibbonFamilyID']][] = $sepa;
@@ -843,6 +897,10 @@ class SepaGateway extends QueryableGateway
         $editLink = function ($sepa) {
             return ['edit', '/modules/Sepa/sepa_family_edit.php', ['gibbonSEPAID' => $sepa['gibbonSEPAID']]];
         };
+
+        foreach ($orphans as $sepa) {
+            $add('Error', __('The family of this SEPA does not exist (deleted)'), $sepa['gibbonFamilyID'], '', $sepa, $editLink($sepa), 'noFamily');
+        }
 
         // Enrolled families without SEPA
         foreach ($enrolledFamilies as $familyID => $familyName) {
@@ -1093,6 +1151,42 @@ class SepaGateway extends QueryableGateway
 
         return $query;
     }
+    /**
+     * Courses with enrolled students (children that belong to a family) that have no fee set,
+     * so the fee calculations count them with 0. A fee of 0 that was entered on purpose is "set".
+     *
+     * @param mixed $schoolYearID a school year ID, or 'all' / empty for every year
+     * @param mixed $gibbonFamilyID only the courses of this family's children
+     * @return array[] gibbonCourseID, nameShort, courseName, gibbonSchoolYearID, yearName
+     */
+    public function getCoursesWithoutFees($schoolYearID, $gibbonFamilyID = null)
+    {
+        $query = $this
+            ->newSelect()
+            ->cols(['gibbonCourse.gibbonCourseID', 'gibbonCourse.nameShort', 'gibbonCourse.name as courseName', 'gibbonCourse.gibbonSchoolYearID', 'gibbonSchoolYear.name as yearName', 'gibbonSchoolYear.sequenceNumber'])
+            ->distinct()
+            ->from('gibbonCourse')
+            ->innerJoin('gibbonSchoolYear', 'gibbonSchoolYear.gibbonSchoolYearID = gibbonCourse.gibbonSchoolYearID')
+            ->innerJoin('gibbonCourseClass', 'gibbonCourseClass.gibbonCourseID = gibbonCourse.gibbonCourseID')
+            ->innerJoin('gibbonCourseClassPerson', "gibbonCourseClassPerson.gibbonCourseClassID = gibbonCourseClass.gibbonCourseClassID AND gibbonCourseClassPerson.role = 'Student'")
+            ->innerJoin('gibbonFamilyChild', 'gibbonFamilyChild.gibbonPersonID = gibbonCourseClassPerson.gibbonPersonID')
+            ->leftJoin('gibbonSepaCoursesFees', 'gibbonSepaCoursesFees.gibbonCourseID = gibbonCourse.gibbonCourseID')
+            ->where('gibbonSepaCoursesFees.gibbonSepaCoursesCostID IS NULL')
+            ->orderBy(['gibbonSchoolYear.sequenceNumber DESC', 'gibbonCourse.nameShort']);
+
+        if (!empty($schoolYearID) && $schoolYearID !== 'all') {
+            $query->where('gibbonCourse.gibbonSchoolYearID = :feesSchoolYearID')
+                ->bindValue('feesSchoolYearID', $schoolYearID);
+        }
+
+        if (!empty($gibbonFamilyID)) {
+            $query->where('gibbonFamilyChild.gibbonFamilyID = :feesFamilyID')
+                ->bindValue('feesFamilyID', $gibbonFamilyID);
+        }
+
+        return $this->runSelect($query)->fetchAll();
+    }
+
     public function getChildrenEnrollmentFees($gibbonFamilyID, $schoolYearID)
     {
         $query = $this->getEnrollmentFeesBaseQuery($schoolYearID, $gibbonFamilyID)
