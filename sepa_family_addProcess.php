@@ -49,7 +49,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_add.php'
     $withdrawDay = ($withdrawDay >= 1 && $withdrawDay <= 31) ? $withdrawDay : SepaGateway::DEFAULT_WITHDRAW_DAY;
     $gibbonFamilyID = htmlspecialchars($_POST['gibbonFamilyID'] ?? '', ENT_QUOTES, 'UTF-8');
     $note = htmlspecialchars($_POST['note'] ?? '', ENT_QUOTES, 'UTF-8');
-    $SEPA_signedDate = !empty($_POST['SEPA_signedDate']) ? Format::dateConvert($_POST['SEPA_signedDate']) : null;
+    $SEPA_signedDate = sepaParseDate($_POST['SEPA_signedDate'] ?? '') ?: null;
 
     // custom fields
     $customFieldsGateway = $container->get(customFieldsGateway::class);

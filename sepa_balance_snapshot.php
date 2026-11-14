@@ -53,7 +53,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     $snapshotOptions = ['current' => __m('Current Status (Families with changes)')];
 
     foreach ($snapshotDates as $snapshot) {
-        $date = date('Y-m-d H:i', strtotime($snapshot['snapshotDate']));
+        $date = \Gibbon\Services\Format::dateTime($snapshot['snapshotDate']);
         $snapshotOptions[$snapshot['snapshotDate']] = $date . ' (' . $snapshot['snapshotCount'] . ' families)';
     }
 
@@ -88,7 +88,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     if ($selectedSnapshot == 'current') {
         echo __m('Families with Changes in Fees or Adjustments Since Last Snapshot');
     } elseif (!empty($selectedSnapshot) && strtotime($selectedSnapshot) !== false) {
-        echo __m('Snapshot from ') . date('Y-m-d H:i', strtotime($selectedSnapshot));
+        echo __m('Snapshot from ') . \Gibbon\Services\Format::dateTime($selectedSnapshot);
     } else {
         echo __m('Invalid Snapshot');
     }

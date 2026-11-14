@@ -97,7 +97,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
         echo '<h3>' . __m('Current Status vs Last Snapshot') . '</h3>';
         if ($lastSnapshot) {
-            echo '<p><strong>' . __m('Last Snapshot Date: ') . '</strong>' . date('Y-m-d H:i', strtotime($lastSnapshot['snapshotDate'])) . '</p>';
+            echo '<p><strong>' . __m('Last Snapshot Date: ') . '</strong>' . \Gibbon\Services\Format::dateTime($lastSnapshot['snapshotDate']) . '</p>';
         } else {
             echo '<p><em>' . __m('No previous snapshot available for comparison.') . '</em></p>';
         }
@@ -129,9 +129,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
         $previousData = $previousSnapshot ? json_decode($previousSnapshot['snapshotData'], true) : null;
 
-        echo '<h3>' . __m('Snapshot from ') . date('Y-m-d H:i', strtotime($currentSnapshot['snapshotDate'])) . '</h3>';
+        echo '<h3>' . __m('Snapshot from ') . \Gibbon\Services\Format::dateTime($currentSnapshot['snapshotDate']) . '</h3>';
         if ($previousSnapshot) {
-            echo '<p><strong>' . __m('Comparing with snapshot from: ') . '</strong>' . date('Y-m-d H:i', strtotime($previousSnapshot['snapshotDate'])) . '</p>';
+            echo '<p><strong>' . __m('Comparing with snapshot from: ') . '</strong>' . \Gibbon\Services\Format::dateTime($previousSnapshot['snapshotDate']) . '</p>';
         } else {
             echo '<p><em>' . __m('No previous snapshot available for comparison.') . '</em></p>';
         }

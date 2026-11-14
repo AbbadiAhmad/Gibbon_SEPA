@@ -3,6 +3,7 @@
 namespace Gibbon\Module\Sepa\Domain;
 
 require_once __DIR__ . '/../../src/i18n.php';
+require_once __DIR__ . '/../../moduleFunctions.php';
 
 use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\QueryableGateway;
@@ -630,14 +631,7 @@ class SepaChangeRequestGateway extends QueryableGateway
      */
     public static function inputDate($value)
     {
-        $value = trim((string) $value);
-        if ($value === '') {
-            return '';
-        }
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
-            $value = (string) \Gibbon\Services\Format::dateConvert($value);
-        }
-        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ? $value : '';
+        return sepaParseDate($value);
     }
 
     /**
