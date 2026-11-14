@@ -235,3 +235,23 @@ function sepaRenderChangeLog(array $logRows, $showFamily = true, $forFamily = fa
     }
     return $html . '</tbody></table>';
 }
+
+/**
+ * Convert a date typed/submitted by the user to Y-m-d. Accepts the ISO format (as sent by
+ * date inputs and in links) as well as the date format of the Gibbon locale (e.g. dd.mm.yyyy in German).
+ *
+ * @param string|null $value
+ * @return string Y-m-d, or '' if empty/invalid
+ */
+function sepaParseDate($value)
+{
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '';
+    }
+    if (preg_match('/^(\d{4})-(\d{2})-(\d{2})/', $value, $m) && checkdate((int) $m[2], (int) $m[3], (int) $m[1])) {
+        return "$m[1]-$m[2]-$m[3]";
+    }
+    $converted = \Gibbon\Services\Format::dateConvert($value);
+    return ($converted && strtotime($converted) !== false) ? date('Y-m-d', strtotime($converted)) : '';
+}

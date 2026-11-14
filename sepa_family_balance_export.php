@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/src/i18n.php';
+require_once __DIR__ . '/moduleFunctions.php';
 /*
 Gibbon, Flexible & Open School System
 Copyright (C) 2010, Ross Parker
@@ -38,8 +39,8 @@ $search = $_GET['search'] ?? '';
 // Optional period: adds the "Due in Period" column (whole months, same rules as the Family Due page)
 $periodFrom = $periodTo = null;
 if (!empty($_GET['periodFrom']) && !empty($_GET['periodTo'])) {
-    $periodFrom = date('Y-m-01', strtotime(Format::dateConvert($_GET['periodFrom'])));
-    $periodTo = date('Y-m-t', strtotime(Format::dateConvert($_GET['periodTo'])));
+    $periodFrom = date('Y-m-01', strtotime(sepaParseDate($_GET['periodFrom']) ?: date('Y-m-d')));
+    $periodTo = date('Y-m-t', strtotime(sepaParseDate($_GET['periodTo']) ?: date('Y-m-d')));
 }
 
 $criteria = $SepaGateway->newQueryCriteria(false)->sortBy(['familyName']);

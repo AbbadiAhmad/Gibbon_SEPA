@@ -40,8 +40,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
     $search = $_GET['search'] ?? '';
 
     // Period: defaults to the current month. Whole months are used (any day inside a month selects it).
-    $periodFrom = !empty($_GET['periodFrom']) ? Format::dateConvert($_GET['periodFrom']) : date('Y-m-01');
-    $periodTo = !empty($_GET['periodTo']) ? Format::dateConvert($_GET['periodTo']) : date('Y-m-t');
+    $periodFrom = sepaParseDate($_GET['periodFrom'] ?? '') ?: date('Y-m-01');
+    $periodTo = sepaParseDate($_GET['periodTo'] ?? '') ?: date('Y-m-t');
     if (strtotime($periodTo) < strtotime($periodFrom)) {
         $periodTo = date('Y-m-t', strtotime($periodFrom));
     }
