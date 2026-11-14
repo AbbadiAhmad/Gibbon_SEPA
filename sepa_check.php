@@ -104,7 +104,15 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
             return number_format($row['balance'], 2);
         });
         $table->addColumn('problem', __('Problem'));
-        $table->addActionColumn()->format(function ($row, $actions) use ($schoolYearID, $balanceFilter, $severity, $problem, $search) {
+        $canMergeSepa = isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_merge.php');
+        $table->addActionColumn()->format(function ($row, $actions) use ($schoolYearID, $balanceFilter, $severity, $problem, $search, $canMergeSepa) {
+            // Merge this SEPA with another SEPA (needs the Merge SEPA permission)
+            if ($canMergeSepa && !empty($row['sepa'])) {
+                $actions->addAction('merge', __('Merge with other SEPA'))
+                    ->setIcon('copy')
+                    ->setURL('/modules/Sepa/sepa_merge.php')
+                    ->addParam('gibbonSEPAID', $row['sepa']['gibbonSEPAID']);
+            }
             $action = $actions->addAction($row['link'][0], $row['link'][0] === 'add' ? __('Add SEPA') : __('Edit'))
                 ->setURL($row['link'][1]);
             foreach ($row['link'][2] as $name => $value) {

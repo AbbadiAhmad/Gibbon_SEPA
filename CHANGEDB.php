@@ -132,3 +132,9 @@ $count++;
 $sql[$count][0] = "2.5.0";
 $sql[$count][1] = "INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'Merge Families', 18, 'SEPA', 'Merge two families (users, family data and SEPA) that were registered twice', 'sepa_family_merge.php, sepa_family_mergeProcess.php', 'sepa_family_merge.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
 INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='Merge Families' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.5.1 - own permission to merge SEPAs (the check page links to it)
+$count++;
+$sql[$count][0] = "2.5.1";
+$sql[$count][1] = "INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'Merge SEPA', 19, 'SEPA', 'Merge a SEPA (e.g. one whose family was deleted) into another SEPA', 'sepa_merge.php, sepa_mergeProcess.php', 'sepa_merge.php', 'Y', 'N', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
+INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='Merge SEPA' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";

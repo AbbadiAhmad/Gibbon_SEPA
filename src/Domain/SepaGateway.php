@@ -404,14 +404,21 @@ class SepaGateway extends QueryableGateway
         return $result;
     }
 
-    public function getUnlinkedPayments($criteria)
+    public function getUnlinkedPayments($criteria, $schoolYearID = null)
     {
         $query = $this
             ->newQuery()
-            ->cols(['gibbonSEPAPaymentEntry.*'])
+            ->cols(['gibbonSEPAPaymentEntry.*', 'gibbonSchoolYear.name as yearName'])
             ->from('gibbonSEPAPaymentEntry')
+            ->leftJoin('gibbonSchoolYear', 'gibbonSEPAPaymentEntry.academicYear = gibbonSchoolYear.gibbonSchoolYearID')
             ->where("gibbonSEPAID is null")
             ->orderBy(['gibbonSEPAPaymentEntry.payer ASC']);
+
+        // 'all' / null: every academic year
+        if (!empty($schoolYearID) && $schoolYearID !== 'all') {
+            $query->where('gibbonSEPAPaymentEntry.academicYear = :filterSchoolYearID')
+                ->bindValue('filterSchoolYearID', $schoolYearID);
+        }
 
         $unlinkedPayments = $this->runQuery($query, $criteria);
         return $unlinkedPayments;
@@ -843,6 +850,19 @@ class SepaGateway extends QueryableGateway
             return !$onlyNonZero || abs($balances[$familyID] ?? 0) >= 0.005;
         };
 
+        // SEPA records whose family does not exist (any more), e.g. the family was deleted
+        $orphans = [];
+        if ($onlyFamilyID === null) {
+            foreach ($sepas as $sepa) {
+                if ($sepa['familyName'] === null) {
+                    $orphans[] = $sepa;
+                }
+            }
+        }
+        $sepas = array_values(array_filter($sepas, function ($sepa) {
+            return $sepa['familyName'] !== null;
+        }));
+
         $sepasByFamily = [];
         foreach ($sepas as $sepa) {
             $sepasByFamily[$sepa['gibbonFamilyID']][] = $sepa;
@@ -877,6 +897,10 @@ class SepaGateway extends QueryableGateway
         $editLink = function ($sepa) {
             return ['edit', '/modules/Sepa/sepa_family_edit.php', ['gibbonSEPAID' => $sepa['gibbonSEPAID']]];
         };
+
+        foreach ($orphans as $sepa) {
+            $add('Error', __('The family of this SEPA does not exist (deleted)'), $sepa['gibbonFamilyID'], '', $sepa, $editLink($sepa), 'noFamily');
+        }
 
         // Enrolled families without SEPA
         foreach ($enrolledFamilies as $familyID => $familyName) {

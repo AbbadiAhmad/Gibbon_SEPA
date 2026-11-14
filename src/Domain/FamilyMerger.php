@@ -324,6 +324,23 @@ class FamilyMerger
             $this->update('gibbonSEPA', 'gibbonSEPAID', $keepSepaID, $set);
         }
 
+        $counts = $this->moveSepaRecords($dropSepaID, $keepSepaID, $keepFamilyID);
+
+        return [sprintf(
+            __('SEPA merged: %d payments, %d adjustments and %d snapshots moved to the SEPA of the family to keep, the other SEPA is deleted.'),
+            $counts['payments'],
+            $counts['adjustments'],
+            $counts['snapshots']
+        )];
+    }
+
+    /**
+     * Move the payments, adjustments and snapshots of one SEPA to another and delete the first SEPA.
+     *
+     * @return int[] the numbers that were linked to the deleted SEPA (payments, adjustments, snapshots)
+     */
+    private function moveSepaRecords($dropSepaID, $keepSepaID, $keepFamilyID)
+    {
         $counts = $this->getSepaLinkCounts($dropSepaID);
         $this->select("UPDATE gibbonSEPAPaymentEntry SET gibbonSEPAID=:keep WHERE gibbonSEPAID=:drop", ['keep' => $keepSepaID, 'drop' => $dropSepaID]);
         $this->select("UPDATE gibbonSEPAPaymentAdjustment SET gibbonSEPAID=:keep WHERE gibbonSEPAID=:drop", ['keep' => $keepSepaID, 'drop' => $dropSepaID]);
@@ -331,9 +348,61 @@ class FamilyMerger
         $this->select("UPDATE IGNORE gibbonSEPABalanceSnapshot SET gibbonSEPAID=:keep, gibbonFamilyID=:family WHERE gibbonSEPAID=:drop", ['keep' => $keepSepaID, 'family' => $keepFamilyID, 'drop' => $dropSepaID]);
         $this->select("UPDATE gibbonSEPABalanceSnapshot SET gibbonSEPAID=NULL WHERE gibbonSEPAID=:drop", ['drop' => $dropSepaID]);
         $this->select("DELETE FROM gibbonSEPA WHERE gibbonSEPAID=:drop", ['drop' => $dropSepaID]);
+        return $counts;
+    }
+
+    public function getSepa($gibbonSEPAID)
+    {
+        return $this->select("SELECT gibbonSEPA.*, gibbonFamily.name AS familyName FROM gibbonSEPA LEFT JOIN gibbonFamily ON gibbonFamily.gibbonFamilyID=gibbonSEPA.gibbonFamilyID WHERE gibbonSEPAID=:id", ['id' => self::id($gibbonSEPAID)])->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    /**
+     * Merge a SEPA record into another one (stand-alone, e.g. a SEPA whose family was deleted):
+     * the chosen data is written to the SEPA to keep, its payments, adjustments and snapshots
+     * move over and the other SEPA is deleted.
+     *
+     * @param array $fields field => 'target' (keep) | 'source' (take from the SEPA that is merged away)
+     * @return string[] what has been done
+     */
+    public function mergeSepaRecords($dropSepaID, $keepSepaID, array $fields)
+    {
+        $drop = $this->getSepa($dropSepaID);
+        $keep = $this->getSepa($keepSepaID);
+        if (!$drop || !$keep) {
+            throw new \RuntimeException(__('The specified record cannot be found.'));
+        }
+        if (self::id($dropSepaID) === self::id($keepSepaID)) {
+            throw new \RuntimeException(__('A SEPA can not be merged into itself.'));
+        }
+        if ($keep['familyName'] === null) {
+            throw new \RuntimeException(__('The SEPA to keep must belong to an existing family.'));
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            $set = [];
+            foreach (self::SEPA_FIELDS as $field) {
+                if (($fields[$field] ?? 'target') === 'source' && (string) $keep[$field] !== (string) $drop[$field]) {
+                    $set[$field] = $drop[$field];
+                }
+            }
+            if (!empty($set)) {
+                $this->update('gibbonSEPA', 'gibbonSEPAID', $keepSepaID, $set);
+            }
+            $counts = $this->moveSepaRecords(self::id($dropSepaID), self::id($keepSepaID), self::id($keep['gibbonFamilyID']));
+            $this->pdo->commit();
+        } catch (\Exception $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
 
         return [sprintf(
-            __('SEPA merged: %d payments, %d adjustments and %d snapshots moved to the SEPA of the family to keep, the other SEPA is deleted.'),
+            __('SEPA %s merged into SEPA %s (%s): %d payments, %d adjustments and %d snapshots moved, the first SEPA is deleted.'),
+            self::id($dropSepaID),
+            self::id($keepSepaID),
+            $keep['familyName'],
             $counts['payments'],
             $counts['adjustments'],
             $counts['snapshots']
