@@ -16,23 +16,23 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_view.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $gibbonSEPAPaymentRecordID = $_GET['gibbonSEPAPaymentRecordID'] ?? '';
     if (empty($gibbonSEPAPaymentRecordID)) {
-        $page->addError(__('Invalid payment entry.'));
+        $page->addError(__m('Invalid payment entry.'));
         return;
     }
 
     $page->breadcrumbs
-        ->add(__('Family Details'), 'sepa_family_details.php')
-        ->add(__('Unlink Payment Entry'));
+        ->add(__m('Family Details'), 'sepa_family_details.php')
+        ->add(__m('Unlink Payment Entry'));
 
     $SepaGateway = $container->get(SepaGateway::class);
     $payment = $SepaGateway->getPaymentByID($gibbonSEPAPaymentRecordID);
 
     if (!$payment) {
-        $page->addError(__('Payment entry not found.'));
+        $page->addError(__m('Payment entry not found.'));
         return;
     }
 
@@ -42,20 +42,20 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_view.php
     $form->addHiddenValue('gibbonSEPAPaymentRecordID', $gibbonSEPAPaymentRecordID);
 
     $row = $form->addRow();
-    $row->addContent(__('Are you sure you want to unlink this payment entry from the family? This will set the gibbonSEPAID to null.'));
+    $row->addContent(__m('Are you sure you want to unlink this payment entry from the family? This will set the gibbonSEPAID to null.'));
 
     $row = $form->addRow();
-    $row->addContent(__('Booking Date: ') . $payment['booking_date']);
+    $row->addContent(__m('Booking Date: ') . $payment['booking_date']);
 
     $row = $form->addRow();
-    $row->addContent(__('Payer Name: ') . $payment['payer']);
+    $row->addContent(__m('Payer Name: ') . $payment['payer']);
 
     $row = $form->addRow();
-    $row->addContent(__('Amount: ') . $payment['amount']);
+    $row->addContent(__m('Amount: ') . $payment['amount']);
 
     $row = $form->addRow();
     $row->addFooter();
-    $row->addSubmit(__('Unlink'));
+    $row->addSubmit(__m('Unlink'));
 
     echo $form->getOutput();
 }

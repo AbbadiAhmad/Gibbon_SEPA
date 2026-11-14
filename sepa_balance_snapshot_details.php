@@ -31,7 +31,7 @@ require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot.php')) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $gibbonFamilyID = isset($_GET['gibbonFamilyID']) ? $_GET['gibbonFamilyID'] : '';
     $snapshotID = isset($_GET['snapshotID']) ? $_GET['snapshotID'] : '';
@@ -40,13 +40,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     $search = isset($_GET['search']) ? $_GET['search'] : '';
 
     if (empty($gibbonFamilyID)) {
-        $page->addError(__('Family ID is required.'));
+        $page->addError(__m('Family ID is required.'));
         return;
     }
 
     $page->breadcrumbs
-        ->add(__('Balance Snapshot'), 'sepa_balance_snapshot.php')
-        ->add(__('Snapshot Details'));
+        ->add(__m('Balance Snapshot'), 'sepa_balance_snapshot.php')
+        ->add(__m('Snapshot Details'));
 
     $SepaGateway = $container->get(SepaGateway::class);
     $SnapshotGateway = $container->get(SnapshotGateway::class);
@@ -56,7 +56,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     $familyInfo = $SepaGateway->getFamilyInfo($gibbonFamilyID);
     $familyName = !empty($familyInfo) ? $familyInfo[0]['name'] : 'Unknown Family';
 
-    echo '<h2>' . __('Snapshot Details: ') . htmlspecialchars($familyName, ENT_QUOTES, 'UTF-8') . '</h2>';
+    echo '<h2>' . __m('Snapshot Details: ') . htmlspecialchars($familyName, ENT_QUOTES, 'UTF-8') . '</h2>';
 
     // Determine what we're viewing
     if ($snapshotDate == 'current' || empty($snapshotID)) {
@@ -95,18 +95,18 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
         $previousData = $lastSnapshot ? json_decode($lastSnapshot['snapshotData'], true) : null;
 
-        echo '<h3>' . __('Current Status vs Last Snapshot') . '</h3>';
+        echo '<h3>' . __m('Current Status vs Last Snapshot') . '</h3>';
         if ($lastSnapshot) {
-            echo '<p><strong>' . __('Last Snapshot Date: ') . '</strong>' . date('Y-m-d H:i', strtotime($lastSnapshot['snapshotDate'])) . '</p>';
+            echo '<p><strong>' . __m('Last Snapshot Date: ') . '</strong>' . date('Y-m-d H:i', strtotime($lastSnapshot['snapshotDate'])) . '</p>';
         } else {
-            echo '<p><em>' . __('No previous snapshot available for comparison.') . '</em></p>';
+            echo '<p><em>' . __m('No previous snapshot available for comparison.') . '</em></p>';
         }
     } else {
         // Viewing a specific snapshot - compare with previous snapshot
         $currentSnapshot = $SnapshotGateway->getSnapshotByID($snapshotID);
 
         if (empty($currentSnapshot)) {
-            $page->addError(__('Snapshot not found.'));
+            $page->addError(__m('Snapshot not found.'));
             return;
         }
 
@@ -129,29 +129,29 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
         $previousData = $previousSnapshot ? json_decode($previousSnapshot['snapshotData'], true) : null;
 
-        echo '<h3>' . __('Snapshot from ') . date('Y-m-d H:i', strtotime($currentSnapshot['snapshotDate'])) . '</h3>';
+        echo '<h3>' . __m('Snapshot from ') . date('Y-m-d H:i', strtotime($currentSnapshot['snapshotDate'])) . '</h3>';
         if ($previousSnapshot) {
-            echo '<p><strong>' . __('Comparing with snapshot from: ') . '</strong>' . date('Y-m-d H:i', strtotime($previousSnapshot['snapshotDate'])) . '</p>';
+            echo '<p><strong>' . __m('Comparing with snapshot from: ') . '</strong>' . date('Y-m-d H:i', strtotime($previousSnapshot['snapshotDate'])) . '</p>';
         } else {
-            echo '<p><em>' . __('No previous snapshot available for comparison.') . '</em></p>';
+            echo '<p><em>' . __m('No previous snapshot available for comparison.') . '</em></p>';
         }
     }
 
     // Display balance comparison
-    echo '<h4>' . __('Balance Summary') . '</h4>';
+    echo '<h4>' . __m('Balance Summary') . '</h4>';
     echo '<table class="fullWidth" cellspacing="0">';
     echo '<tr>';
-    echo '<th>' . __('Item') . '</th>';
-    echo '<th style="text-align: right;">' . ($previousData ? __('Previous') : __('N/A')) . '</th>';
-    echo '<th style="text-align: right;">' . __('Current') . '</th>';
-    echo '<th style="text-align: right;">' . __('Change') . '</th>';
+    echo '<th>' . __m('Item') . '</th>';
+    echo '<th style="text-align: right;">' . ($previousData ? __m('Previous') : __m('N/A')) . '</th>';
+    echo '<th style="text-align: right;">' . __m('Current') . '</th>';
+    echo '<th style="text-align: right;">' . __m('Change') . '</th>';
     echo '</tr>';
 
     $balanceItems = [
-        'totalFees' => __('Total Fees'),
-        'totalPayments' => __('Total Payments'),
-        'totalAdjustments' => __('Total Adjustments'),
-        'balance' => __('Balance')
+        'totalFees' => __m('Total Fees'),
+        'totalPayments' => __m('Total Payments'),
+        'totalAdjustments' => __m('Total Adjustments'),
+        'balance' => __m('Balance')
     ];
 
     foreach ($balanceItems as $key => $label) {
@@ -173,26 +173,26 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     echo '</table>';
 
     // Display fees details - Current and Previous
-    echo '<h4>' . __('Fees Details') . '</h4>';
+    echo '<h4>' . __m('Fees Details') . '</h4>';
 
     // Current fees
-    echo '<h5>' . ($snapshotDate == 'current' ? __('Current Fees') : __('Snapshot Fees')) . '</h5>';
+    echo '<h5>' . ($snapshotDate == 'current' ? __m('Current Fees') : __m('Snapshot Fees')) . '</h5>';
     $feesData = new \Gibbon\Domain\DataSet($currentData['fees']);
     $feesTable = DataTable::create('feesDetails');
 
-    $feesTable->addColumn('childName', __('Child Name'))->format(function ($row) {
+    $feesTable->addColumn('childName', __m('Child Name'))->format(function ($row) {
         $name = htmlspecialchars($row['childName'], ENT_QUOTES, 'UTF-8');
         if (!empty($row['personDateEnd'])) {
             $name .= ' <span style="color: red;">(Left on ' . htmlspecialchars($row['personDateEnd'], ENT_QUOTES, 'UTF-8') . ')</span>';
         }
         return $name;
     });
-    $feesTable->addColumn('courseName', __('Course'));
-    $feesTable->addColumn('courseFee', __('Fee'))->format(function ($row) {
+    $feesTable->addColumn('courseName', __m('Course'));
+    $feesTable->addColumn('courseFee', __m('Fee'))->format(function ($row) {
         return number_format($row['courseFee'], 2) . ' €';
     });
-    $feesTable->addColumn('monthsEnrolled', __('Months Enrolled'));
-    $feesTable->addColumn('totalCost', __('Total Cost'))->format(function ($row) {
+    $feesTable->addColumn('monthsEnrolled', __m('Months Enrolled'));
+    $feesTable->addColumn('totalCost', __m('Total Cost'))->format(function ($row) {
         return number_format($row['totalCost'], 2) . ' €';
     });
 
@@ -200,23 +200,23 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
 
     // Previous fees
     if ($previousData && !empty($previousData['fees'])) {
-        echo '<h5>' . __('Previous Snapshot Fees') . '</h5>';
+        echo '<h5>' . __m('Previous Snapshot Fees') . '</h5>';
         $prevFeesData = new \Gibbon\Domain\DataSet($previousData['fees']);
         $prevFeesTable = DataTable::create('prevFeesDetails');
 
-        $prevFeesTable->addColumn('childName', __('Child Name'))->format(function ($row) {
+        $prevFeesTable->addColumn('childName', __m('Child Name'))->format(function ($row) {
             $name = htmlspecialchars($row['childName'], ENT_QUOTES, 'UTF-8');
             if (!empty($row['personDateEnd'])) {
                 $name .= ' <span style="color: red;">(Left on ' . htmlspecialchars($row['personDateEnd'], ENT_QUOTES, 'UTF-8') . ')</span>';
             }
             return $name;
         });
-        $prevFeesTable->addColumn('courseName', __('Course'));
-        $prevFeesTable->addColumn('courseFee', __('Fee'))->format(function ($row) {
+        $prevFeesTable->addColumn('courseName', __m('Course'));
+        $prevFeesTable->addColumn('courseFee', __m('Fee'))->format(function ($row) {
             return number_format($row['courseFee'], 2) . ' €';
         });
-        $prevFeesTable->addColumn('monthsEnrolled', __('Months Enrolled'));
-        $prevFeesTable->addColumn('totalCost', __('Total Cost'))->format(function ($row) {
+        $prevFeesTable->addColumn('monthsEnrolled', __m('Months Enrolled'));
+        $prevFeesTable->addColumn('totalCost', __m('Total Cost'))->format(function ($row) {
             return number_format($row['totalCost'], 2) . ' €';
         });
 
@@ -224,84 +224,84 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
     }
 
     // Display payments - Current and Previous
-    echo '<h4>' . __('Payment Entries') . '</h4>';
+    echo '<h4>' . __m('Payment Entries') . '</h4>';
 
     // Current payments
-    echo '<h5>' . ($snapshotDate == 'current' ? __('Current Payments') : __('Snapshot Payments')) . '</h5>';
+    echo '<h5>' . ($snapshotDate == 'current' ? __m('Current Payments') : __m('Snapshot Payments')) . '</h5>';
     if (!empty($currentData['payments'])) {
         $paymentsData = new \Gibbon\Domain\DataSet($currentData['payments']);
         $paymentsTable = DataTable::create('paymentsDetails');
 
-        $paymentsTable->addColumn('booking_date', __('Booking Date'));
-        $paymentsTable->addColumn('amount', __('Amount'))->format(function ($row) {
+        $paymentsTable->addColumn('booking_date', __m('Booking Date'));
+        $paymentsTable->addColumn('amount', __m('Amount'))->format(function ($row) {
             return number_format($row['amount'], 2) . ' €';
         });
-        $paymentsTable->addColumn('payer', __('Payer'));
-        $paymentsTable->addColumn('transaction_message', __('Transaction Message'));
-        $paymentsTable->addColumn('payment_method', __('Payment Method'));
+        $paymentsTable->addColumn('payer', __m('Payer'));
+        $paymentsTable->addColumn('transaction_message', __m('Transaction Message'));
+        $paymentsTable->addColumn('payment_method', __m('Payment Method'));
 
         echo $paymentsTable->render($paymentsData);
     } else {
-        echo '<p><em>' . __('No payment entries recorded.') . '</em></p>';
+        echo '<p><em>' . __m('No payment entries recorded.') . '</em></p>';
     }
 
     // Previous payments
     if ($previousData && !empty($previousData['payments'])) {
-        echo '<h5>' . __('Previous Snapshot Payments') . '</h5>';
+        echo '<h5>' . __m('Previous Snapshot Payments') . '</h5>';
         $prevPaymentsData = new \Gibbon\Domain\DataSet($previousData['payments']);
         $prevPaymentsTable = DataTable::create('prevPaymentsDetails');
 
-        $prevPaymentsTable->addColumn('booking_date', __('Booking Date'));
-        $prevPaymentsTable->addColumn('amount', __('Amount'))->format(function ($row) {
+        $prevPaymentsTable->addColumn('booking_date', __m('Booking Date'));
+        $prevPaymentsTable->addColumn('amount', __m('Amount'))->format(function ($row) {
             return number_format($row['amount'], 2) . ' €';
         });
-        $prevPaymentsTable->addColumn('payer', __('Payer'));
-        $prevPaymentsTable->addColumn('transaction_message', __('Transaction Message'));
-        $prevPaymentsTable->addColumn('payment_method', __('Payment Method'));
+        $prevPaymentsTable->addColumn('payer', __m('Payer'));
+        $prevPaymentsTable->addColumn('transaction_message', __m('Transaction Message'));
+        $prevPaymentsTable->addColumn('payment_method', __m('Payment Method'));
 
         echo $prevPaymentsTable->render($prevPaymentsData);
     }
 
     // Display adjustments - Current and Previous
-    echo '<h4>' . __('Adjustment Entries') . '</h4>';
+    echo '<h4>' . __m('Adjustment Entries') . '</h4>';
 
     // Current adjustments
-    echo '<h5>' . ($snapshotDate == 'current' ? __('Current Adjustments') : __('Snapshot Adjustments')) . '</h5>';
+    echo '<h5>' . ($snapshotDate == 'current' ? __m('Current Adjustments') : __m('Snapshot Adjustments')) . '</h5>';
     if (!empty($currentData['adjustments'])) {
         $adjustmentsData = new \Gibbon\Domain\DataSet($currentData['adjustments']);
         $adjustmentsTable = DataTable::create('adjustmentsDetails');
 
-        $adjustmentsTable->addColumn('amount', __('Amount'))->format(function ($row) {
+        $adjustmentsTable->addColumn('amount', __m('Amount'))->format(function ($row) {
             return number_format($row['amount'], 2) . ' €';
         });
-        $adjustmentsTable->addColumn('description', __('Description'));
-        $adjustmentsTable->addColumn('note', __('Note'));
-        $adjustmentsTable->addColumn('timestamp', __('Timestamp'));
+        $adjustmentsTable->addColumn('description', __m('Description'));
+        $adjustmentsTable->addColumn('note', __m('Note'));
+        $adjustmentsTable->addColumn('timestamp', __m('Timestamp'));
 
         echo $adjustmentsTable->render($adjustmentsData);
     } else {
-        echo '<p><em>' . __('No adjustment entries recorded.') . '</em></p>';
+        echo '<p><em>' . __m('No adjustment entries recorded.') . '</em></p>';
     }
 
     // Previous adjustments
     if ($previousData && !empty($previousData['adjustments'])) {
-        echo '<h5>' . __('Previous Snapshot Adjustments') . '</h5>';
+        echo '<h5>' . __m('Previous Snapshot Adjustments') . '</h5>';
         $prevAdjustmentsData = new \Gibbon\Domain\DataSet($previousData['adjustments']);
         $prevAdjustmentsTable = DataTable::create('prevAdjustmentsDetails');
 
-        $prevAdjustmentsTable->addColumn('amount', __('Amount'))->format(function ($row) {
+        $prevAdjustmentsTable->addColumn('amount', __m('Amount'))->format(function ($row) {
             return number_format($row['amount'], 2) . ' €';
         });
-        $prevAdjustmentsTable->addColumn('description', __('Description'));
-        $prevAdjustmentsTable->addColumn('note', __('Note'));
-        $prevAdjustmentsTable->addColumn('timestamp', __('Timestamp'));
+        $prevAdjustmentsTable->addColumn('description', __m('Description'));
+        $prevAdjustmentsTable->addColumn('note', __m('Note'));
+        $prevAdjustmentsTable->addColumn('timestamp', __m('Timestamp'));
 
         echo $prevAdjustmentsTable->render($prevAdjustmentsData);
     }
 
     // Show detailed comparison if previous snapshot exists
     if ($previousData) {
-        echo '<h4>' . __('Detailed Changes') . '</h4>';
+        echo '<h4>' . __m('Detailed Changes') . '</h4>';
 
         // Compare fees
         $previousFees = $previousData['fees'] ?? [];
@@ -384,7 +384,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         }
 
         if (!empty($feeChanges)) {
-            echo '<h5>' . __('Fee Changes') . '</h5>';
+            echo '<h5>' . __m('Fee Changes') . '</h5>';
             echo '<ul>';
             foreach ($feeChanges as $change) {
                 if ($change['type'] == 'new') {
@@ -419,7 +419,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         }
 
         if (!empty($newPayments)) {
-            echo '<h5>' . __('New Payments') . '</h5>';
+            echo '<h5>' . __m('New Payments') . '</h5>';
             echo '<ul>';
             foreach ($newPayments as $payment) {
                 echo '<li><strong style="color: green;">[NEW]</strong> ' . $payment['booking_date'] . ': ' . number_format($payment['amount'], 2) . ' € - ' . htmlspecialchars($payment['transaction_message']) . '</li>';
@@ -446,7 +446,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         }
 
         if (!empty($newAdjustments)) {
-            echo '<h5>' . __('New Adjustments') . '</h5>';
+            echo '<h5>' . __m('New Adjustments') . '</h5>';
             echo '<ul>';
             foreach ($newAdjustments as $adjustment) {
                 echo '<li><strong style="color: green;">[NEW]</strong> ' . number_format($adjustment['amount'], 2) . ' € - ' . htmlspecialchars($adjustment['description']) . '</li>';
@@ -455,11 +455,11 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapsho
         }
 
         if (empty($feeChanges) && empty($newPayments) && empty($newAdjustments)) {
-            echo '<p><em>' . __('No detailed changes found.') . '</em></p>';
+            echo '<p><em>' . __m('No detailed changes found.') . '</em></p>';
         }
     }
 
     echo '<div class="linkTop">';
-    echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot.php&schoolYearID=' . $schoolYearID . '&snapshotDate=' . $snapshotDate . '&search=' . urlencode($search) . '">' . __('Back to Snapshots') . '</a>';
+    echo '<a href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_balance_snapshot.php&schoolYearID=' . $schoolYearID . '&snapshotDate=' . $snapshotDate . '&search=' . urlencode($search) . '">' . __m('Back to Snapshots') . '</a>';
     echo '</div>';
 }

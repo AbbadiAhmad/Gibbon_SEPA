@@ -27,11 +27,11 @@ use Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway;
 require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_change_log.php')) {
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
     return;
 }
 
-$page->breadcrumbs->add(__('SEPA Change Log'));
+$page->breadcrumbs->add(__m('SEPA Change Log'));
 
 $_GET = $container->get(Validator::class)->sanitize($_GET);
 $gateway = $container->get(SepaChangeRequestGateway::class);
@@ -55,25 +55,25 @@ if ($sepaID) {
     $form->addHiddenValue('sepa', $sepaID);
 }
 $row = $form->addRow();
-$row->addLabel('search', __('Search For'))->description(__('Family, payer, person'));
+$row->addLabel('search', __m('Search For'))->description(__m('Family, payer, person'));
 $row->addTextField('search')->setValue($search);
 $row = $form->addRow();
-$row->addLabel('event', __('What'));
-$row->addSelect('event')->fromArray(['Submitted' => __('Entered'), 'Updated' => __('Entries changed'), 'Discarded' => __('Discarded'), 'Approved' => __('Approved'), 'Rejected' => __('Rejected')])->selected($event)->placeholder(__('All'));
+$row->addLabel('event', __m('What'));
+$row->addSelect('event')->fromArray(['Submitted' => __m('Entered'), 'Updated' => __m('Entries changed'), 'Discarded' => __m('Discarded'), 'Approved' => __m('Approved'), 'Rejected' => __m('Rejected')])->selected($event)->placeholder(__m('All'));
 $row = $form->addRow();
-$row->addLabel('from', __('From'));
+$row->addLabel('from', __m('From'));
 $fromField = $row->addDate('from');
 if ($from) {
     $fromField->setDateFromValue($from);
 }
 $row = $form->addRow();
-$row->addLabel('to', __('To'));
+$row->addLabel('to', __m('To'));
 $toField = $row->addDate('to');
 if ($to) {
     $toField->setDateFromValue($to);
 }
 $row = $form->addRow();
-$row->addSubmit(__('Filter'));
+$row->addSubmit(__m('Filter'));
 echo $form->getOutput();
 
 $criteria = $gateway->newQueryCriteria(true)
@@ -85,51 +85,51 @@ foreach (['search' => $search, 'event' => $event, 'from' => $from, 'to' => $to, 
     }
 }
 
-echo '<h2>' . __('SEPA Change Log') . '</h2>';
-echo '<p>' . __('Every entry, change, discard, approval and rejection of SEPA data by families: what, when and by whom. IBANs are stored encrypted. The family sees its own history on its SEPA page.') . '</p>';
+echo '<h2>' . __m('SEPA Change Log') . '</h2>';
+echo '<p>' . __m('Every entry, change, discard, approval and rejection of SEPA data by families: what, when and by whom. IBANs are stored encrypted. The family sees its own history on its SEPA page.') . '</p>';
 if ($sepaID) {
-    echo '<p><a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_log.php">' . __('Show the log of all families') . '</a></p>';
+    echo '<p><a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_log.php">' . __m('Show the log of all families') . '</a></p>';
 }
 
 $absoluteURL = $session->get('absoluteURL');
 $table = DataTable::createPaginated('sepaChangeLog', $criteria);
-$table->addColumn('timestamp', __('When'))->sortable(['gibbonSEPAChangeLog.timestamp'])->format(function ($row) {
+$table->addColumn('timestamp', __m('When'))->sortable(['gibbonSEPAChangeLog.timestamp'])->format(function ($row) {
     return Format::dateTime($row['timestamp']);
 });
-$table->addColumn('personName', __('Who'));
-$table->addColumn('familyName', __('Family'))->notSortable()->format(function ($row) use ($absoluteURL) {
-    $name = htmlspecialchars((string) ($row['familyName'] ?? __('(family deleted)')), ENT_QUOTES, 'UTF-8');
+$table->addColumn('personName', __m('Who'));
+$table->addColumn('familyName', __m('Family'))->notSortable()->format(function ($row) use ($absoluteURL) {
+    $name = htmlspecialchars((string) ($row['familyName'] ?? __m('(family deleted)')), ENT_QUOTES, 'UTF-8');
     // the family's SEPA page, which shows the history as well
     return '<a href="' . $absoluteURL . '/index.php?q=/modules/Sepa/sepa_family_view.php&search=' . urlencode((string) $row['payer']) . '">' . $name . '</a>';
 });
-$table->addColumn('event', __('What'))->format(function ($row) {
+$table->addColumn('event', __m('What'))->format(function ($row) {
     return sepaLogEventLabel($row['event']);
 });
-$table->addColumn('changes', __('Changes (old -> new)'))->notSortable()->format(function ($row) {
+$table->addColumn('changes', __m('Changes (old -> new)'))->notSortable()->format(function ($row) {
     return sepaFormatLogChanges($row['changes']);
 });
 $table->addActionColumn()
     ->addParam('gibbonSEPAChangeRequestID')
     ->format(function ($row, $actions) {
         if (!empty($row['gibbonSEPAChangeRequestID'])) {
-            $actions->addAction('view', __('View request'))->setURL('/modules/Sepa/sepa_change_review.php');
+            $actions->addAction('view', __m('View request'))->setURL('/modules/Sepa/sepa_change_review.php');
         }
     });
 echo $table->render($gateway->queryLog($criteria));
 
 // Data retention: only data older than two years can be deleted
 $expired = $gateway->countExpired();
-echo '<h2>' . __('Data retention') . '</h2>';
+echo '<h2>' . __m('Data retention') . '</h2>';
 if ($expired['log'] + $expired['requests'] === 0) {
-    echo '<p>' . __('Nothing is older than two years, so nothing can be deleted yet.') . '</p>';
+    echo '<p>' . __m('Nothing is older than two years, so nothing can be deleted yet.') . '</p>';
 } else {
     $purge = Form::create('logPurge', $session->get('absoluteURL') . '/modules/Sepa/sepa_change_logProcess.php');
     $purge->addHiddenValue('address', $session->get('address'));
     $row = $purge->addRow();
-    $row->addLabel('confirm', __('Delete data older than two years'))
-        ->description(sprintf(__('%1$d log line(s) and %2$d decided request(s) are older than two years (before %3$s). Requests waiting for approval and newer data are never deleted.'), $expired['log'], $expired['requests'], Format::dateTime(SepaChangeRequestGateway::retentionCutoff())));
-    $row->addCheckbox('confirm')->setValue('1')->description(__('Yes, delete this data. This can not be undone.'));
+    $row->addLabel('confirm', __m('Delete data older than two years'))
+        ->description(sprintf(__m('%1$d log line(s) and %2$d decided request(s) are older than two years (before %3$s). Requests waiting for approval and newer data are never deleted.'), $expired['log'], $expired['requests'], Format::dateTime(SepaChangeRequestGateway::retentionCutoff())));
+    $row->addCheckbox('confirm')->setValue('1')->description(__m('Yes, delete this data. This can not be undone.'));
     $row = $purge->addRow();
-    $row->addSubmit(__('Delete'));
+    $row->addSubmit(__m('Delete'));
     echo $purge->getOutput();
 }

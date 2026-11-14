@@ -16,7 +16,7 @@ use Gibbon\Data\Validator;
 require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/import_sepa_from_form.php')) {
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
     return;
 }
 
@@ -26,15 +26,15 @@ $_POST = $container->get(Validator::class)->sanitize($_POST);
 $step = isset($_GET['step']) ? min(max(1, (int) $_GET['step']), 4) : 1;
 
 $page->breadcrumbs
-    ->add(__('Import Family SEPA'), 'import_sepa_data.php')
-    ->add(__('Import from Registration Forms'), 'import_sepa_from_form.php')
-    ->add(__('Step {number}', ['number' => $step]));
+    ->add(__m('Import Family SEPA'), 'import_sepa_data.php')
+    ->add(__m('Import from Registration Forms'), 'import_sepa_from_form.php')
+    ->add(__m('Step {number}', ['number' => $step]));
 
 $steps = [
-    1 => __('Select Forms'),
-    2 => __('Map Fields'),
-    3 => __('Review and Edit'),
-    4 => __('Import'),
+    1 => __m('Select Forms'),
+    2 => __m('Map Fields'),
+    3 => __m('Review and Edit'),
+    4 => __m('Import'),
 ];
 $StepLink = $session->get('absoluteURL') . '/index.php?q=' . $_SESSION[$guid]['address'] . '&step=';
 
@@ -44,10 +44,10 @@ foreach ($steps as $stepNumber => $stepName) {
 }
 echo '</ul>';
 
-echo '<h2>' . __('Step {number}', ['number' => $step]) . ' - ' . $steps[$step] . '</h2>';
+echo '<h2>' . __m('Step {number}', ['number' => $step]) . ' - ' . $steps[$step] . '</h2>';
 
 if (!IbanCipher::hasKey()) {
-    $page->addError(__('The IBAN encryption key is not configured, the IBAN can not be saved. See README.md.'));
+    $page->addError(__m('The IBAN encryption key is not configured, the IBAN can not be saved. See README.md.'));
     return;
 }
 
@@ -60,12 +60,12 @@ $SepaGateway = $container->get(SepaGateway::class);
 
 // SEPA fields that can be filled from the form. 'required' fields have to be mapped.
 $sepaFields = [
-    'payer' => ['label' => __('Account holder'), 'required' => true, 'hints' => ['kontoinhaber', 'inhaber', 'holder', 'account owner', 'payer']],
-    'IBAN' => ['label' => __('IBAN'), 'required' => true, 'hints' => ['iban']],
-    'BIC' => ['label' => __('BIC'), 'required' => false, 'hints' => ['bic', 'swift']],
-    'withdrawDay' => ['label' => __('Preferred withdrawal day'), 'required' => false, 'hints' => ['tag', 'day', 'abbuchungstag']],
-    'withdrawCadence' => ['label' => __('Withdrawal cadence'), 'required' => false, 'hints' => ['frequenz', 'freq', 'cadence', 'intervall', 'rhythmus', 'zahlweise']],
-    'note' => ['label' => __('Note'), 'required' => false, 'hints' => ['note', 'bemerkung', 'notiz']],
+    'payer' => ['label' => __m('Account holder'), 'required' => true, 'hints' => ['kontoinhaber', 'inhaber', 'holder', 'account owner', 'payer']],
+    'IBAN' => ['label' => __m('IBAN'), 'required' => true, 'hints' => ['iban']],
+    'BIC' => ['label' => __m('BIC'), 'required' => false, 'hints' => ['bic', 'swift']],
+    'withdrawDay' => ['label' => __m('Preferred withdrawal day'), 'required' => false, 'hints' => ['tag', 'day', 'abbuchungstag']],
+    'withdrawCadence' => ['label' => __m('Withdrawal cadence'), 'required' => false, 'hints' => ['frequenz', 'freq', 'cadence', 'intervall', 'rhythmus', 'zahlweise']],
+    'note' => ['label' => __m('Note'), 'required' => false, 'hints' => ['note', 'bemerkung', 'notiz']],
 ];
 // Suggested form fields of the first school using this module (only used when the labels give no hint).
 $fallbackKeys = ['IBAN' => 'custom0006', 'payer' => 'custom0007', 'withdrawDay' => 'custom0008', 'withdrawCadence' => 'custom0009'];
@@ -109,16 +109,16 @@ if ($step == 1) {
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
     $row = $form->addRow();
-    $row->addLabel('schoolYearID', __('Academic Year'))->description(__('Registration forms of this academic year are read.'));
+    $row->addLabel('schoolYearID', __m('Academic Year'))->description(__m('Registration forms of this academic year are read.'));
     $row->addSelect('schoolYearID')->fromArray($SepaGateway->getAllSchoolYears())->selected($_SESSION[$guid]['gibbonSchoolYearID'])->required();
 
     $row = $form->addRow();
-    $row->addLabel('status', __('Form Status'));
+    $row->addLabel('status', __m('Form Status'));
     $row->addSelect('status')->fromArray(array_combine($statuses, $statuses))->selected('Accepted')->required();
 
     $row = $form->addRow();
     $row->addFooter();
-    $row->addSubmit(__('Next'));
+    $row->addSubmit(__m('Next'));
 
     echo $form->getOutput();
     return;
@@ -131,7 +131,7 @@ if ($step == 2) {
     $schoolYearID = (int) ($_POST['schoolYearID'] ?? 0);
     $status = $_POST['status'] ?? '';
     if (empty($schoolYearID) || $status === '') {
-        $page->addError(__('You have not specified one or more required parameters.'));
+        $page->addError(__m('You have not specified one or more required parameters.'));
         return;
     }
 
@@ -142,7 +142,7 @@ if ($step == 2) {
         return;
     }
     if (empty($applications)) {
-        $page->addError(__('No registration forms with this status were found in the academic year.'));
+        $page->addError(__m('No registration forms with this status were found in the academic year.'));
         return;
     }
 
@@ -181,7 +181,7 @@ if ($step == 2) {
         return isset($fallbackKeys[$field], $examples[$fallbackKeys[$field]]) ? $fallbackKeys[$field] : '';
     };
 
-    echo '<p>' . sprintf(__('%d registration forms were found. Choose which form field holds which SEPA information.'), count($applications)) . '</p>';
+    echo '<p>' . sprintf(__m('%d registration forms were found. Choose which form field holds which SEPA information.'), count($applications)) . '</p>';
 
     $form = Form::create('importFormStep2', $StepLink . '3');
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
@@ -198,18 +198,18 @@ if ($step == 2) {
     }
 
     // Signed date: the application creation date by default
-    $dateOptions = [RegistrationFormGateway::FIELD_CREATED => __('Date the registration form was created')] + $options;
+    $dateOptions = [RegistrationFormGateway::FIELD_CREATED => __m('Date the registration form was created')] + $options;
     $row = $form->addRow();
-    $row->addLabel('signedDateSource', __('Date of SEPA signature'))->description(__('The SEPA mandate is signed with the registration form.'));
-    $row->addSelect('signedDateSource')->fromArray($dateOptions)->selected(RegistrationFormGateway::FIELD_CREATED)->placeholder(__('No date'));
+    $row->addLabel('signedDateSource', __m('Date of SEPA signature'))->description(__m('The SEPA mandate is signed with the registration form.'));
+    $row->addSelect('signedDateSource')->fromArray($dateOptions)->selected(RegistrationFormGateway::FIELD_CREATED)->placeholder(__m('No date'));
 
     $row = $form->addRow();
-    $row->addLabel('dateFormat', __('Date format'))->description(__('Only used when the signature date is taken from a form field.'));
+    $row->addLabel('dateFormat', __m('Date format'))->description(__m('Only used when the signature date is taken from a form field.'));
     $row->addSelect('dateFormat')->fromArray($dateFormats);
 
     $row = $form->addRow();
     $row->addFooter();
-    $row->addSubmit(__('Next'));
+    $row->addSubmit(__m('Next'));
 
     echo $form->getOutput();
     return;
@@ -226,7 +226,7 @@ if ($step == 3) {
     $dateFormat = in_array($_POST['dateFormat'] ?? '', $dateFormats, true) ? $_POST['dateFormat'] : 'd.m.Y';
 
     if (empty($schoolYearID) || $status === '' || empty($mapping['payer']) || empty($mapping['IBAN'])) {
-        $page->addError(__('The account holder and the IBAN have to be mapped.'));
+        $page->addError(__m('The account holder and the IBAN have to be mapped.'));
         return;
     }
 
@@ -261,7 +261,7 @@ if ($step == 3) {
         if ($rawDay !== '') {
             $record['withdrawDay'] = SepaGateway::normalizeDay($rawDay) ?? '';
             if ($record['withdrawDay'] === '') {
-                $messages[] = sprintf(__('Unknown withdrawal day: %s - the default is used.'), $rawDay);
+                $messages[] = sprintf(__m('Unknown withdrawal day: %s - the default is used.'), $rawDay);
             }
         }
         if ($record['withdrawDay'] === '') {
@@ -271,7 +271,7 @@ if ($step == 3) {
         if ($rawCadence !== '') {
             $record['withdrawCadence'] = SepaGateway::normalizeCadence($rawCadence) ?? '';
             if ($record['withdrawCadence'] === '') {
-                $messages[] = sprintf(__('Unknown withdrawal cadence: %s - the default is used.'), $rawCadence);
+                $messages[] = sprintf(__m('Unknown withdrawal cadence: %s - the default is used.'), $rawCadence);
             }
         }
         if ($record['withdrawCadence'] === '') {
@@ -282,12 +282,12 @@ if ($step == 3) {
         if ($signedDateSource !== '') {
             $record['SEPA_signedDate'] = $parseDate($fieldValue($application, $signedDateSource), $dateFormat);
             if ($record['SEPA_signedDate'] === '') {
-                $messages[] = __('The signature date could not be read');
+                $messages[] = __m('The signature date could not be read');
             }
         }
 
         // Note: where the data comes from (+ an optional mapped note)
-        $source = sprintf(__('From registration form ID = %s'), $application['gibbonAdmissionsApplicationID']);
+        $source = sprintf(__m('From registration form ID = %s'), $application['gibbonAdmissionsApplicationID']);
         $extraNote = $fieldValue($application, $mapping['note'] ?? '');
         $record['note'] = $source . ($extraNote !== '' ? "\n" . $extraNote : '');
 
@@ -295,15 +295,15 @@ if ($step == 3) {
         $existing = [];
         if (empty($familyID)) {
             $state = 'no_family';
-            $messages[] = __('The registration form is not connected to a family.');
+            $messages[] = __m('The registration form is not connected to a family.');
         } else {
             $existing = $SepaGateway->getFamilySEPA($familyID);
             if (isset($seenFamilies[$familyID])) {
                 $state = 'duplicate';
-                $messages[] = sprintf(__('The family is already used by registration form %s'), $seenFamilies[$familyID]);
+                $messages[] = sprintf(__m('The family is already used by registration form %s'), $seenFamilies[$familyID]);
             } elseif (!empty($existing)) {
                 $state = 'existing';
-                $messages[] = __('The family already has a SEPA. Select the row only if it should be overwritten.');
+                $messages[] = __m('The family already has a SEPA. Select the row only if it should be overwritten.');
                 if (!empty(trim($existing[0]['note'] ?? ''))) {
                     $record['note'] = $existing[0]['note'] . "\n" . $record['note'];
                 }
@@ -314,13 +314,13 @@ if ($step == 3) {
         $adults = $state !== 'no_family' ? $SepaGateway->selectAdultsByFamily($familyID)->fetchAll() : [];
         if ($record['payer'] === '' && !empty($adults)) {
             $record['payer'] = trim($adults[0]['preferredName'] . ' ' . $adults[0]['surname']);
-            $messages[] = sprintf(__('The account holder is missing, the first parent of the family was suggested. Please check.'));
+            $messages[] = sprintf(__m('The account holder is missing, the first parent of the family was suggested. Please check.'));
         } elseif ($record['payer'] === '') {
-            $messages[] = __('The account holder is missing.');
+            $messages[] = __m('The account holder is missing.');
         } else {
             $payerLower = mb_strtolower($record['payer']);
             if (preg_match('/\d/', $record['payer']) || mb_strlen($record['payer']) < 4 || strpos(trim($record['payer']), ' ') === false) {
-                $messages[] = __('The account holder looks incomplete or wrong (needs first and last name, no digits).');
+                $messages[] = __m('The account holder looks incomplete or wrong (needs first and last name, no digits).');
             }
             $matchesParent = empty($adults);
             foreach ($adults as $adult) {
@@ -330,23 +330,23 @@ if ($step == 3) {
                 }
             }
             if (!$matchesParent) {
-                $messages[] = __('The account holder does not match the surname of any parent of the family.');
+                $messages[] = __m('The account holder does not match the surname of any parent of the family.');
             }
         }
         if ($record['payer'] !== '' && $state !== 'no_family') {
             foreach ($SepaGateway->getSEPAByPayer($record['payer']) as $sameName) {
                 if ($sameName['gibbonFamilyID'] != $familyID) {
-                    $messages[] = __('Another family already has a SEPA with this account holder.');
+                    $messages[] = __m('Another family already has a SEPA with this account holder.');
                     break;
                 }
             }
         }
         if ($record['IBAN'] === '') {
-            $messages[] = __('The IBAN is missing.');
+            $messages[] = __m('The IBAN is missing.');
         } elseif (strlen($record['IBAN']) <= 4) {
-            $messages[] = __('The IBAN is incomplete (only the country code or a few characters were entered). Enter it or clear the field.');
+            $messages[] = __m('The IBAN is incomplete (only the country code or a few characters were entered). Enter it or clear the field.');
         } elseif (!IbanCipher::isValid($record['IBAN'])) {
-            $messages[] = __('The IBAN is not valid (checksum).');
+            $messages[] = __m('The IBAN is not valid (checksum).');
         }
 
         $rows[] = [
@@ -368,10 +368,10 @@ if ($step == 3) {
     $_SESSION[$guid]['sepaFormImportRows'] = $sessionRows;
 
     $statusLabels = [
-        'new' => [__('New'), 'green'],
-        'existing' => [__('Existing'), 'orange'],
-        'duplicate' => [__('Duplicate family'), 'orange'],
-        'no_family' => [__('No family'), 'red'],
+        'new' => [__m('New'), 'green'],
+        'existing' => [__m('Existing'), 'orange'],
+        'duplicate' => [__m('Duplicate family'), 'orange'],
+        'no_family' => [__m('No family'), 'red'],
     ];
 
     // One card per registration form: wide inputs instead of a cramped table
@@ -387,7 +387,7 @@ if ($step == 3) {
         .formImportFields input[type=text], .formImportFields input[type=date], .formImportFields select, .formImportFields textarea { width: 100%; box-sizing: border-box; }
         .formImportCurrent { margin-top: 8px; padding: 6px 8px; background: #f2f2f2; font-style: italic; font-size: 12px; }
     </style>";
-    $html .= "<p><label><input type='checkbox' id='selectAll' /> <strong>" . $e(__('Select All')) . "</strong></label></p>";
+    $html .= "<p><label><input type='checkbox' id='selectAll' /> <strong>" . $e(__m('Select All')) . "</strong></label></p>";
 
     $count = ['new' => 0, 'existing' => 0, 'duplicate' => 0, 'no_family' => 0];
     foreach ($rows as $index => $item) {
@@ -401,29 +401,29 @@ if ($step == 3) {
 
         $html .= "<div class='formImportCard" . ($selectable ? '' : ' skipped') . "'><div class='formImportHead'>";
         $html .= $selectable
-            ? "<label><input type='checkbox' name='import[]' value='{$index}'" . ($checked ? ' checked' : '') . ' /> ' . $e(__('Import')) . '</label>'
+            ? "<label><input type='checkbox' name='import[]' value='{$index}'" . ($checked ? ' checked' : '') . ' /> ' . $e(__m('Import')) . '</label>'
             : '';
         $html .= "<span style='color:{$statusLabels[$state][1]}; font-weight:bold;'>" . $e($statusLabels[$state][0]) . '</span>';
-        $html .= '<span>' . $e(__('Form')) . ' #' . $e($item['application']['gibbonAdmissionsApplicationID']) . ($childName !== '' ? ' - ' . $childName : '') . '</span>';
-        $html .= '<span>' . $e(__('Family')) . ': ' . $e($item['application']['familyName'] ?? '-') . '</span></div>';
+        $html .= '<span>' . $e(__m('Form')) . ' #' . $e($item['application']['gibbonAdmissionsApplicationID']) . ($childName !== '' ? ' - ' . $childName : '') . '</span>';
+        $html .= '<span>' . $e(__m('Family')) . ': ' . $e($item['application']['familyName'] ?? '-') . '</span></div>';
 
         if ($selectable) {
             $html .= "<div class='formImportFields'>";
-            $html .= "<div class='wide'><label>" . $e(__('Account holder')) . "</label><input type='text' name='rows[{$index}][payer]' value='" . $e($record['payer']) . "' /></div>";
-            $html .= "<div class='wide'><label>" . $e(__('IBAN')) . "</label><input type='text' class='ibanInput' name='rows[{$index}][IBAN]' value='" . $e(IbanCipher::format($record['IBAN'])) . "' /></div>";
-            $html .= "<div><label>" . $e(__('BIC')) . "</label><input type='text' name='rows[{$index}][BIC]' value='" . $e($record['BIC']) . "' maxlength='11' /></div>";
-            $html .= "<div><label>" . $e(__('Withdrawal cadence')) . "</label><select name='rows[{$index}][withdrawCadence]'><option value=''></option>";
+            $html .= "<div class='wide'><label>" . $e(__m('Account holder')) . "</label><input type='text' name='rows[{$index}][payer]' value='" . $e($record['payer']) . "' /></div>";
+            $html .= "<div class='wide'><label>" . $e(__m('IBAN')) . "</label><input type='text' class='ibanInput' name='rows[{$index}][IBAN]' value='" . $e(IbanCipher::format($record['IBAN'])) . "' /></div>";
+            $html .= "<div><label>" . $e(__m('BIC')) . "</label><input type='text' name='rows[{$index}][BIC]' value='" . $e($record['BIC']) . "' maxlength='11' /></div>";
+            $html .= "<div><label>" . $e(__m('Withdrawal cadence')) . "</label><select name='rows[{$index}][withdrawCadence]'><option value=''></option>";
             foreach ($cadenceOptions as $value => $label) {
                 $html .= "<option value='{$value}'" . ($record['withdrawCadence'] === $value ? ' selected' : '') . '>' . $e($label) . '</option>';
             }
             $html .= '</select></div>';
-            $html .= "<div><label>" . $e(__('Preferred withdrawal day')) . "</label><select name='rows[{$index}][withdrawDay]'><option value=''></option>";
+            $html .= "<div><label>" . $e(__m('Preferred withdrawal day')) . "</label><select name='rows[{$index}][withdrawDay]'><option value=''></option>";
             foreach (SepaGateway::getWithdrawDayOptions() as $day) {
                 $html .= "<option value='{$day}'" . ((string) $record['withdrawDay'] === (string) $day ? ' selected' : '') . ">{$day}</option>";
             }
             $html .= '</select></div>';
-            $html .= "<div><label>" . $e(__('Date of SEPA signature')) . "</label><input type='date' name='rows[{$index}][SEPA_signedDate]' value='" . $e($record['SEPA_signedDate']) . "' /></div>";
-            $html .= "<div class='wide'><label>" . $e(__('Note')) . "</label><textarea name='rows[{$index}][note]' rows='2'>" . $e($record['note']) . '</textarea></div>';
+            $html .= "<div><label>" . $e(__m('Date of SEPA signature')) . "</label><input type='date' name='rows[{$index}][SEPA_signedDate]' value='" . $e($record['SEPA_signedDate']) . "' /></div>";
+            $html .= "<div class='wide'><label>" . $e(__m('Note')) . "</label><textarea name='rows[{$index}][note]' rows='2'>" . $e($record['note']) . '</textarea></div>';
             $html .= '</div>';
         }
 
@@ -437,7 +437,7 @@ if ($step == 3) {
 
         if ($item['existing']) {
             $current = $item['existing'];
-            $html .= "<div class='formImportCurrent'>" . $e(__('Current Data:')) . ' '
+            $html .= "<div class='formImportCurrent'>" . $e(__m('Current Data:')) . ' '
                 . $e($current['payer']) . ' | '
                 . $e(IbanCipher::format(IbanCipher::decryptForDisplay($current['IBAN']))) . ' | '
                 . $e($current['BIC']) . ' | '
@@ -473,17 +473,17 @@ if ($step == 3) {
     }
     </script>";
 
-    echo "<div class='success' style='margin-bottom:15px;'><strong>" . __('Summary:') . '</strong> '
-        . __('New') . ": {$count['new']} | " . __('Existing') . ": {$count['existing']} | "
-        . __('Duplicate family') . ": {$count['duplicate']} | " . __('No family') . ": {$count['no_family']}</div>";
-    echo '<p>' . __('Check the data, correct it where needed and select the rows to import. Rows with a red IBAN field have an invalid IBAN and can not be imported until it is corrected.') . '</p>';
+    echo "<div class='success' style='margin-bottom:15px;'><strong>" . __m('Summary:') . '</strong> '
+        . __m('New') . ": {$count['new']} | " . __m('Existing') . ": {$count['existing']} | "
+        . __m('Duplicate family') . ": {$count['duplicate']} | " . __m('No family') . ": {$count['no_family']}</div>";
+    echo '<p>' . __m('Check the data, correct it where needed and select the rows to import. Rows with a red IBAN field have an invalid IBAN and can not be imported until it is corrected.') . '</p>';
 
     $form = Form::create('importFormStep3', $StepLink . '4');
     $form->addHiddenValue('address', $_SESSION[$guid]['address']);
     $form->addRow()->addContent($html);
     $row = $form->addRow();
     $row->addFooter();
-    $row->addSubmit(__('Import Selected'));
+    $row->addSubmit(__m('Import Selected'));
 
     echo $form->getOutput();
     return;
@@ -494,7 +494,7 @@ if ($step == 3) {
 // ---------------------------------------------------------------------------------------------
 $sessionRows = $_SESSION[$guid]['sepaFormImportRows'] ?? null;
 if (empty($sessionRows)) {
-    $page->addError(__('Invalid data'));
+    $page->addError(__m('Invalid data'));
     return;
 }
 
@@ -514,7 +514,7 @@ foreach ($selected as $index) {
     if (!$meta || !is_array($input)) {
         continue;
     }
-    $label = sprintf(__('Form #%s'), $meta['applicationID']) . ': ' . trim($input['payer'] ?? '');
+    $label = sprintf(__m('Form #%s'), $meta['applicationID']) . ': ' . trim($input['payer'] ?? '');
 
     $data = [
         'payer' => trim($input['payer'] ?? ''),
@@ -528,15 +528,15 @@ foreach ($selected as $index) {
 
     // Server side checks (the review page checks are only a help)
     if (empty($meta['familyID']) || $meta['state'] === 'no_family') {
-        $failed[] = $label . ' - ' . __('The registration form is not connected to a family.');
+        $failed[] = $label . ' - ' . __m('The registration form is not connected to a family.');
         continue;
     }
     if ($data['payer'] === '') {
-        $failed[] = $label . ' - ' . __('The account holder is missing.');
+        $failed[] = $label . ' - ' . __m('The account holder is missing.');
         continue;
     }
     if ($data['IBAN'] !== '' && !IbanCipher::isValid($data['IBAN'])) {
-        $failed[] = $label . ' - ' . __('The IBAN is not valid (checksum).');
+        $failed[] = $label . ' - ' . __m('The IBAN is not valid (checksum).');
         continue;
     }
 
@@ -544,18 +544,18 @@ foreach ($selected as $index) {
         $currentSEPA = $SepaGateway->getFamilySEPA($meta['familyID']);
         if (!empty($currentSEPA)) {
             if ($meta['state'] !== 'existing' || $currentSEPA[0]['gibbonSEPAID'] != $meta['existingSEPAID']) {
-                $failed[] = $label . ' - ' . __('The family has a SEPA already (it was added after the review).');
+                $failed[] = $label . ' - ' . __m('The family has a SEPA already (it was added after the review).');
                 continue;
             }
             $SepaGateway->updateSEPABySEPAID($currentSEPA[0]['gibbonSEPAID'], $data);
             $updated[] = $label;
         } else {
             if ($meta['state'] === 'existing') {
-                $failed[] = $label . ' - ' . __('The SEPA of the family was deleted after the review.');
+                $failed[] = $label . ' - ' . __m('The SEPA of the family was deleted after the review.');
                 continue;
             }
             if (!$SepaGateway->insertSEPA($meta['familyID'], $data, $customData)) {
-                $failed[] = $label . ' - ' . __('Failed to insert');
+                $failed[] = $label . ' - ' . __m('Failed to insert');
                 continue;
             }
             $inserted[] = $label;
@@ -565,22 +565,22 @@ foreach ($selected as $index) {
     }
 }
 
-echo '<h3>' . __('Import Results') . '</h3>';
+echo '<h3>' . __m('Import Results') . '</h3>';
 $printList = function ($class, $title, $items) use ($e) {
     if (empty($items)) {
         return;
     }
     echo "<div class='{$class}'><strong>" . $e($title) . '</strong><ul><li>' . implode('</li><li>', array_map($e, $items)) . '</li></ul></div>';
 };
-$printList('success', sprintf(__('Successfully inserted %d new records'), count($inserted)), $inserted);
-$printList('success', sprintf(__('Successfully updated %d existing records'), count($updated)), $updated);
-$printList('error', sprintf(__('Failed to process %d records'), count($failed)), $failed);
+$printList('success', sprintf(__m('Successfully inserted %d new records'), count($inserted)), $inserted);
+$printList('success', sprintf(__m('Successfully updated %d existing records'), count($updated)), $updated);
+$printList('error', sprintf(__m('Failed to process %d records'), count($failed)), $failed);
 
-echo "<div class='success' style='margin-top:20px;'><strong>" . __('Summary:') . '</strong><br/>'
-    . __('Inserted:') . ' ' . count($inserted) . '<br/>'
-    . __('Updated:') . ' ' . count($updated) . '<br/>'
-    . __('Skipped:') . " {$skipped}<br/>"
-    . __('Errors:') . ' ' . count($failed) . '</div>';
+echo "<div class='success' style='margin-top:20px;'><strong>" . __m('Summary:') . '</strong><br/>'
+    . __m('Inserted:') . ' ' . count($inserted) . '<br/>'
+    . __m('Updated:') . ' ' . count($updated) . '<br/>'
+    . __m('Skipped:') . " {$skipped}<br/>"
+    . __m('Errors:') . ' ' . count($failed) . '</div>';
 
 if (empty($failed)) {
     unset($_SESSION[$guid]['sepaFormImportRows']);

@@ -16,15 +16,15 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustment_add.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
     $family_details = $_GET['family_details'] ?? '';
 
     $page->breadcrumbs
-        ->add(__('Payment adjustment'), '/sepa_payment_adjustment_manage.php')
-        ->add(__('Add payment_adjustment'));
+        ->add(__m('Payment adjustment'), '/sepa_payment_adjustment_manage.php')
+        ->add(__m('Add payment_adjustment'));
 
     $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
     $SepaGateway = $container->get(SepaGateway::class);
@@ -42,12 +42,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $form->addHiddenValue('family_details', $family_details);
 
     $row = $form->addRow();
-    $row->addLabel('academicYear', __('Academic Year'));
+    $row->addLabel('academicYear', __m('Academic Year'));
     $row->addSelect('academicYear')
         ->fromArray($schoolYears)
         ->required()
         ->selected($_SESSION[$guid]["gibbonSchoolYearID"])
-        ->placeholder(__('Please select...'));
+        ->placeholder(__m('Please select...'));
 
     // SEPA Id=> Names
     $gibbonSEPAID = $_GET['gibbonSEPAID'] ?? null;
@@ -55,23 +55,23 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $sepaOptions = array_column($sepaList->toArray(), 'payer', 'gibbonSEPAID');
 
     $row = $form->addRow();
-    $row->addLabel('gibbonSEPAID_l', __('SEPA Account'));
-    $select = $row->addSelect('gibbonSEPAID')->fromArray($sepaOptions)->placeholder(__(''))->required();
+    $row->addLabel('gibbonSEPAID_l', __m('SEPA Account'));
+    $select = $row->addSelect('gibbonSEPAID')->fromArray($sepaOptions)->placeholder('')->required();
     if ($gibbonSEPAID && array_key_exists($gibbonSEPAID, $sepaOptions)) {
         $select->selected($gibbonSEPAID)->disabled();
         $form->addHiddenValue('gibbonSEPAID', $gibbonSEPAID);
     }
 
     $row = $form->addRow();
-    $row->addLabel('amount', __('Amount'));
+    $row->addLabel('amount', __m('Amount'));
     $row->addNumber('amount')->required()->decimalPlaces(2)->minimum(0.01);
 
     $row = $form->addRow();
-    $row->addLabel('description', __('Description'));
+    $row->addLabel('description', __m('Description'));
     $row->addTextArea('description')->required()->setRows(3);
 
     $row = $form->addRow();
-    $row->addLabel('note', __('Note'));
+    $row->addLabel('note', __m('Note'));
     $row->addTextArea('note')->setRows(3);
 
     $row = $form->addRow();

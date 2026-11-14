@@ -34,7 +34,7 @@ require_once __DIR__ . '/src/Domain/SepaPaymentAdjustmentGateway.php';
 
 if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_balance_snapshot.php') == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $schoolYearID = isset($_GET['schoolYearID']) ? $_GET['schoolYearID'] : $_SESSION[$guid]["gibbonSchoolYearID"];
     $selectedSnapshot = isset($_GET['snapshotDate']) ? $_GET['snapshotDate'] : 'current';

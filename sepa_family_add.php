@@ -29,12 +29,12 @@ require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php")) {
    // Access denied
-   $page->addError(__('You do not have access to this action.'));
+   $page->addError(__m('You do not have access to this action.'));
 } else {
    $_GET = $container->get(Validator::class)->sanitize($_GET);
    $page->breadcrumbs
-      ->add(__('Manage Family SEPA'), 'sepa_family_view.php')
-      ->add(__('Add SEPA'));
+      ->add(__m('Manage Family SEPA'), 'sepa_family_view.php')
+      ->add(__m('Add SEPA'));
 
    // For a form
    // Check out https:// gist.github.com/SKuipers/3a4de3a323ab9d0969951894c29940ae for a cheatsheet / guide
@@ -56,7 +56,7 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
    }
 
    if (!IbanCipher::hasKey()) {
-      $page->addError(__('The IBAN encryption key is not configured, the IBAN can not be saved. See README.md.'));
+      $page->addError(__m('The IBAN encryption key is not configured, the IBAN can not be saved. See README.md.'));
    }
 
    $form = Form::create('addSEPA', $session->get('absoluteURL') . '/modules/' . $session->get('module') . '/sepa_family_addProcess.php');
@@ -66,10 +66,10 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
    }
 
    // BASIC INFORMATION
-   $form->addRow()->addHeading('SEPA Information', __('SEPA Information'));
+   $form->addRow()->addHeading('SEPA Information', __m('SEPA Information'));
 
    $row = $form->addRow();
-   $row->addLabel('Account owner name', __('Sepa owner name'))->description(__('The name of SEPA account owner.'));
+   $row->addLabel('Account owner name', __m('Sepa owner name'))->description(__m('The name of SEPA account owner.'));
    $textField = $row->addTextField('payer')->required()->maxLength(255);
    if ($add_SEPA_by_owner){
       $textField->setValue($add_SEPA_by_owner);
@@ -77,22 +77,22 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
    }
 
    $row = $form->addRow();
-   $row->addLabel('SEPAIBAN', __('SEPA IBAN'))->description(__('IBAN of the bank account, The money will be withdrawn from this account.'));
+   $row->addLabel('SEPAIBAN', __m('SEPA IBAN'))->description(__m('IBAN of the bank account, The money will be withdrawn from this account.'));
    $textField = $row->addTextField('IBAN')->maxLength(40);
    if($IBAN){
       $textField->setValue($IBAN);
    }
 
    $row = $form->addRow();
-   $row->addLabel('SEPABIC', __('BIC'))->description(__('BIC of the bank.'));
+   $row->addLabel('SEPABIC', __m('BIC'))->description(__m('BIC of the bank.'));
    $row->addTextField('BIC')->maxLength(11);
 
    $row = $form->addRow();
-   $row->addLabel('withdrawCadence', __('Withdrawal cadence'))->description(__('How often the money is withdrawn.'));
+   $row->addLabel('withdrawCadence', __m('Withdrawal cadence'))->description(__m('How often the money is withdrawn.'));
    $row->addSelect('withdrawCadence')->fromArray(SepaGateway::getWithdrawCadenceOptions())->required()->selected('Monthly');
 
    $row = $form->addRow();
-   $row->addLabel('withdrawDay', __('Preferred withdrawal day'))->description(__('Preferred day of the month for the withdrawal.'));
+   $row->addLabel('withdrawDay', __m('Preferred withdrawal day'))->description(__m('Preferred day of the month for the withdrawal.'));
    $row->addSelect('withdrawDay')->fromArray(SepaGateway::getWithdrawDayOptions())->selected(SepaGateway::DEFAULT_WITHDRAW_DAY);
 
 
@@ -104,7 +104,7 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
     $Families = $SepaGateway->getFamiliesWithoutBankDetails($criteria);
 
    $row = $form->addRow();
-   $row->addLabel('Family', __('Family'))->description('Only families without a SEPA account can be selected.');
+   $row->addLabel('Family', __m('Family'))->description('Only families without a SEPA account can be selected.');
    $select = $row->addSelect('gibbonFamilyID')
       ->fromResults($Families)
       ->required()
@@ -115,11 +115,11 @@ if (!isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_family_add.php"
    
 
    $row = $form->addRow();
-   $row->addLabel('note', __('Note'));
+   $row->addLabel('note', __m('Note'));
    $row->addTextArea('note')->setRow(4);
 
    $row = $form->addRow();
-   $row->addLabel('SEPAsignedDate', __('Date of SEPA signature'));
+   $row->addLabel('SEPAsignedDate', __m('Date of SEPA signature'));
    $row->addDate('SEPA_signedDate');
 
    // custom fields

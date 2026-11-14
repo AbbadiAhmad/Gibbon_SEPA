@@ -30,9 +30,9 @@ require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_per_family.php')) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
-    //$page->breadcrumbs->add(__('SEPA Payment Entries')); // show page navigation link
+    //$page->breadcrumbs->add(__m('SEPA Payment Entries')); // show page navigation link
 
     // $search = isset($_GET['search']) ? $_GET['search'] : '';
 
@@ -45,10 +45,10 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_pe
 
 
     if (empty($gibbonFamilyIDs)) {
-        echo __('The payment information is missing for your Family. Please ask the school\'s administration for more infomration.');
+        echo __m('The payment information is missing for your Family. Please ask the school\'s administration for more infomration.');
         return;
     } else if (count($gibbonFamilyIDs) > 1) {
-        echo __('You are added to multiple families. Please ask the school\'s administration for more information');
+        echo __m('You are added to multiple families. Please ask the school\'s administration for more information');
         return;
     }
     $gibbonFamilyID = $gibbonFamilyIDs[0];
@@ -57,15 +57,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_pe
 
 
     echo '<h2>';
-    echo __('Family Details');
+    echo __m('Family Details');
     echo '</h2>';
 
     // Get family info
     if (!empty($familyInfo)) {
-        echo '<h3>' . __('Family: ') . htmlspecialchars($familyInfo[0]['name'] ?? '', ENT_QUOTES, 'UTF-8') . '</h3>';
+        echo '<h3>' . __m('Family: ') . htmlspecialchars($familyInfo[0]['name'] ?? '', ENT_QUOTES, 'UTF-8') . '</h3>';
     }
-    
-    echo '<hr><span style="color: red;">' . __('Dieses Modul befindet sich in der Entwicklung. Wenn Sie Unstimmigkeiten feststellen, helfen Sie uns bitte, indem Sie die Schulverwaltung informieren.') . '</span> </br> <span style="color: red;">' . __('هذا الموديول قيد التطوير. إذا لاحظتم أي خطأ، يرجى مساعدتنا بإبلاغ إدارة المدرسة') . '</span><hr></p>';
 
     // Fees Summary
     $feesSummary = $SepaGateway->getFamilyFeesSummary($gibbonFamilyID, $schoolYearID);
@@ -76,49 +74,49 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_pe
     $balance = $totalPayments + $totalAdjustments - $totalFees;
 
     if (!empty($feesSummary)) {
-        echo '<h4>' . __('Fees Summary') . '</h4>';
-        echo '<p><strong>' . __('Total Fees Owed: ') . '</strong>' . htmlspecialchars($totalFees, ENT_QUOTES, 'UTF-8') . ' €</p>';
-        echo '<p><strong>' . __('Total Adjustments: ') . '</strong>' . htmlspecialchars($totalAdjustments, ENT_QUOTES, 'UTF-8') . ' €</p>';
-        echo '<p><strong>' . __('Total Payments: ') . '</strong>' . htmlspecialchars($totalPayments, ENT_QUOTES, 'UTF-8') . ' €</p>';
-        echo '<p><strong> <span style="color: ' . ($balance < 0 ? 'red' : 'green') . ';"> ' . __('Balance: ') . htmlspecialchars($balance, ENT_QUOTES, 'UTF-8') . ' €</strong></span></p>';
+        echo '<h4>' . __m('Fees Summary') . '</h4>';
+        echo '<p><strong>' . __m('Total Fees Owed: ') . '</strong>' . htmlspecialchars($totalFees, ENT_QUOTES, 'UTF-8') . ' €</p>';
+        echo '<p><strong>' . __m('Total Adjustments: ') . '</strong>' . htmlspecialchars($totalAdjustments, ENT_QUOTES, 'UTF-8') . ' €</p>';
+        echo '<p><strong>' . __m('Total Payments: ') . '</strong>' . htmlspecialchars($totalPayments, ENT_QUOTES, 'UTF-8') . ' €</p>';
+        echo '<p><strong> <span style="color: ' . ($balance < 0 ? 'red' : 'green') . ';"> ' . __m('Balance: ') . htmlspecialchars($balance, ENT_QUOTES, 'UTF-8') . ' €</strong></span></p>';
     }
 
     if (empty($FamilySEPA)) {
-        echo '<hr><span style="color: red;">' . __('SEPA informaiton is not available for this family.') . '</span><hr></p>';
+        echo '<hr><span style="color: red;">' . __m('SEPA informaiton is not available for this family.') . '</span><hr></p>';
 
     } elseif (count($FamilySEPA) > 1) {
-        echo '<hr><span style="color: red;">' . __('Databased Error: more than one SEPA informaiton is entered for this family.') . '</span><hr></p>';
+        echo '<hr><span style="color: red;">' . __m('Databased Error: more than one SEPA informaiton is entered for this family.') . '</span><hr></p>';
     }
 
     // Detailed Fees
-    echo '<h4>' . __('Fees Details') . '</h4>';
+    echo '<h4>' . __m('Fees Details') . '</h4>';
     $detailedFees = $SepaGateway->getFamilyEnrollmentFees($gibbonFamilyID, $schoolYearID);
     $table = DataTable::create('feesDetails');
 
-    $table->addColumn('totalCost', __('Total Cost'));
-    $table->addColumn('monthsEnrolled', __('Months Enrolled'));
-    $table->addColumn('courseFee', __('Fee'));
-    $table->addColumn('childName', __('Child Name'))->format(function ($row) {
+    $table->addColumn('totalCost', __m('Total Cost'));
+    $table->addColumn('monthsEnrolled', __m('Months Enrolled'));
+    $table->addColumn('courseFee', __m('Fee'));
+    $table->addColumn('childName', __m('Child Name'))->format(function ($row) {
         $name = htmlspecialchars($row['childName'], ENT_QUOTES, 'UTF-8');
         if (!empty($row['personDateEnd'])) {
             $name .= ' <span style="color: red;">(Left on ' . htmlspecialchars($row['personDateEnd'], ENT_QUOTES, 'UTF-8') . ')</span>';
         }
         return $name;
     });
-    $table->addColumn('courseName', __('Course'));
+    $table->addColumn('courseName', __m('Course'));
 
     echo $table->render($detailedFees);
 
     // Adjustment Details
     if (!empty($FamilySEPA)) {
         $adjustmentEntries = $SepaPaymentAdjustmentGateway->getFamilyAdjustments($FamilySEPA[0]["gibbonSEPAID"], $schoolYearID);
-        echo '<h4>' . __('Adjustment Details') . '</h4>';
+        echo '<h4>' . __m('Adjustment Details') . '</h4>';
         $table3 = DataTable::create('adjustmentDetails');
 
 
-        $table3->addColumn('amount', __('Adjustment Amount'));
-        $table3->addColumn('description', __('Description'));
-        $table3->addColumn('timestamp', __('Date'));
+        $table3->addColumn('amount', __m('Adjustment Amount'));
+        $table3->addColumn('description', __m('Description'));
+        $table3->addColumn('timestamp', __m('Date'));
 
 
         echo $table3->render($adjustmentEntries);
@@ -126,21 +124,21 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_payment_view_pe
 
 
         // Payment Details
-        echo '<h4>' . __('Payment Details') . '</h4>';
+        echo '<h4>' . __m('Payment Details') . '</h4>';
         $paymentEntries = $SepaGateway->getPaymentEntriesByFamily($FamilySEPA[0]["gibbonSEPAID"], $schoolYearID);
 
         $table2 = DataTable::create('paymentDetails');
 
 
-        $table2->addColumn('amount', __('Amount'));
-        $table2->addColumn('booking_date', __('Booking Date'));
-        $table2->addColumn('payer', __('Payer'));
-        $table2->addColumn('transaction_message', __('Transaction Message'));
-        $table2->addColumn('IBAN', __('IBAN'))->format(function ($row) {
+        $table2->addColumn('amount', __m('Amount'));
+        $table2->addColumn('booking_date', __m('Booking Date'));
+        $table2->addColumn('payer', __m('Payer'));
+        $table2->addColumn('transaction_message', __m('Transaction Message'));
+        $table2->addColumn('IBAN', __m('IBAN'))->format(function ($row) {
             return htmlspecialchars(IbanCipher::maskForDisplay(IbanCipher::decrypt($row['IBAN']) ?? ''), ENT_QUOTES, 'UTF-8');
         });
-        $table2->addColumn('transaction_reference', __('Transaction Reference'));
-        $table2->addColumn('note', __('Note'));
+        $table2->addColumn('transaction_reference', __m('Transaction Reference'));
+        $table2->addColumn('note', __m('Note'));
 
         echo $table2->render($paymentEntries);
 

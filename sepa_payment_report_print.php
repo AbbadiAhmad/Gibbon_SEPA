@@ -33,13 +33,13 @@ $toDate = $_POST['toDate'] ?? '';
 $gibbonSEPAID = $_POST['gibbonSEPAID'] ?? '';
 
 if (empty($fromDate) || empty($toDate)) {
-    echo "<div class='error'>" . __('Please provide both from and to dates.') . "</div>";
+    echo "<div class='error'>" . __m('Please provide both from and to dates.') . "</div>";
     exit;
 }
 
 // Validate date range
 if (strtotime($fromDate) > strtotime($toDate)) {
-    echo "<div class='error'>" . __('From Date must be before or equal to To Date') . "</div>";
+    echo "<div class='error'>" . __m('From Date must be before or equal to To Date') . "</div>";
     exit;
 }
 

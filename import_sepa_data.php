@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/src/i18n.php';
 /*
 Gibbon: the flexible, open school platform
 Founded by Ross Parker at ICHK Secondary. Built by Ross Parker, Sandra Kuipers and the Gibbon community
@@ -28,21 +29,21 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
     $step = isset($_GET['step']) ? min(max(1, $_GET['step']), 4) : 1;
 
     $page->breadcrumbs
-        ->add(__('Import SEPA Data'), 'import_sepa_data.php')
-        ->add(__('Step {number}', ['number' => $step]));
+        ->add(__m('Import SEPA Data'), 'import_sepa_data.php')
+        ->add(__m('Step {number}', ['number' => $step]));
 
     $steps = [
-        1 => __('Select File'),
-        2 => __('Confirm Data'),
-        3 => __('Dry Run'),
-        4 => __('Live Run'),
+        1 => __m('Select File'),
+        2 => __m('Confirm Data'),
+        3 => __m('Dry Run'),
+        4 => __m('Live Run'),
     ];
     $StepLink = $session->get('absoluteURL') . '/index.php?q=' . $_SESSION[$guid]['address'] . '&step=';
 
     // Import directly from the accepted registration forms (shown at the top of the first step)
     if ($step == 1) {
         echo "<p><a href='" . $session->get('absoluteURL') . "/index.php?q=/modules/Sepa/import_sepa_from_form.php' class='button' style='text-decoration: none;'>";
-        echo __('Import from registration forms');
+        echo __m('Import from registration forms');
         echo "</a></p>";
     }
 
@@ -54,7 +55,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
     echo "</ul>";
 
     echo '<h2>';
-    echo __('Step {number}', ['number' => $step]) . ' - ' . __($steps[$step]);
+    echo __m('Step {number}', ['number' => $step]) . ' - ' . __m($steps[$step]);
     echo '</h2>';
 
     // field data
@@ -78,7 +79,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
         $row = $form->addRow();
-        $row->addLabel('file', __('File'))->description(__('Excel file (.xlsx, .xls)'));
+        $row->addLabel('file', __m('File'))->description(__m('Excel file (.xlsx, .xls)'));
         $row->addFileUpload('file')->required()->accepts('.xlsx, .xls');
 
         $row = $form->addRow();
@@ -91,7 +92,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
     // STEP 2: CONFIRM DATA
     else if ($step == 2) {
         if (!isset($_FILES['file'])) {
-            $page->addError(__('No file was uploaded'));
+            $page->addError(__m('No file was uploaded'));
             return;
         }
 
@@ -120,18 +121,18 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
             $row = $form->addRow();
-            $row->addHeading(__('Column Mapping'));
+            $row->addHeading(__m('Column Mapping'));
 
             foreach ($fields as $field) {
                 $row = $form->addRow();
-                $row->addLabel("map[$field]", __($field));
+                $row->addLabel("map[$field]", __m($field));
                 $row->addSelect("map[$field]")
                     ->fromArray(array_combine(range(0, count($headers) - 1), $headers))
                     ->placeholder();
             }
             // add date formate in the paymentlist file
             $row = $form->addRow();
-            $row->addLabel("Date format", __("Date format"));
+            $row->addLabel("Date format", __m("Date format"));
             $row->addSelect("dateFormat")
                 ->fromArray($availableDataFormat);
 
@@ -148,7 +149,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
     // STEP 3: DRY RUN
     else if ($step == 3) {
         if (!isset($_SESSION[$guid]['sepaImportData'])) {
-            $page->addError(__('Invalid data'));
+            $page->addError(__m('Invalid data'));
             return;
         }
         $data = $_SESSION[$guid]['sepaImportData'] ?? null;
@@ -162,7 +163,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         }
 
         if (empty($data) || empty($mapping)) {
-            $page->addError(__('Invalid data'));
+            $page->addError(__m('Invalid data'));
             return;
         }
 
@@ -200,20 +201,20 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                 if (!empty($mappedRow['IBAN'])) {
                     $mappedRow['IBAN'] = IbanCipher::normalize($mappedRow['IBAN']);
                     if (!IbanCipher::isValid($mappedRow['IBAN'])) {
-                        $mappedRow['__Warnings__'][] = __('IBAN checksum is not valid');
+                        $mappedRow['__Warnings__'][] = __m('IBAN checksum is not valid');
                     }
                 }
                 if (isset($mappedRow['withdrawCadence']) && $mappedRow['withdrawCadence'] !== '') {
                     $cadence = SepaGateway::normalizeCadence($mappedRow['withdrawCadence']);
                     if ($cadence === null) {
-                        $mappedRow['__Warnings__'][] = __('Unknown withdrawal cadence: {value}', ['value' => $mappedRow['withdrawCadence']]);
+                        $mappedRow['__Warnings__'][] = __m('Unknown withdrawal cadence: {value}', ['value' => $mappedRow['withdrawCadence']]);
                     }
                     $mappedRow['withdrawCadence'] = $cadence;
                 }
                 if (isset($mappedRow['withdrawDay']) && $mappedRow['withdrawDay'] !== '') {
                     $day = SepaGateway::normalizeDay($mappedRow['withdrawDay']);
                     if ($day === null) {
-                        $mappedRow['__Warnings__'][] = __('Unknown withdrawal day: {value}', ['value' => $mappedRow['withdrawDay']]);
+                        $mappedRow['__Warnings__'][] = __m('Unknown withdrawal day: {value}', ['value' => $mappedRow['withdrawDay']]);
                     }
                     $mappedRow['withdrawDay'] = $day;
                 }
@@ -264,7 +265,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
         // Display validation results
         if (!empty($errors)) {
             echo "<div class='error'>";
-            echo "<h3>" . __('Validation Errors') . "</h3>";
+            echo "<h3>" . __m('Validation Errors') . "</h3>";
             echo "Missing one or more data of [ " . implode(', ', $requiredField) . " ] ";
             echo "<ul><li>" . implode("</li><li>", $errors) . "</li></ul>";
             echo "</div>";
@@ -289,18 +290,18 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
         // Display preview table
         if (!empty($validData)) {
-            echo "<h3>" . __('Import Preview') . "</h3>";
-            echo "<p>" . __('Review the records below and select which existing records to update.') . "</p>";
+            echo "<h3>" . __m('Import Preview') . "</h3>";
+            echo "<p>" . __m('Review the records below and select which existing records to update.') . "</p>";
             echo "<div class='warning' style='margin-bottom: 15px;'>";
-            echo "<strong>" . __('Security Notice:') . "</strong> ";
-            echo __('IBANs are encrypted before they are stored in the database.');
+            echo "<strong>" . __m('Security Notice:') . "</strong> ";
+            echo __m('IBANs are encrypted before they are stored in the database.');
             echo "</div>";
 
             // Add export button
             echo "<div style='margin-bottom: 15px;'>";
             echo "<a href='" . $session->get('absoluteURL') . "/modules/Sepa/import_sepa_data_export.php' class='button' style='text-decoration: none;'>";
-            echo "<img src='./themes/Default/img/download.png' title='" . __('Export') . "' style='margin-right: 5px;' />";
-            echo __('Export to Excel');
+            echo "<img src='./themes/Default/img/download.png' title='" . __m('Export') . "' style='margin-right: 5px;' />";
+            echo __m('Export to Excel');
             echo "</a>";
             echo "</div>";
 
@@ -313,17 +314,17 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             $tableHTML .= "<thead>";
             $tableHTML .= "<tr>";
             $tableHTML .= "<th style='width: 5%; text-align: center;'>";
-            $tableHTML .= "<input type='checkbox' id='selectAll' title='" . __('Select All') . "' />";
+            $tableHTML .= "<input type='checkbox' id='selectAll' title='" . __m('Select All') . "' />";
             $tableHTML .= "</th>";
-            $tableHTML .= "<th style='width: 10%;'>" . __('Status') . "</th>";
-            $tableHTML .= "<th style='width: 5%;'>" . __('Row') . "</th>";
-            $tableHTML .= "<th style='width: 20%;'>" . __('Payer') . "</th>";
-            $tableHTML .= "<th style='width: 15%;'>" . __('IBAN') . "</th>";
-            $tableHTML .= "<th style='width: 10%;'>" . __('BIC') . "</th>";
-            $tableHTML .= "<th style='width: 8%;'>" . __('Cadence') . "</th>";
-            $tableHTML .= "<th style='width: 5%;'>" . __('Day') . "</th>";
-            $tableHTML .= "<th style='width: 10%;'>" . __('Signed Date') . "</th>";
-            $tableHTML .= "<th style='width: 20%;'>" . __('Note') . "</th>";
+            $tableHTML .= "<th style='width: 10%;'>" . __m('Status') . "</th>";
+            $tableHTML .= "<th style='width: 5%;'>" . __m('Row') . "</th>";
+            $tableHTML .= "<th style='width: 20%;'>" . __m('Payer') . "</th>";
+            $tableHTML .= "<th style='width: 15%;'>" . __m('IBAN') . "</th>";
+            $tableHTML .= "<th style='width: 10%;'>" . __m('BIC') . "</th>";
+            $tableHTML .= "<th style='width: 8%;'>" . __m('Cadence') . "</th>";
+            $tableHTML .= "<th style='width: 5%;'>" . __m('Day') . "</th>";
+            $tableHTML .= "<th style='width: 10%;'>" . __m('Signed Date') . "</th>";
+            $tableHTML .= "<th style='width: 20%;'>" . __m('Note') . "</th>";
             $tableHTML .= "</tr>";
             $tableHTML .= "</thead>";
             $tableHTML .= "<tbody>";
@@ -340,30 +341,30 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
                 switch ($record['__Status__']) {
                     case 'new':
-                        $statusText = __('New');
+                        $statusText = __m('New');
                         $statusColor = 'green';
                         $newCount++;
                         break;
                     case 'existing':
-                        $statusText = __('Existing');
+                        $statusText = __m('Existing');
                         $statusColor = 'orange';
                         $showCheckbox = true;
                         $existingCount++;
                         break;
                     case 'existing SEPA. The SEPA holder may be changed!':
-                        $statusText = __('existing SEPA. The SEPA holder may be changed!');
+                        $statusText = __m('existing SEPA. The SEPA holder may be changed!');
                         $statusColor = 'orange';
                         $showCheckbox = true;
                         $existingCount++;
                         break;
                     case 'user_not_found':
-                        $statusText = __('User Not Found');
+                        $statusText = __m('User Not Found');
                         $statusColor = 'red';
                         $errorCount++;
                         break;
                     case 'multiple_users':
                     case 'error':
-                        $statusText = __('Multiple Users');
+                        $statusText = __m('Multiple Users');
                         $statusColor = 'red';
                         $errorCount++;
                         break;
@@ -409,7 +410,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
                     $existing['note'] = $existing['note'] ?? '';
 
                     $tableHTML .= "<tr style='background-color: #f5f5f5; font-style: italic;'>";
-                    $tableHTML .= "<td colspan='3' style='text-align: right; padding-right: 10px;'>" . __('Current Data:') . "</td>";
+                    $tableHTML .= "<td colspan='3' style='text-align: right; padding-right: 10px;'>" . __m('Current Data:') . "</td>";
                     $tableHTML .= "<td>{$e($existing['payer'])}</td>";
                     $tableHTML .= "<td>{$e($existing['IBAN'])}</td>";
                     $tableHTML .= "<td>{$e($existing['BIC'])}</td>";
@@ -435,10 +436,10 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             </script>";
 
             $tableHTML .= "<div class='success' style='margin-top: 20px;'>";
-            $tableHTML .= "<strong>" . __('Summary:') . "</strong><br/>";
-            $tableHTML .= __('New records:') . " {$newCount}<br/>";
-            $tableHTML .= __('Existing records:') . " {$existingCount}<br/>";
-            $tableHTML .= __('Errors:') . " {$errorCount}<br/>";
+            $tableHTML .= "<strong>" . __m('Summary:') . "</strong><br/>";
+            $tableHTML .= __m('New records:') . " {$newCount}<br/>";
+            $tableHTML .= __m('Existing records:') . " {$existingCount}<br/>";
+            $tableHTML .= __m('Errors:') . " {$errorCount}<br/>";
             $tableHTML .= "</div>";
 
             // Add table as a custom row
@@ -447,7 +448,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
             $row = $form->addRow();
             $row->addFooter();
-            $row->addSubmit(__('Proceed to Import'));
+            $row->addSubmit(__m('Proceed to Import'));
 
             echo $form->getOutput();
         }
@@ -456,7 +457,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
     else if ($step == 4) {
         $data = $_SESSION[$guid]['sepaValidData'] ?? null;
         if (empty($data)) {
-            $page->addError(__('Invalid data'));
+            $page->addError(__m('Invalid data'));
             return;
         }
 
@@ -528,11 +529,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
             }
 
             // Display results
-            echo "<h3>" . __('Import Results') . "</h3>";
+            echo "<h3>" . __m('Import Results') . "</h3>";
 
             if ($insertedCount > 0) {
                 echo "<div class='success'>";
-                echo "<strong>" . sprintf(__('Successfully inserted %d new records'), $insertedCount) . "</strong>";
+                echo "<strong>" . sprintf(__m('Successfully inserted %d new records'), $insertedCount) . "</strong>";
                 if (!empty($insertedRows)) {
                     echo "<ul><li>" . implode("</li><li>", $insertedRows) . "</li></ul>";
                 }
@@ -541,7 +542,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
             if ($updatedCount > 0) {
                 echo "<div class='success'>";
-                echo "<strong>" . sprintf(__('Successfully updated %d existing records'), $updatedCount) . "</strong>";
+                echo "<strong>" . sprintf(__m('Successfully updated %d existing records'), $updatedCount) . "</strong>";
                 if (!empty($updatedRows)) {
                     echo "<ul><li>" . implode("</li><li>", $updatedRows) . "</li></ul>";
                 }
@@ -550,7 +551,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
             if ($skippedCount > 0) {
                 echo "<div class='warning'>";
-                echo "<strong>" . sprintf(__('Skipped %d existing records (not selected for update)'), $skippedCount) . "</strong>";
+                echo "<strong>" . sprintf(__m('Skipped %d existing records (not selected for update)'), $skippedCount) . "</strong>";
                 if (!empty($skippedRows)) {
                     echo "<ul><li>" . implode("</li><li>", $skippedRows) . "</li></ul>";
                 }
@@ -559,7 +560,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
             if ($errorCount > 0) {
                 echo "<div class='error'>";
-                echo "<strong>" . sprintf(__('Failed to process %d records'), $errorCount) . "</strong>";
+                echo "<strong>" . sprintf(__m('Failed to process %d records'), $errorCount) . "</strong>";
                 if (!empty($errorRows)) {
                     echo "<ul><li>" . implode("</li><li>", $errorRows) . "</li></ul>";
                 }
@@ -568,11 +569,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_data.php"
 
             // Display overall summary
             echo "<div class='success' style='margin-top: 20px;'>";
-            echo "<strong>" . __('Summary:') . "</strong><br/>";
-            echo __('Inserted:') . " {$insertedCount}<br/>";
-            echo __('Updated:') . " {$updatedCount}<br/>";
-            echo __('Skipped:') . " {$skippedCount}<br/>";
-            echo __('Errors:') . " {$errorCount}<br/>";
+            echo "<strong>" . __m('Summary:') . "</strong><br/>";
+            echo __m('Inserted:') . " {$insertedCount}<br/>";
+            echo __m('Updated:') . " {$updatedCount}<br/>";
+            echo __m('Skipped:') . " {$skippedCount}<br/>";
+            echo __m('Errors:') . " {$errorCount}<br/>";
             echo "</div>";
 
             // Clear session data

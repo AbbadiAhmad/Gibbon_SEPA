@@ -18,10 +18,10 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $page->breadcrumbs
-        ->add(__('Manage SEPA Payment Entries'));
+        ->add(__m('Manage SEPA Payment Entries'));
 
     $SepaGateway = $container->get(SepaGateway::class);
 
@@ -38,13 +38,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.p
     $form = Form::createSearch();
 
     $row = $form->addRow();
-        $row->addLabel('search', __('Search For'))
-            ->description(__('payer, booking date, amount, transaction message, transaction reference, note'));
+        $row->addLabel('search', __m('Search For'))
+            ->description(__m('payer, booking date, amount, transaction message, transaction reference, note'));
         $row->addTextField('search')->setValue($criteria->getSearchText());
 
     sepaAddSchoolYearRow($form, $schoolYears, $schoolYearID);
 
-    $form->addRow()->addSearchSubmit('', __('Clear Search'));
+    $form->addRow()->addSearchSubmit('', __m('Clear Search'));
 
     echo $form->getOutput();
 
@@ -52,64 +52,64 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_manage.p
 
     // DATA TABLE
     $table = DataTable::createPaginated('payments', $criteria);
-    $table->setTitle(__('Manage SEPA Payment Entries'));
+    $table->setTitle(__m('Manage SEPA Payment Entries'));
 
-    $table->addHeaderAction('add', __('Add'))
+    $table->addHeaderAction('add', __m('Add'))
         ->setURL('/modules/Sepa/sepa_payment_add.php')
         ->addParam('search', $search)
         ->addParam('schoolYearID', $schoolYearID)
         ->displayLabel();
 
     $table->addMetaData('filterOptions', [
-        'payment_method:card' => __('Payment Method').': '.__('Card'),
-        'payment_method:cash' => __('Payment Method').': '.__('Cash'),
-        'payment_method:bank_transfer' => __('Payment Method').': '.__('Bank Transfer'),
+        'payment_method:card' => __m('Payment Method').': '.__m('Card'),
+        'payment_method:cash' => __m('Payment Method').': '.__m('Cash'),
+        'payment_method:bank_transfer' => __m('Payment Method').': '.__m('Bank Transfer'),
     ]);
 
-    $table->addColumn('booking_date', __('Booking Date'))
+    $table->addColumn('booking_date', __m('Booking Date'))
         ->sortable(['booking_date']);
 
-    $table->addColumn('payer', __('payer'))
+    $table->addColumn('payer', __m('payer'))
         ->sortable(['payer']);
-    $table->addColumn('familyName', __('Family Name'))
+    $table->addColumn('familyName', __m('Family Name'))
         ->sortable(['familyName']);
 
-    $table->addColumn('amount', __('Amount'))
+    $table->addColumn('amount', __m('Amount'))
         ->sortable(['amount']);
 
-    $table->addColumn('payment_method', __('Payment Method'))
+    $table->addColumn('payment_method', __m('Payment Method'))
         ->sortable(['payment_method']);
 
-    $table->addColumn('transaction_message', __('Transaction Message'))
+    $table->addColumn('transaction_message', __m('Transaction Message'))
         ->sortable(['transaction_message']);
 
-    $table->addColumn('yearName', __('Academic Year'))
+    $table->addColumn('yearName', __m('Academic Year'))
         ->sortable(['yearName']);
 
-    $table->addColumn('IBAN', __('IBAN'))
+    $table->addColumn('IBAN', __m('IBAN'))
         ->notSortable()
         ->format(function ($row) {
             return htmlspecialchars(IbanCipher::format(IbanCipher::decryptForDisplay($row['IBAN'])), ENT_QUOTES, 'UTF-8');
         });
 
-    $table->addColumn('transaction_reference', __('Transaction Reference'))
+    $table->addColumn('transaction_reference', __m('Transaction Reference'))
         ->sortable(['transaction_reference']);
 
-    $table->addColumn('note', __('Note'))
+    $table->addColumn('note', __m('Note'))
         ->sortable(['note']);
 
-    $table->addColumn('gibbonUser', __('Entry User'))
+    $table->addColumn('gibbonUser', __m('Entry User'))
         ->sortable(['gibbonUser']);
 
-    // $table->addColumn('timestamp', __('Entry Timestamp'))
+    // $table->addColumn('timestamp', __m('Entry Timestamp'))
     //     ->sortable(['timestamp']);
 
     $table->addActionColumn()
         ->addParam('gibbonSEPAPaymentRecordID')
         ->format(function ($values, $actions) {
-            $actions->addAction('edit', __('Edit'))
+            $actions->addAction('edit', __m('Edit'))
                 ->setURL('/modules/Sepa/sepa_payment_edit.php');
-            $actions->addAction('delete', __('Delete'))
+            $actions->addAction('delete', __m('Delete'))
                 ->setURL('/modules/Sepa/sepa_payment_delete.php');
         });
 

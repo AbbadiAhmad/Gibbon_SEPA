@@ -28,7 +28,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
 
 
     if (empty($gibbonSEPAPaymentRecordID)) {
-        $page->addError(__('Invalid payment entry.'));
+        $page->addError(__m('Invalid payment entry.'));
         return;
     }
 

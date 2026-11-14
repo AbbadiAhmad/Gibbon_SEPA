@@ -15,7 +15,7 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustment_delete.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -25,20 +25,20 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
 
 
     if (empty($gibbonSEPAPaymentAdjustmentID)) {
-        $page->addError(__('You have not specified one or more required parameters.'));
+        $page->addError(__m('You have not specified one or more required parameters.'));
         return;
     }
 
     $page->breadcrumbs
-        ->add(__('Payment Adjustment'), '/sepa_payment_adjustment_manage.php')
-        ->add(__('Delete Ajustment'));
+        ->add(__m('Payment Adjustment'), '/sepa_payment_adjustment_manage.php')
+        ->add(__m('Delete Ajustment'));
 
     $adjustmentGateway = $container->get(SepaPaymentAdjustmentGateway::class);
 
     $payment_adjustment = $adjustmentGateway->getAdjustmentByID($gibbonSEPAPaymentAdjustmentID);
 
     if (empty($payment_adjustment)) {
-        $page->addError(__('The specified payment_adjustment cannot be found.'));
+        $page->addError(__m('The specified payment_adjustment cannot be found.'));
         return;
     }
 
@@ -50,12 +50,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_adjustme
     $form->addHiddenValue('family_details', $family_details);
 
     $row = $form->addRow();
-    $row->addLabel('delete', __('Are you sure you want to delete this payment_adjustment?'));
-    $row->addTextArea('delete')->setValue(__('This operation cannot be undone, and may lead to loss of vital data in your system. PROCEED WITH CAUTION!'))->readonly();
+    $row->addLabel('delete', __m('Are you sure you want to delete this payment_adjustment?'));
+    $row->addTextArea('delete')->setValue(__m('This operation cannot be undone, and may lead to loss of vital data in your system. PROCEED WITH CAUTION!'))->readonly();
 
     $row = $form->addRow();
     $row->addFooter();
-    $row->addSubmit(__('Delete'));
+    $row->addSubmit(__m('Delete'));
 
     echo $form->getOutput();
 }

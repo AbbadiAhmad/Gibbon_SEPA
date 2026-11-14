@@ -26,11 +26,11 @@ use Gibbon\Module\Sepa\Security\IbanCipher;
 require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_merge.php')) {
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
     return;
 }
 
-$page->breadcrumbs->add(__('Merge Families'));
+$page->breadcrumbs->add(__m('Merge Families'));
 
 $_GET = $container->get(Validator::class)->sanitize($_GET);
 $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -47,7 +47,7 @@ $merger = new FamilyMerger($connection2);
 
 // Result of the last merge (set by the process page)
 if (!empty($_SESSION[$guid]['sepaMergeReport'])) {
-    echo '<div class="success"><strong>' . __('The families have been merged.') . '</strong><ul>';
+    echo '<div class="success"><strong>' . __m('The families have been merged.') . '</strong><ul>';
     foreach ($_SESSION[$guid]['sepaMergeReport'] as $line) {
         echo '<li>' . $esc($line) . '</li>';
     }
@@ -60,7 +60,7 @@ $source = $isPreview ? $_POST : $_GET;
 $keepFamilyID = FamilyMerger::id($source['keepFamilyID'] ?? 0);
 $dropFamilyID = FamilyMerger::id($source['dropFamilyID'] ?? 0);
 
-echo '<p>' . __('Use this when one family was registered twice (for example once by the mother and once by the father). The members, the family data and the SEPA of the second family are moved into the family to keep.') . '</p>';
+echo '<p>' . __m('Use this when one family was registered twice (for example once by the mother and once by the father). The members, the family data and the SEPA of the second family are moved into the family to keep.') . '</p>';
 
 // STEP 1: choose the two families
 $options = $merger->getFamilyOptions();
@@ -68,33 +68,33 @@ $form = Form::create('mergePick', $session->get('absoluteURL') . '/index.php', '
 $form->setClass('noIntBorder fullWidth');
 $form->addHiddenValue('q', '/modules/Sepa/sepa_family_merge.php');
 $row = $form->addRow();
-$row->addLabel('keepFamilyID', __('Family to keep'))->description(__('The users, family data and SEPA are merged into this family.'));
+$row->addLabel('keepFamilyID', __m('Family to keep'))->description(__m('The users, family data and SEPA are merged into this family.'));
 $row->addSelect('keepFamilyID')->fromArray($options)->selected($keepFamilyID ?: '')->placeholder()->required();
 $row = $form->addRow();
-$row->addLabel('dropFamilyID', __('Family to merge into it'))->description(__('This family is emptied, its SEPA is merged and then deleted.'));
+$row->addLabel('dropFamilyID', __m('Family to merge into it'))->description(__m('This family is emptied, its SEPA is merged and then deleted.'));
 $row->addSelect('dropFamilyID')->fromArray($options)->selected($dropFamilyID ?: '')->placeholder()->required();
 $row = $form->addRow();
-$row->addSubmit(__('Compare'));
+$row->addSubmit(__m('Compare'));
 echo $form->getOutput();
 
 if ($keepFamilyID <= 0 || $dropFamilyID <= 0) {
     return;
 }
 if ($keepFamilyID === $dropFamilyID) {
-    $page->addError(__('A family can not be merged into itself.'));
+    $page->addError(__m('A family can not be merged into itself.'));
     return;
 }
 
 $keepFamily = $merger->getFamily($keepFamilyID);
 $dropFamily = $merger->getFamily($dropFamilyID);
 if (!$keepFamily || !$dropFamily) {
-    $page->addError(__('The specified record cannot be found.'));
+    $page->addError(__m('The specified record cannot be found.'));
     return;
 }
 $sepaRows = ['keep' => $merger->getSepaRows($keepFamilyID), 'drop' => $merger->getSepaRows($dropFamilyID)];
 foreach ($sepaRows as $rows) {
     if (count($rows) > 1) {
-        $page->addError(__('A family has more than one SEPA. Fix this first.'));
+        $page->addError(__m('A family has more than one SEPA. Fix this first.'));
         return;
     }
 }
@@ -140,9 +140,9 @@ if ($isPreview) {
     // a table with one radio pair per field that differs
     $choiceTable = function ($fieldPrefix, array $rows, $leftTitle, $rightTitle) use ($esc) {
         if (empty($rows)) {
-            return '<p><em>' . __('Nothing differs, nothing to choose.') . '</em></p>';
+            return '<p><em>' . __m('Nothing differs, nothing to choose.') . '</em></p>';
         }
-        $html = '<table class="fullWidth colorOddEven"><thead><tr><th>' . __('Field') . '</th><th>' . $esc($leftTitle) . '</th><th>' . $esc($rightTitle) . '</th></tr></thead><tbody>';
+        $html = '<table class="fullWidth colorOddEven"><thead><tr><th>' . __m('Field') . '</th><th>' . $esc($leftTitle) . '</th><th>' . $esc($rightTitle) . '</th></tr></thead><tbody>';
         foreach ($rows as $field => [$left, $right]) {
             $name = $fieldPrefix . '[' . $field . ']';
             // keep the value of the first column unless it is empty
@@ -166,28 +166,28 @@ if ($isPreview) {
     }
     foreach ($plan['targetAction'] as $personID => $action) {
         if ($action === 'remove') {
-            $summary .= '<li>' . sprintf(__('%s is removed from %s.'), $personName($allMembers[$personID]), $esc($keepFamily['name'])) . '</li>';
+            $summary .= '<li>' . sprintf(__m('%s is removed from %s.'), $personName($allMembers[$personID]), $esc($keepFamily['name'])) . '</li>';
         }
     }
     foreach ($plan['sourceAction'] as $personID => $action) {
         $name = $personName($allMembers[$personID]);
         if ($action === 'move') {
-            $summary .= '<li>' . sprintf(__('%s moves to %s.'), $name, $esc($keepFamily['name'])) . '</li>';
+            $summary .= '<li>' . sprintf(__m('%s moves to %s.'), $name, $esc($keepFamily['name'])) . '</li>';
         } elseif ($action === 'remove') {
-            $summary .= '<li>' . sprintf(__('%s is removed from %s (the user itself is not deleted).'), $name, $esc($dropFamily['name'])) . '</li>';
+            $summary .= '<li>' . sprintf(__m('%s is removed from %s (the user itself is not deleted).'), $name, $esc($dropFamily['name'])) . '</li>';
         } else {
-            $summary .= '<li>' . sprintf(__('%s is merged with %s.'), $name, $personName($allMembers[$plan['mergeInto'][$personID]])) . '</li>';
+            $summary .= '<li>' . sprintf(__m('%s is merged with %s.'), $name, $personName($allMembers[$plan['mergeInto'][$personID]])) . '</li>';
         }
     }
     if ($dropSepa && $keepSepa) {
         $counts = $merger->getSepaLinkCounts($dropSepa['gibbonSEPAID']);
-        $summary .= '<li>' . sprintf(__('The SEPA of %s is merged into the SEPA of %s: %d payments, %d adjustments and %d snapshots move over, then the SEPA is deleted.'), $esc($dropFamily['name']), $esc($keepFamily['name']), $counts['payments'], $counts['adjustments'], $counts['snapshots']) . '</li>';
+        $summary .= '<li>' . sprintf(__m('The SEPA of %s is merged into the SEPA of %s: %d payments, %d adjustments and %d snapshots move over, then the SEPA is deleted.'), $esc($dropFamily['name']), $esc($keepFamily['name']), $counts['payments'], $counts['adjustments'], $counts['snapshots']) . '</li>';
     } elseif ($dropSepa) {
-        $summary .= '<li>' . sprintf(__('The SEPA of %s moves to %s.'), $esc($dropFamily['name']), $esc($keepFamily['name'])) . '</li>';
+        $summary .= '<li>' . sprintf(__m('The SEPA of %s moves to %s.'), $esc($dropFamily['name']), $esc($keepFamily['name'])) . '</li>';
     }
-    $summary .= '<li>' . sprintf(__('The family %s stays as an empty family; delete it in the family administration when it is not needed.'), $esc($dropFamily['name'])) . '</li></ul>';
+    $summary .= '<li>' . sprintf(__m('The family %s stays as an empty family; delete it in the family administration when it is not needed.'), $esc($dropFamily['name'])) . '</li></ul>';
 
-    $form->addRow()->addHeading('Summary', __('What will happen'));
+    $form->addRow()->addHeading('Summary', __m('What will happen'));
     $form->addRow()->addContent($summary);
 
     // Family data
@@ -197,8 +197,8 @@ if ($isPreview) {
             $rows[$field] = [$keepFamily[$field], $dropFamily[$field]];
         }
     }
-    $form->addRow()->addHeading('Family data', __('Family data'));
-    $form->addRow()->addContent($choiceTable('familyFields', $rows, $keepFamily['name'] . ' (' . __('keep') . ')', $dropFamily['name']));
+    $form->addRow()->addHeading('Family data', __m('Family data'));
+    $form->addRow()->addContent($choiceTable('familyFields', $rows, $keepFamily['name'] . ' (' . __m('keep') . ')', $dropFamily['name']));
 
     // SEPA data
     if ($keepSepa && $dropSepa) {
@@ -213,33 +213,33 @@ if ($isPreview) {
                 $rows[$field] = [$keepSepa[$field], $dropSepa[$field]];
             }
         }
-        $form->addRow()->addHeading('SEPA data', __('SEPA data'));
+        $form->addRow()->addHeading('SEPA data', __m('SEPA data'));
         if ($ibanOf($keepSepa) !== '' && IbanCipher::normalize($ibanOf($keepSepa)) === IbanCipher::normalize($ibanOf($dropSepa))) {
-            $form->addRow()->addContent('<p>' . __('Both families use the same IBAN.') . '</p>');
+            $form->addRow()->addContent('<p>' . __m('Both families use the same IBAN.') . '</p>');
         }
-        $form->addRow()->addContent($choiceTable('sepaFields', $rows, $keepFamily['name'] . ' (' . __('keep') . ')', $dropFamily['name']));
+        $form->addRow()->addContent($choiceTable('sepaFields', $rows, $keepFamily['name'] . ' (' . __m('keep') . ')', $dropFamily['name']));
     }
 
     // Users that are merged
     if (!empty($plan['mergeInto'])) {
-        $form->addRow()->addHeading('Merged users', __('Merged users'));
+        $form->addRow()->addHeading('Merged users', __m('Merged users'));
         foreach ($plan['mergeInto'] as $sourceID => $targetID) {
             $target = $merger->getPerson($targetID);
             $sourcePerson = $merger->getPerson($sourceID);
-            $form->addRow()->addContent('<h4>' . sprintf(__('%s (kept) and %s'), $personName($target), $personName($sourcePerson)) . '</h4>');
-            $form->addRow()->addContent($choiceTable('personFields[' . (int) $sourceID . ']', $merger->getPersonDifferences($target, $sourcePerson), __('Keep user') . ' ' . $targetID, __('Other user') . ' ' . $sourceID));
+            $form->addRow()->addContent('<h4>' . sprintf(__m('%s (kept) and %s'), $personName($target), $personName($sourcePerson)) . '</h4>');
+            $form->addRow()->addContent($choiceTable('personFields[' . (int) $sourceID . ']', $merger->getPersonDifferences($target, $sourcePerson), __m('Keep user') . ' ' . $targetID, __m('Other user') . ' ' . $sourceID));
         }
         $row = $form->addRow();
-        $row->addLabel('moveRelated', __('Move all other records'))->description(__('Enrolments, attendance and everything else of the other user move to the kept user. The other user is set to Left and can not log in. Without it, only the family link and the chosen data are merged.'));
+        $row->addLabel('moveRelated', __m('Move all other records'))->description(__m('Enrolments, attendance and everything else of the other user move to the kept user. The other user is set to Left and can not log in. Without it, only the family link and the chosen data are merged.'));
         $row->addCheckbox('moveRelated')->setValue('1')->checked('1');
     }
 
     $row = $form->addRow();
-    $row->addContent('<a href="' . $esc($pageURL . '&keepFamilyID=' . $keepFamilyID . '&dropFamilyID=' . $dropFamilyID) . '">' . __('Back') . '</a>');
-    $row->addSubmit(__('Merge families'));
+    $row->addContent('<a href="' . $esc($pageURL . '&keepFamilyID=' . $keepFamilyID . '&dropFamilyID=' . $dropFamilyID) . '">' . __m('Back') . '</a>');
+    $row->addSubmit(__m('Merge families'));
 
-    echo '<h2>' . __('Check and merge') . '</h2>';
-    echo '<div class="warning">' . __('The merge changes the data of the users and the SEPA and can not be undone. Make a database backup first.') . '</div>';
+    echo '<h2>' . __m('Check and merge') . '</h2>';
+    echo '<div class="warning">' . __m('The merge changes the data of the users and the SEPA and can not be undone. Make a database backup first.') . '</div>';
     echo $form->getOutput();
     return;
 }
@@ -259,25 +259,25 @@ $infoTable = function (array $rows) use ($esc) {
 
 $sepaInfo = function ($sepa) use ($merger, $ibanOf, $infoTable) {
     if (!$sepa) {
-        return '<p><em>' . __('This family has no SEPA.') . '</em></p>';
+        return '<p><em>' . __m('This family has no SEPA.') . '</em></p>';
     }
     $counts = $merger->getSepaLinkCounts($sepa['gibbonSEPAID']);
     return $infoTable([
-        __('Payer') => $sepa['payer'],
-        __('IBAN') => $ibanOf($sepa),
-        __('BIC') => $sepa['BIC'],
-        __('Withdrawal cadence') => $sepa['withdrawCadence'],
-        __('Preferred withdrawal day') => $sepa['withdrawDay'],
-        __('Date of SEPA signature') => $sepa['SEPA_signedDate'],
-        __('Payments / adjustments') => $counts['payments'] . ' / ' . $counts['adjustments'],
+        __m('Payer') => $sepa['payer'],
+        __m('IBAN') => $ibanOf($sepa),
+        __m('BIC') => $sepa['BIC'],
+        __m('Withdrawal cadence') => $sepa['withdrawCadence'],
+        __m('Preferred withdrawal day') => $sepa['withdrawDay'],
+        __m('Date of SEPA signature') => $sepa['SEPA_signedDate'],
+        __m('Payments / adjustments') => $counts['payments'] . ' / ' . $counts['adjustments'],
     ]);
 };
 
 $familyInfo = function ($family) use ($infoTable) {
     return $infoTable([
-        __('Name') => $family['name'],
-        __('Status') => $family['status'] ?? '',
-        __('Address') => trim(($family['homeAddress'] ?? '') . ' ' . ($family['homeAddressDistrict'] ?? '') . ' ' . ($family['homeAddressCountry'] ?? '')),
+        __m('Name') => $family['name'],
+        __m('Status') => $family['status'] ?? '',
+        __m('Address') => trim(($family['homeAddress'] ?? '') . ' ' . ($family['homeAddressDistrict'] ?? '') . ' ' . ($family['homeAddressCountry'] ?? '')),
     ]);
 };
 
@@ -309,28 +309,28 @@ $memberRows = function ($side, $role) use ($members, $personName, $esc, $suggest
         $detail = $esc(trim($person['email'] . ' ' . ($person['dob'] ? '(' . $person['dob'] . ')' : '')));
         $select = '';
         if ($side === 'keep') {
-            $select = '<select name="targetAction[' . $personID . ']"><option value="keep">' . __('Keep in family') . '</option><option value="remove">' . __('Remove from family') . '</option></select>';
+            $select = '<select name="targetAction[' . $personID . ']"><option value="keep">' . __m('Keep in family') . '</option><option value="remove">' . __m('Remove from family') . '</option></select>';
         } else {
-            $select = '<select name="sourceAction[' . $personID . ']"><option value="move">' . __('Move to the family to keep') . '</option><option value="remove">' . __('Remove from family (do not move)') . '</option>';
+            $select = '<select name="sourceAction[' . $personID . ']"><option value="move">' . __m('Move to the family to keep') . '</option><option value="remove">' . __m('Remove from family (do not move)') . '</option>';
             foreach ($members['keep'][$role] as $keep) {
                 $keepID = FamilyMerger::id($keep['gibbonPersonID']);
                 $selected = ($suggestions[$personID] ?? null) === $keepID ? ' selected' : '';
-                $select .= '<option value="merge:' . $keepID . '"' . $selected . '>' . sprintf(__('Same user as %s (merge)'), $personName($keep)) . '</option>';
+                $select .= '<option value="merge:' . $keepID . '"' . $selected . '>' . sprintf(__m('Same user as %s (merge)'), $personName($keep)) . '</option>';
             }
             $select .= '</select>';
         }
         $html .= '<tr><td>' . $personName($person) . '<br><small>' . $detail . ' ' . $esc($person['status']) . '</small></td><td>' . $select . '</td></tr>';
     }
-    return $html ?: '<tr><td colspan="2"><em>' . __('None') . '</em></td></tr>';
+    return $html ?: '<tr><td colspan="2"><em>' . __m('None') . '</em></td></tr>';
 };
 
 $column = function ($side, $family, $sepa, $title) use ($familyInfo, $sepaInfo, $memberRows) {
     return '<div style="flex:1 1 440px;min-width:320px;border:1px solid #bbb;padding:0.75rem;box-sizing:border-box">'
         . '<h3 style="margin-top:0">' . $title . '</h3>'
         . $familyInfo($family)
-        . '<h4>' . __('SEPA') . '</h4>' . $sepaInfo($sepa)
-        . '<h4>' . __('Adults') . '</h4><table class="fullWidth"><tbody>' . $memberRows($side, 'Adult') . '</tbody></table>'
-        . '<h4>' . __('Children') . '</h4><table class="fullWidth"><tbody>' . $memberRows($side, 'Child') . '</tbody></table>'
+        . '<h4>' . __m('SEPA') . '</h4>' . $sepaInfo($sepa)
+        . '<h4>' . __m('Adults') . '</h4><table class="fullWidth"><tbody>' . $memberRows($side, 'Adult') . '</tbody></table>'
+        . '<h4>' . __m('Children') . '</h4><table class="fullWidth"><tbody>' . $memberRows($side, 'Child') . '</tbody></table>'
         . '</div>';
 };
 
@@ -342,18 +342,18 @@ $form->addHiddenValue('keepFamilyID', $keepFamilyID);
 $form->addHiddenValue('dropFamilyID', $dropFamilyID);
 
 $sideBySide = '<div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start">'
-    . $column('keep', $keepFamily, $keepSepa, sprintf(__('Keep: %s'), $esc($keepFamily['name'])))
-    . $column('drop', $dropFamily, $dropSepa, sprintf(__('Merge into it: %s'), $esc($dropFamily['name'])))
+    . $column('keep', $keepFamily, $keepSepa, sprintf(__m('Keep: %s'), $esc($keepFamily['name'])))
+    . $column('drop', $dropFamily, $dropSepa, sprintf(__m('Merge into it: %s'), $esc($dropFamily['name'])))
     . '</div>';
 
-$form->addRow()->addContent('<p><a href="' . $esc($swapURL) . '">' . __('Swap the two families') . '</a></p>'
-    . ($sameIban ? '<p><strong>' . __('Both families use the same IBAN.') . '</strong></p>' : '')
+$form->addRow()->addContent('<p><a href="' . $esc($swapURL) . '">' . __m('Swap the two families') . '</a></p>'
+    . ($sameIban ? '<p><strong>' . __m('Both families use the same IBAN.') . '</strong></p>' : '')
     . $sideBySide
-    . '<p>' . __('Choose per user what happens. Users registered in both families are suggested as "Same user"; the field-by-field choice follows in the next step.') . '</p>');
+    . '<p>' . __m('Choose per user what happens. Users registered in both families are suggested as "Same user"; the field-by-field choice follows in the next step.') . '</p>');
 
 $row = $form->addRow();
 $row->addFooter();
-$row->addSubmit(__('Next: choose the data'));
+$row->addSubmit(__m('Next: choose the data'));
 
-echo '<h2>' . __('Compare the families') . '</h2>';
+echo '<h2>' . __m('Compare the families') . '</h2>';
 echo $form->getOutput();

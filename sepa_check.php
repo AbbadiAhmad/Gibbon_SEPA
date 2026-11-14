@@ -25,9 +25,9 @@ use Gibbon\Data\Validator;
 require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
-    $page->breadcrumbs->add(__('Check SEPA Data'));
+    $page->breadcrumbs->add(__m('Check SEPA Data'));
 
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $SepaGateway = $container->get(SepaGateway::class);
@@ -39,13 +39,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
     $form->addHiddenValue('q', '/modules/Sepa/sepa_check.php');
 
     $row = $form->addRow();
-    $row->addLabel('schoolYearID', __('Academic Year'))->description(__('Families with enrolled students in this year must have a SEPA.'));
+    $row->addLabel('schoolYearID', __m('Academic Year'))->description(__m('Families with enrolled students in this year must have a SEPA.'));
     $row->addSelect('schoolYearID')->fromArray($SepaGateway->getAllSchoolYears())->selected($schoolYearID);
 
     $row = $form->addRow();
-    $row->addLabel('balanceFilter', __('Check'))->description(__('The balance is the balance of the selected academic year.'));
+    $row->addLabel('balanceFilter', __m('Check'))->description(__m('The balance is the balance of the selected academic year.'));
     $row->addSelect('balanceFilter')
-        ->fromArray(['nonzero' => __('Only SEPAs with a balance not zero'), 'all' => __('All SEPAs')])
+        ->fromArray(['nonzero' => __m('Only SEPAs with a balance not zero'), 'all' => __m('All SEPAs')])
         ->selected($balanceFilter);
 
     // Column filters
@@ -57,19 +57,19 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
     sort($problems);
 
     $row = $form->addRow();
-    $row->addLabel('severity', __('Type'));
-    $row->addSelect('severity')->fromArray(['Error' => __('Error'), 'Warning' => __('Warning')])->selected($severity)->placeholder(__('All'));
+    $row->addLabel('severity', __m('Type'));
+    $row->addSelect('severity')->fromArray(['Error' => __m('Error'), 'Warning' => __m('Warning')])->selected($severity)->placeholder(__m('All'));
 
     $row = $form->addRow();
-    $row->addLabel('problem', __('Problem'));
-    $row->addSelect('problem')->fromArray(array_combine($problems, $problems))->selected($problem)->placeholder(__('All'));
+    $row->addLabel('problem', __m('Problem'));
+    $row->addSelect('problem')->fromArray(array_combine($problems, $problems))->selected($problem)->placeholder(__m('All'));
 
     $row = $form->addRow();
-    $row->addLabel('search', __('Family / Payer'));
+    $row->addLabel('search', __m('Family / Payer'));
     $row->addTextField('search')->setValue($search);
 
     $row = $form->addRow();
-    $row->addSubmit(__('Check'));
+    $row->addSubmit(__m('Check'));
     echo $form->getOutput();
 
     $issues = SepaGateway::filterSEPAIssues($allIssues, $severity, $problem, $search);
@@ -78,14 +78,14 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
         return $i['severity'] === 'Error';
     }));
     echo sepaMissingFeesWarning($SepaGateway, $schoolYearID, $session->get('absoluteURL'));
-    echo '<h2>' . __('Check SEPA Data') . '</h2>';
+    echo '<h2>' . __m('Check SEPA Data') . '</h2>';
     if (empty($issues)) {
-        echo "<div class='success'>" . __('No problems found.') . '</div>';
+        echo "<div class='success'>" . __m('No problems found.') . '</div>';
     } else {
-        echo "<div class='" . ($errors ? 'error' : 'warning') . "'>" . sprintf(__('%1$d errors and %2$d warnings found.'), $errors, count($issues) - $errors) . '</div>';
+        echo "<div class='" . ($errors ? 'error' : 'warning') . "'>" . sprintf(__m('%1$d errors and %2$d warnings found.'), $errors, count($issues) - $errors) . '</div>';
 
         $table = DataTable::create('sepaCheck');
-        $table->addHeaderAction('export', __('Export to Excel'))
+        $table->addHeaderAction('export', __m('Export to Excel'))
             ->setURL('/modules/Sepa/sepa_check_export.php')
             ->addParam('schoolYearID', $schoolYearID)
             ->addParam('balanceFilter', $balanceFilter)
@@ -94,27 +94,27 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_check.php')) {
             ->addParam('search', $search)
             ->directLink()
             ->displayLabel();
-        $table->addColumn('severity', __('Type'))->format(function ($row) {
+        $table->addColumn('severity', __m('Type'))->format(function ($row) {
             return $row['severity'] === 'Error'
-                ? '<span style="color: red; font-weight: bold;">' . __('Error') . '</span>'
-                : '<span style="color: #c60;">' . __('Warning') . '</span>';
+                ? '<span style="color: red; font-weight: bold;">' . __m('Error') . '</span>'
+                : '<span style="color: #c60;">' . __m('Warning') . '</span>';
         });
-        $table->addColumn('familyName', __('Family'));
-        $table->addColumn('payer', __('Payer'));
-        $table->addColumn('balance', __('Balance'))->format(function ($row) {
+        $table->addColumn('familyName', __m('Family'));
+        $table->addColumn('payer', __m('Payer'));
+        $table->addColumn('balance', __m('Balance'))->format(function ($row) {
             return number_format($row['balance'], 2);
         });
-        $table->addColumn('problem', __('Problem'));
+        $table->addColumn('problem', __m('Problem'));
         $canMergeSepa = isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_merge.php');
         $table->addActionColumn()->format(function ($row, $actions) use ($schoolYearID, $balanceFilter, $severity, $problem, $search, $canMergeSepa) {
             // Merge this SEPA with another SEPA (needs the Merge SEPA permission)
             if ($canMergeSepa && !empty($row['sepa'])) {
-                $actions->addAction('merge', __('Merge with other SEPA'))
+                $actions->addAction('merge', __m('Merge with other SEPA'))
                     ->setIcon('copy')
                     ->setURL('/modules/Sepa/sepa_merge.php')
                     ->addParam('gibbonSEPAID', $row['sepa']['gibbonSEPAID']);
             }
-            $action = $actions->addAction($row['link'][0], $row['link'][0] === 'add' ? __('Add SEPA') : __('Edit'))
+            $action = $actions->addAction($row['link'][0], $row['link'][0] === 'add' ? __m('Add SEPA') : __m('Edit'))
                 ->setURL($row['link'][1]);
             foreach ($row['link'][2] as $name => $value) {
                 $action->addParam($name, $value);

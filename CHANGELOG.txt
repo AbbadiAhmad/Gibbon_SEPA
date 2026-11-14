@@ -39,3 +39,5 @@ v2.7.3: Signature date for a SEPA without a date: zero dates count as no date, t
 v2.7.4: SEPA check treats a zero signature date (0000-00-00) as missing.
 v2.8.0: Families without SEPA can enter a new SEPA for approval (same flow: entered data, flags, change/discard, approval with per-field accept and corrections); the SEPA is created on approval.
 v2.8.1: New SEPA entered by a family: withdrawal day defaults to 5 and the date of signature to the day the family entered the data.
+v2.8.2: The module texts are translated: German (de_DE) and Arabic (ar_SA) in i18n/, English texts use __m() (module translation domain 'Sepa'); a text without translation stays English.
+v2.8.3: Removed the development notice on the family payments page; the menu texts (action names) are translated too.

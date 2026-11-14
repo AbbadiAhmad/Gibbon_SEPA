@@ -29,9 +29,9 @@ require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_payment_view.php')) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
-    $page->breadcrumbs->add(__('Unlinked SEPA Payment Entries')); // show page navigation link
+    $page->breadcrumbs->add(__m('Unlinked SEPA Payment Entries')); // show page navigation link
 
     $SepaGateway = $container->get(SepaGateway::class);
     $criteria = $SepaGateway->newQueryCriteria(true)
@@ -43,7 +43,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
     $filter->setClass('noIntBorder fullWidth');
     $filter->addHiddenValue('q', '/modules/Sepa/sepa_unlinked_payment_view.php');
     sepaAddSchoolYearRow($filter, $SepaGateway->getAllSchoolYears(), $schoolYearID);
-    $filter->addRow()->addSubmit(__('Go'));
+    $filter->addRow()->addSubmit(__m('Go'));
     echo $filter->getOutput();
 
     // Display auto-link results if available
@@ -54,13 +54,13 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
             $notLinked = $_GET['notLinked'] ?? 0;
             $multiple = $_GET['multiple'] ?? 0;
 
-            $message = __('Auto-link completed:') . '<br/>';
-            $message .= __('Successfully linked:') . ' ' . $linked . '<br/>';
+            $message = __m('Auto-link completed:') . '<br/>';
+            $message .= __m('Successfully linked:') . ' ' . $linked . '<br/>';
             if ($multiple > 0) {
-                $message .= __('Multiple matches found (not linked):') . ' ' . $multiple . '<br/>';
+                $message .= __m('Multiple matches found (not linked):') . ' ' . $multiple . '<br/>';
             }
             if ($notLinked > 0) {
-                $message .= __('No match found:') . ' ' . $notLinked;
+                $message .= __m('No match found:') . ' ' . $notLinked;
             }
 
             if ($linked > 0) {
@@ -78,31 +78,31 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_unlinked_paymen
     $unlinkedPayments = $SepaGateway->getUnlinkedPayments($criteria, $schoolYearID);
 
     // DATA TABLE
-    echo '<h2>' . __('View Unlinked Payment Entries') . '</h2>';
+    echo '<h2>' . __m('View Unlinked Payment Entries') . '</h2>';
 
     // Add auto-link button if there are unlinked payments
     if (count($unlinkedPayments) > 0) {
         echo '<div class="linkTop">';
         echo '<a class="button" href="' . $_SESSION[$guid]['absoluteURL'] . '/index.php?q=/modules/Sepa/sepa_unlinked_payment_autolink_process.php">';
-        echo __('Auto-Link All Payments');
+        echo __m('Auto-Link All Payments');
         echo '</a>';
         echo '</div>';
     }
 
     $table = DataTable::createPaginated('UnlinkedPaymentEntries', $criteria);
 
-    $table->addColumn('payer', __('SEPA owner'));
-    $table->addColumn('booking_date', __('Date'));
+    $table->addColumn('payer', __m('SEPA owner'));
+    $table->addColumn('booking_date', __m('Date'));
     if ($schoolYearID === 'all') {
-        $table->addColumn('yearName', __('Academic Year'));
+        $table->addColumn('yearName', __m('Academic Year'));
     }
-    $table->addColumn('amount', __('Amount'));
-    $table->addColumn('transaction_message', __('Message'));
+    $table->addColumn('amount', __m('Amount'));
+    $table->addColumn('transaction_message', __m('Message'));
     
     $table->addActionColumn()
         ->addParam('gibbonSEPAPaymentRecordID')
         ->format(function ($row, $actions) {
-            $actions->addAction('Add', __(''))
+            $actions->addAction('Add', '')
                 ->setURL('/modules/Sepa/sepa_payment_edit.php');
         });
 

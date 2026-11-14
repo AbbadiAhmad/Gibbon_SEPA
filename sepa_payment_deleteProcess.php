@@ -14,7 +14,7 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_delete.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -24,7 +24,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_delete.p
 
 
     if (empty($gibbonSEPAPaymentRecordID)) {
-        $page->addError(__('Invalid payment entry.'));
+        $page->addError(__m('Invalid payment entry.'));
         return;
     }
 

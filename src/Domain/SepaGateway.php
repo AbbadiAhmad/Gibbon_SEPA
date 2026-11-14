@@ -1,6 +1,8 @@
 <?php
 namespace Gibbon\Module\Sepa\Domain; //Replace ModuleName with your module's name, ommiting spaces
 
+require_once __DIR__ . '/../i18n.php';
+
 use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\QueryCriteria;
 use Gibbon\Domain\QueryableGateway;
@@ -48,9 +50,9 @@ class SepaGateway extends QueryableGateway
     public static function getWithdrawCadenceOptions()
     {
         return [
-            'Monthly' => __('Monthly'),
-            'HalfYearly' => __('Half-yearly'),
-            'Yearly' => __('Yearly'),
+            'Monthly' => __m('Monthly'),
+            'HalfYearly' => __m('Half-yearly'),
+            'Yearly' => __m('Yearly'),
         ];
     }
 
@@ -666,13 +668,13 @@ class SepaGateway extends QueryableGateway
         $problems = [];
         $enrolled = $row['dateEnrolled'] ?? null;
         if (!empty($enrolled) && !empty($row['dateUnenrolled']) && $row['dateUnenrolled'] < $enrolled) {
-            $problems[] = __('Unenrolled before enrolled');
+            $problems[] = __m('Unenrolled before enrolled');
         }
         if (!empty($enrolled) && !empty($row['personDateEnd']) && $row['personDateEnd'] < $enrolled) {
-            $problems[] = __('Left before enrolled');
+            $problems[] = __m('Left before enrolled');
         }
         if (!empty($row['startDate']) && !empty($row['lastDate']) && $row['lastDate'] < $row['startDate']) {
-            $problems[] = __('Calc. end before calc. start');
+            $problems[] = __m('Calc. end before calc. start');
         }
         return $problems;
     }
@@ -899,19 +901,19 @@ class SepaGateway extends QueryableGateway
         };
 
         foreach ($orphans as $sepa) {
-            $add('Error', __('The family of this SEPA does not exist (deleted)'), $sepa['gibbonFamilyID'], '', $sepa, $editLink($sepa), 'noFamily');
+            $add('Error', __m('The family of this SEPA does not exist (deleted)'), $sepa['gibbonFamilyID'], '', $sepa, $editLink($sepa), 'noFamily');
         }
 
         // Enrolled families without SEPA
         foreach ($enrolledFamilies as $familyID => $familyName) {
             if (empty($sepasByFamily[$familyID]) && $isIncluded($familyID)) {
-                $add('Error', __('No SEPA for a family with enrolled students'), $familyID, $familyName, null, ['add', '/modules/Sepa/sepa_family_add.php', ['gibbonFamilyID' => $familyID]]);
+                $add('Error', __m('No SEPA for a family with enrolled students'), $familyID, $familyName, null, ['add', '/modules/Sepa/sepa_family_add.php', ['gibbonFamilyID' => $familyID]]);
             }
         }
 
         foreach ($sepasByFamily as $familyID => $familySepas) {
             if (count($familySepas) > 1 && $isIncluded($familyID)) {
-                $add('Error', sprintf(__('%d SEPA records for one family'), count($familySepas)), $familyID, $familySepas[0]['familyName'], $familySepas[0], $editLink($familySepas[0]));
+                $add('Error', sprintf(__m('%d SEPA records for one family'), count($familySepas)), $familyID, $familySepas[0]['familyName'], $familySepas[0], $editLink($familySepas[0]));
             }
         }
 
@@ -931,34 +933,34 @@ class SepaGateway extends QueryableGateway
 
             // IBAN
             if ($iban === null) {
-                $report('Error', __('The IBAN can not be decrypted (wrong key or damaged data)'), 'decrypt');
+                $report('Error', __m('The IBAN can not be decrypted (wrong key or damaged data)'), 'decrypt');
             } elseif ($iban === '') {
-                $report('Error', __('IBAN is missing'));
+                $report('Error', __m('IBAN is missing'));
             } elseif (strpos($iban, '*') !== false) {
-                $report('Error', __('Only a masked IBAN is stored, the full IBAN has to be entered again'));
+                $report('Error', __m('Only a masked IBAN is stored, the full IBAN has to be entered again'));
             } else {
                 $clean = IbanCipher::normalize($iban);
                 if (strlen($clean) <= 4) {
-                    $report('Error', __('IBAN is incomplete (only the country code or a few characters)'));
+                    $report('Error', __m('IBAN is incomplete (only the country code or a few characters)'));
                 } elseif (!IbanCipher::isValid($clean)) {
-                    $report('Error', __('IBAN is not valid (format or checksum)'));
+                    $report('Error', __m('IBAN is not valid (format or checksum)'));
                 } else {
                     $others = array_diff_key(array_count_values($ibanUsers[$clean] ?? []), [$familyName => 1]);
                     if (!empty($others)) {
-                        $report('Error', sprintf(__('The same IBAN is used by: %s'), implode(', ', array_keys($others))), 'sharedIban');
+                        $report('Error', sprintf(__m('The same IBAN is used by: %s'), implode(', ', array_keys($others))), 'sharedIban');
                     }
                     if (!IbanCipher::isEncrypted($stored)) {
-                        $report('Warning', __('The IBAN is not encrypted yet (it is encrypted when the record is saved)'), 'internal');
+                        $report('Warning', __m('The IBAN is not encrypted yet (it is encrypted when the record is saved)'), 'internal');
                     }
                 }
             }
 
             // Account holder
             if ($payer === '') {
-                $report('Error', __('Account holder is missing'));
+                $report('Error', __m('Account holder is missing'));
             } else {
                 if (preg_match('/\d/', $payer) || mb_strlen($payer) < 4 || strpos($payer, ' ') === false) {
-                    $report('Warning', __('The account holder looks incomplete or wrong (needs first and last name, no digits)'));
+                    $report('Warning', __m('The account holder looks incomplete or wrong (needs first and last name, no digits)'));
                 }
                 $adults = $adultsByFamily[$familyID] ?? [];
                 $matches = empty($adults);
@@ -969,20 +971,20 @@ class SepaGateway extends QueryableGateway
                     }
                 }
                 if (!$matches) {
-                    $report('Warning', __('The account holder does not match the surname of any parent'));
+                    $report('Warning', __m('The account holder does not match the surname of any parent'));
                 }
             }
 
             // Mandate and withdrawal data
             // a zero date (0000-00-00) is no date
             if (empty($sepa['SEPA_signedDate']) || strpos((string) $sepa['SEPA_signedDate'], '0000') === 0) {
-                $report('Warning', __('Date of SEPA signature is missing'));
+                $report('Warning', __m('Date of SEPA signature is missing'));
             }
             if (empty($sepa['withdrawDay'])) {
-                $report('Warning', __('Preferred withdrawal day is missing'));
+                $report('Warning', __m('Preferred withdrawal day is missing'));
             }
             if (!isset($enrolledFamilies[$familyID])) {
-                $report('Warning', __('The family has no enrolled students in the selected academic year'), 'internal');
+                $report('Warning', __m('The family has no enrolled students in the selected academic year'), 'internal');
             }
         }
 

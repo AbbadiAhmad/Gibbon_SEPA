@@ -28,12 +28,12 @@ use Gibbon\Module\Sepa\Security\IbanCipher;
 require_once __DIR__ . '/moduleFunctions.php';
 
 if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_change_review.php')) {
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
     return;
 }
 
-$page->breadcrumbs->add(__('Approve SEPA Changes'), 'sepa_change_requests.php');
-$page->breadcrumbs->add(__('Review'));
+$page->breadcrumbs->add(__m('Approve SEPA Changes'), 'sepa_change_requests.php');
+$page->breadcrumbs->add(__m('Review'));
 
 $_GET = $container->get(Validator::class)->sanitize($_GET);
 $gateway = $container->get(SepaChangeRequestGateway::class);
@@ -44,7 +44,7 @@ $e = function ($value) {
 
 $request = $gateway->getByID((int) ($_GET['gibbonSEPAChangeRequestID'] ?? 0));
 if (!$request) {
-    $page->addError(__('The specified record cannot be found.'));
+    $page->addError(__m('The specified record cannot be found.'));
     return;
 }
 // The SEPA the request is about; a family without SEPA asks for a new one (current data empty)
@@ -57,21 +57,21 @@ $current = SepaChangeRequestGateway::clearValues($sepa);
 $cadences = SepaGateway::getWithdrawCadenceOptions();
 $isPending = $request['status'] === 'Pending';
 $fullIban = function ($iban) {
-    return $iban === null ? '[' . __('cannot decrypt - check the encryption key') . ']' : IbanCipher::format($iban);
+    return $iban === null ? '[' . __m('cannot decrypt - check the encryption key') . ']' : IbanCipher::format($iban);
 };
 
-echo '<h2>' . sprintf($isNew && $request['status'] === 'Pending' ? __('New SEPA of family %s') : __('SEPA change of family %s'), $e($request['familyName'])) . '</h2>';
-echo '<p>' . sprintf(__('Entered by %1$s on %2$s.'), $e($request['submittedBy']), $e(Format::dateTime($request['timestampUpdated'] ?: $request['timestampSubmitted']))) . '</p>';
+echo '<h2>' . sprintf($isNew && $request['status'] === 'Pending' ? __m('New SEPA of family %s') : __m('SEPA change of family %s'), $e($request['familyName'])) . '</h2>';
+echo '<p>' . sprintf(__m('Entered by %1$s on %2$s.'), $e($request['submittedBy']), $e(Format::dateTime($request['timestampUpdated'] ?: $request['timestampSubmitted']))) . '</p>';
 
 if (!$isPending) {
-    $text = ['Approved' => __('Approved'), 'Rejected' => __('Rejected')][$request['status']] ?? $request['status'];
+    $text = ['Approved' => __m('Approved'), 'Rejected' => __m('Rejected')][$request['status']] ?? $request['status'];
     echo "<div class='" . ($request['status'] === 'Approved' ? 'success' : 'warning') . "'>" . $e($text) . ' ' . $e(Format::dateTime($request['timestampReviewed']))
         . ($request['reviewNote'] ? '<br>' . $e($request['reviewNote']) : '') . '</div>';
 }
 
 // The members of the family
 $members = [];
-foreach ([__('Adults') => $SepaGateway->selectAdultsByFamily($request['gibbonFamilyID']), __('Children') => $SepaGateway->selectChildrenByFamily($request['gibbonFamilyID'])] as $title => $people) {
+foreach ([__m('Adults') => $SepaGateway->selectAdultsByFamily($request['gibbonFamilyID']), __m('Children') => $SepaGateway->selectChildrenByFamily($request['gibbonFamilyID'])] as $title => $people) {
     $names = [];
     foreach ($people as $person) {
         $names[] = $e(trim($person['preferredName'] . ' ' . $person['surname'])) . ($person['status'] !== 'Full' ? ' (' . $e($person['status']) . ')' : '');
@@ -119,19 +119,19 @@ if ($isPending) {
 $errors = 0;
 foreach ($flags as $flag) {
     $errors += $flag['severity'] === 'Error' ? 1 : 0;
-    echo "<div class='" . ($flag['severity'] === 'Error' ? 'error' : 'warning') . "'><strong>" . ($flag['severity'] === 'Error' ? __('Error') : __('Warning')) . ':</strong> ' . $e($flag['text']) . '</div>';
+    echo "<div class='" . ($flag['severity'] === 'Error' ? 'error' : 'warning') . "'><strong>" . ($flag['severity'] === 'Error' ? __m('Error') : __m('Warning')) . ':</strong> ' . $e($flag['text']) . '</div>';
 }
 if ($isPending && empty($flags)) {
-    echo "<div class='success'>" . __('No problems found.') . '</div>';
+    echo "<div class='success'>" . __m('No problems found.') . '</div>';
 }
 
 $labels = [
-    'payer' => __('Account holder'),
-    'IBAN' => __('IBAN'),
-    'BIC' => __('BIC'),
-    'withdrawCadence' => __('Withdrawal cadence'),
-    'withdrawDay' => __('Preferred withdrawal day'),
-    'SEPA_signedDate' => __('Date of SEPA signature'),
+    'payer' => __m('Account holder'),
+    'IBAN' => __m('IBAN'),
+    'BIC' => __m('BIC'),
+    'withdrawCadence' => __m('Withdrawal cadence'),
+    'withdrawDay' => __m('Preferred withdrawal day'),
+    'SEPA_signedDate' => __m('Date of SEPA signature'),
 ];
 $show = function ($field, $value) use ($cadences, $fullIban) {
     if ($field === 'IBAN') {
@@ -153,7 +153,7 @@ $differs = function ($field) use ($current, $entered) {
 
 // ------------------------------------------------------------------ decided request: read only
 if (!$isPending) {
-    $html = '<table class="fullWidth colorOddEven"><thead><tr><th></th><th>' . __('Entered by the family') . '</th></tr></thead><tbody>';
+    $html = '<table class="fullWidth colorOddEven"><thead><tr><th></th><th>' . __m('Entered by the family') . '</th></tr></thead><tbody>';
     foreach ($labels as $field => $label) {
         $html .= '<tr><td><strong>' . $e($label) . '</strong></td><td>' . $e($show($field, $entered[$field])) . '</td></tr>';
     }
@@ -187,7 +187,7 @@ if (!$isPending) {
         return '<input type="text" name="' . $name . '" value="' . $e($value) . '" maxlength="' . $max . '" style="width: 95%;">';
     };
 
-    $html = '<table class="fullWidth colorOddEven"><thead><tr><th></th><th>' . __('Current') . '</th><th>' . __('Entered by the family') . '</th><th>' . __('Value to save (can be corrected)') . '</th><th>' . __('Accept') . '</th></tr></thead><tbody>';
+    $html = '<table class="fullWidth colorOddEven"><thead><tr><th></th><th>' . __m('Current') . '</th><th>' . __m('Entered by the family') . '</th><th>' . __m('Value to save (can be corrected)') . '</th><th>' . __m('Accept') . '</th></tr></thead><tbody>';
     foreach ($labels as $field => $label) {
         $changed = $differs($field);
         $html .= '<tr><td><strong>' . $e($label) . '</strong></td>'
@@ -196,8 +196,8 @@ if (!$isPending) {
             . '<td>' . $input($field) . '</td>'
             . '<td style="text-align: center;"><input type="checkbox" name="accept[' . $field . ']" value="1"' . ($accept[$field] ? ' checked' : '') . '></td></tr>';
     }
-    $html .= '</tbody></table><p><small>* ' . __('differs from the current data') . '. '
-        . __('Approve saves the ticked rows with the value in the "Value to save" column; rows that are not ticked keep the current value. Rows the family did not change are not ticked.') . '</small></p>';
+    $html .= '</tbody></table><p><small>* ' . __m('differs from the current data') . '. '
+        . __m('Approve saves the ticked rows with the value in the "Value to save" column; rows that are not ticked keep the current value. Rows the family did not change are not ticked.') . '</small></p>';
 
     $form = Form::create('sepaChangeReview', $session->get('absoluteURL') . '/modules/Sepa/sepa_change_reviewProcess.php');
     $form->addHiddenValue('address', $session->get('address'));
@@ -205,26 +205,26 @@ if (!$isPending) {
     $form->addRow()->addContent($html);
 
     $row = $form->addRow();
-    $row->addLabel('confirmErrors', __('Approve despite errors'))->description(__('Only needed when the values to save have errors. Only tick this when the data is really correct.'));
+    $row->addLabel('confirmErrors', __m('Approve despite errors'))->description(__m('Only needed when the values to save have errors. Only tick this when the data is really correct.'));
     $row->addCheckbox('confirmErrors')->setValue('1');
 
     $row = $form->addRow();
-    $row->addLabel('reviewNote', __('Note'))->description(__('Optional, stored with the decision.'));
+    $row->addLabel('reviewNote', __m('Note'))->description(__m('Optional, stored with the decision.'));
     $row->addTextArea('reviewNote')->setRows(3)->setValue($draft['reviewNote'] ?? '');
 
     $row = $form->addRow();
-    $row->addContent('<a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_requests.php">' . __('Back') . '</a>');
+    $row->addContent('<a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_requests.php">' . __m('Back') . '</a>');
     // inline styles: the theme resets plain buttons to bare text
     $buttonStyle = 'display: inline-block; padding: 8px 16px; margin-left: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; color: #fff; border: 1px solid ';
-    $row->addContent('<button type="submit" name="decision" value="reject" style="' . $buttonStyle . '#b91c1c; background: #dc2626;">' . __('Reject all') . '</button>'
-        . '<button type="submit" name="decision" value="approve" style="' . $buttonStyle . '#15803d; background: #16a34a;">' . __('Approve the ticked changes') . '</button>')->setClass('right');
+    $row->addContent('<button type="submit" name="decision" value="reject" style="' . $buttonStyle . '#b91c1c; background: #dc2626;">' . __m('Reject all') . '</button>'
+        . '<button type="submit" name="decision" value="approve" style="' . $buttonStyle . '#15803d; background: #16a34a;">' . __m('Approve the ticked changes') . '</button>')->setClass('right');
 
     echo $form->getOutput();
 }
 
 // ------------------------------------------------------------------ the last log lines of this SEPA
-echo '<h3>' . __('Last changes of this SEPA') . '</h3>';
+echo '<h3>' . __m('Last changes of this SEPA') . '</h3>';
 echo sepaRenderChangeLog($isNew ? $gateway->selectLog(null, 10, $request['gibbonFamilyID']) : $gateway->selectLog($sepa['gibbonSEPAID'], 10), false);
 if (!$isNew && isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_change_log.php')) {
-    echo '<p><a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_log.php&sepa=' . (int) $sepa['gibbonSEPAID'] . '">' . __('More: the full log of this SEPA') . '</a></p>';
+    echo '<p><a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_log.php&sepa=' . (int) $sepa['gibbonSEPAID'] . '">' . __m('More: the full log of this SEPA') . '</a></p>';
 }

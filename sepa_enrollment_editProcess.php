@@ -14,7 +14,7 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_enrollment_edit.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
     $_GET = $container->get(Validator::class)->sanitize($_GET);
     $_POST = $container->get(Validator::class)->sanitize($_POST);
@@ -24,7 +24,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_enrollment_edit.
     $gibbonFamilyID = $_POST['gibbonFamilyID'] ?? '';
 
     if (empty($gibbonPersonID) || empty($gibbonCourseClassID)) {
-        $page->addError(__('You have not specified one or more required parameters.'));
+        $page->addError(__m('You have not specified one or more required parameters.'));
         return;
     }
 
@@ -32,7 +32,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_enrollment_edit.
     $dateUnenrolled = $_POST['dateUnenrolled'] ?? null;
 
     if (empty($dateEnrolled)) {
-        $page->addError(__('Date enrolled is required.'));
+        $page->addError(__m('Date enrolled is required.'));
         return;
     }
 

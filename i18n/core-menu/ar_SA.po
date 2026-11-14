@@ -1,0 +1,141 @@
+# Menu texts of the SEPA module. Only needed when the Gibbon menu does not show the module translation:
+# append these entries to i18n/ar_SA/LC_MESSAGES/gibbon.po of Gibbon (skip texts that exist there) and compile it with msgfmt.
+
+msgid "View Unlinked Payment"
+msgstr "عرض المدفوعات غير المرتبطة"
+
+msgid "Payments"
+msgstr "المدفوعات"
+
+msgid "View Payments - my family"
+msgstr "عرض المدفوعات - عائلتي"
+
+msgid "Payments"
+msgstr "المدفوعات"
+
+msgid "View SEPA - my family"
+msgstr "عرض SEPA - عائلتي"
+
+msgid "SEPA"
+msgstr "SEPA"
+
+msgid "Import SEPA Payment"
+msgstr "استيراد مدفوعات SEPA"
+
+msgid "Entry"
+msgstr "الإدخال"
+
+msgid "Manage SEPA Payment Entries"
+msgstr "إدارة قيود مدفوعات SEPA"
+
+msgid "Payments"
+msgstr "المدفوعات"
+
+msgid "View Family SEPA"
+msgstr "عرض SEPA العائلات"
+
+msgid "SEPA"
+msgstr "SEPA"
+
+msgid "Add Family SEPA"
+msgstr "إضافة SEPA عائلة"
+
+msgid "Entry"
+msgstr "الإدخال"
+
+msgid "delete SEPA"
+msgstr "حذف SEPA"
+
+msgid "Edit SEPA"
+msgstr "تعديل SEPA"
+
+msgid "Import Family SEPA"
+msgstr "استيراد SEPA العائلات"
+
+msgid "Entry"
+msgstr "الإدخال"
+
+msgid "Import SEPA from Registration Form"
+msgstr "استيراد SEPA من استمارة التسجيل"
+
+msgid "Entry"
+msgstr "الإدخال"
+
+msgid "Check SEPA Data"
+msgstr "فحص بيانات SEPA"
+
+msgid "SEPA"
+msgstr "SEPA"
+
+msgid "Update Courses Fee"
+msgstr "تحديث رسوم المقررات"
+
+msgid "Courses"
+msgstr "المقررات"
+
+msgid "Family Balance"
+msgstr "رصيد العائلة"
+
+msgid "Reports"
+msgstr "التقارير"
+
+msgid "Edit Enrollment Dates"
+msgstr "تعديل تواريخ التسجيل"
+
+msgid "Admin"
+msgstr "الإدارة"
+
+msgid "Child Enrollment Details"
+msgstr "تفاصيل تسجيل الأطفال"
+
+msgid "Reports"
+msgstr "التقارير"
+
+msgid "Manage SEPA Payment Adjustments"
+msgstr "إدارة تعديلات مدفوعات SEPA"
+
+msgid "Adjustments"
+msgstr "التعديلات"
+
+msgid "Balance Snapshot"
+msgstr "لقطة الرصيد"
+
+msgid "Reports"
+msgstr "التقارير"
+
+msgid "Payment Report by Date Range"
+msgstr "تقرير المدفوعات حسب الفترة"
+
+msgid "Reports"
+msgstr "التقارير"
+
+msgid "Merge Families"
+msgstr "دمج العائلات"
+
+msgid "SEPA"
+msgstr "SEPA"
+
+msgid "Merge SEPA"
+msgstr "دمج SEPA"
+
+msgid "SEPA"
+msgstr "SEPA"
+
+msgid "Edit SEPA - my family"
+msgstr "تعديل SEPA - عائلتي"
+
+msgid "SEPA"
+msgstr "SEPA"
+
+msgid "Approve SEPA Changes"
+msgstr "الموافقة على تغييرات SEPA"
+
+msgid "SEPA"
+msgstr "SEPA"
+
+msgid "SEPA Change Log"
+msgstr "سجل تغييرات SEPA"
+
+msgid "SEPA"
+msgstr "SEPA"
+

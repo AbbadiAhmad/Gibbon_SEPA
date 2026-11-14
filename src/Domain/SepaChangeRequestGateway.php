@@ -2,6 +2,8 @@
 
 namespace Gibbon\Module\Sepa\Domain;
 
+require_once __DIR__ . '/../../src/i18n.php';
+
 use Gibbon\Domain\Traits\TableAware;
 use Gibbon\Domain\QueryableGateway;
 use Gibbon\Domain\QueryCriteria;
@@ -371,7 +373,7 @@ class SepaChangeRequestGateway extends QueryableGateway
         if (isset($data['IBAN'])) {
             foreach ($data['IBAN'] as $k => $stored) {
                 $clear = IbanCipher::decrypt($stored);
-                $data['IBAN'][$k] = $clear === null ? '[' . __('cannot decrypt - check the encryption key') . ']' : IbanCipher::format($clear);
+                $data['IBAN'][$k] = $clear === null ? '[' . __m('cannot decrypt - check the encryption key') . ']' : IbanCipher::format($clear);
             }
         }
         return [$data, $note, $extra];
@@ -554,7 +556,7 @@ class SepaChangeRequestGateway extends QueryableGateway
         foreach ($this->runSelect($query)->fetchAll() as $row) {
             $other = IbanCipher::decrypt($row['IBAN']);
             if ($other !== null && $other !== '' && IbanCipher::normalize($other) === $clean) {
-                $names[] = $row['familyName'] ?? __('(family deleted)');
+                $names[] = $row['familyName'] ?? __m('(family deleted)');
             }
         }
         return array_values(array_unique($names));
@@ -786,29 +788,29 @@ class SepaChangeRequestGateway extends QueryableGateway
         // IBAN
         $iban = $new['IBAN'];
         if ($iban === null) {
-            $flag('Error', 'decrypt', __('The IBAN can not be decrypted (wrong key or damaged data)'));
+            $flag('Error', 'decrypt', __m('The IBAN can not be decrypted (wrong key or damaged data)'));
         } elseif ($iban === '') {
-            $flag('Error', 'ibanMissing', __('IBAN is missing'));
+            $flag('Error', 'ibanMissing', __m('IBAN is missing'));
         } elseif (strpos($iban, '*') !== false) {
-            $flag('Error', 'ibanMasked', __('Only a masked IBAN is entered, the full IBAN is needed'));
+            $flag('Error', 'ibanMasked', __m('Only a masked IBAN is entered, the full IBAN is needed'));
         } else {
             $clean = IbanCipher::normalize($iban);
             if (strlen($clean) <= 4) {
-                $flag('Error', 'ibanIncomplete', __('IBAN is incomplete (only the country code or a few characters)'));
+                $flag('Error', 'ibanIncomplete', __m('IBAN is incomplete (only the country code or a few characters)'));
             } elseif (!IbanCipher::isValid($clean)) {
-                $flag('Error', 'ibanInvalid', __('IBAN is not valid (format or checksum)'));
+                $flag('Error', 'ibanInvalid', __m('IBAN is not valid (format or checksum)'));
             } elseif (!empty($otherFamilies)) {
-                $flag('Error', 'sharedIban', sprintf(__('The same IBAN is used by: %s'), implode(', ', $otherFamilies)));
+                $flag('Error', 'sharedIban', sprintf(__m('The same IBAN is used by: %s'), implode(', ', $otherFamilies)));
             }
         }
 
         // Account holder
         $payer = trim($new['payer']);
         if ($payer === '') {
-            $flag('Error', 'payerMissing', __('Account holder is missing'));
+            $flag('Error', 'payerMissing', __m('Account holder is missing'));
         } else {
             if (preg_match('/\d/', $payer) || mb_strlen($payer) < 4 || strpos($payer, ' ') === false) {
-                $flag('Warning', 'payerIncomplete', __('The account holder looks incomplete or wrong (needs first and last name, no digits)'));
+                $flag('Warning', 'payerIncomplete', __m('The account holder looks incomplete or wrong (needs first and last name, no digits)'));
             }
             $matches = empty($surnames);
             foreach ($surnames as $surname) {
@@ -818,52 +820,52 @@ class SepaChangeRequestGateway extends QueryableGateway
                 }
             }
             if (!$matches) {
-                $flag('Warning', 'payerSurname', __('The account holder does not match the surname of any parent'));
+                $flag('Warning', 'payerSurname', __m('The account holder does not match the surname of any parent'));
             }
         }
 
         // BIC is optional within the SEPA area
         $bic = strtoupper(preg_replace('/\s+/', '', $new['BIC']));
         if ($bic !== '' && !preg_match('/^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$/', $bic)) {
-            $flag('Warning', 'bicInvalid', __('The BIC does not look valid (8 or 11 characters)'));
+            $flag('Warning', 'bicInvalid', __m('The BIC does not look valid (8 or 11 characters)'));
         }
 
         // Withdrawal data
         if (!in_array($new['withdrawCadence'], SepaGateway::WITHDRAW_CADENCES, true)) {
-            $flag('Error', 'cadenceInvalid', __('Withdrawal cadence is not valid'));
+            $flag('Error', 'cadenceInvalid', __m('Withdrawal cadence is not valid'));
         }
         $day = $new['withdrawDay'];
         if ($day === '' || (int) $day < 1 || (int) $day > 31) {
-            $flag('Warning', 'dayMissing', __('Preferred withdrawal day is missing'));
+            $flag('Warning', 'dayMissing', __m('Preferred withdrawal day is missing'));
         }
 
         // Date of the SEPA signature: not earlier than the existing date
         $signed = trim((string) ($new['SEPA_signedDate'] ?? ''));
         $signedBefore = trim((string) ($current['SEPA_signedDate'] ?? ''));
         if ($signed === '') {
-            $flag('Warning', 'signedMissing', __('Date of SEPA signature is missing'));
+            $flag('Warning', 'signedMissing', __m('Date of SEPA signature is missing'));
         }
         if ($signed !== '') {
             if ($signedBefore !== '' && $signed < $signedBefore) {
-                $flag('Error', 'signedEarlier', sprintf(__('The date of the SEPA signature is earlier than the existing date (%s)'), $signedBefore));
+                $flag('Error', 'signedEarlier', sprintf(__m('The date of the SEPA signature is earlier than the existing date (%s)'), $signedBefore));
             } elseif ($signed > date('Y-m-d')) {
-                $flag('Warning', 'signedFuture', __('The date of the SEPA signature is in the future'));
+                $flag('Warning', 'signedFuture', __m('The date of the SEPA signature is in the future'));
             }
             if ($signedBefore !== '' && $signed > $signedBefore) {
-                $flag('Warning', 'signedChanged', __('The date of the SEPA signature is changed'));
+                $flag('Warning', 'signedChanged', __m('The date of the SEPA signature is changed'));
             }
         }
 
         // What differs from the current SEPA deserves attention
         if ($current === null) {
-            $flag('Warning', 'newSepa', __('New SEPA: the family has no SEPA yet, it is created on approval'));
+            $flag('Warning', 'newSepa', __m('New SEPA: the family has no SEPA yet, it is created on approval'));
         }
         if ($current !== null) {
             if ($iban !== null && $current['IBAN'] !== null && IbanCipher::normalize($iban) !== IbanCipher::normalize($current['IBAN'])) {
-                $flag('Warning', 'ibanChanged', __('The IBAN is changed'));
+                $flag('Warning', 'ibanChanged', __m('The IBAN is changed'));
             }
             if (mb_strtolower(trim($new['payer'])) !== mb_strtolower(trim($current['payer']))) {
-                $flag('Warning', 'payerChanged', __('The account holder is changed'));
+                $flag('Warning', 'payerChanged', __m('The account holder is changed'));
             }
         }
 

@@ -16,21 +16,21 @@ require_once __DIR__ . '/../../gibbon.php';
 
 if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.php") == false) {
     // Access denied
-    $page->addError(__('You do not have access to this action.'));
+    $page->addError(__m('You do not have access to this action.'));
 } else {
 
     $step = isset($_GET['step']) ? min(max(1, $_GET['step']), 5) : 1;
 
     $page->breadcrumbs
-        ->add(__('Import SEPA Payments'), 'import_sepa_payment.php')
-        ->add(__('Step {number}', ['number' => $step]));
+        ->add(__m('Import SEPA Payments'), 'import_sepa_payment.php')
+        ->add(__m('Step {number}', ['number' => $step]));
 
     $steps = [
-        1 => __('Select File'),
-        2 => __('Confirm Data'),
-        3 => __('Dry Run'),
-        4 => __('Live Run'),
-        5 => __('Final step'),
+        1 => __m('Select File'),
+        2 => __m('Confirm Data'),
+        3 => __m('Dry Run'),
+        4 => __m('Live Run'),
+        5 => __m('Final step'),
     ];
     $StepLink = $session->get('absoluteURL') . '/index.php?q=' . $_SESSION[$guid]['address'] . '&step=';
 
@@ -42,7 +42,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
     echo "</ul>";
 
     echo '<h2>';
-    echo __('Step {number}', ['number' => $step]) . ' - ' . __($steps[$step]);
+    echo __m('Step {number}', ['number' => $step]) . ' - ' . __m($steps[$step]);
     echo '</h2>';
 
     // field data
@@ -68,7 +68,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
         $row = $form->addRow();
-        $row->addLabel('file', __('File'))->description(__('Excel file (.xlsx, .xls)'));
+        $row->addLabel('file', __m('File'))->description(__m('Excel file (.xlsx, .xls)'));
         $row->addFileUpload('file')->required()->accepts('.xlsx, .xls');
 
         $row = $form->addRow();
@@ -82,7 +82,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
     // STEP 2: CONFIRM DATA
     else if ($step == 2) {
         if (!isset($_FILES['file'])) {
-            $page->addError(__('No file was uploaded'));
+            $page->addError(__m('No file was uploaded'));
             return;
         }
 
@@ -111,11 +111,11 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
             $form->addHiddenValue('address', $_SESSION[$guid]['address']);
 
             $row = $form->addRow();
-            $row->addHeading(__('Column Mapping'));
+            $row->addHeading(__m('Column Mapping'));
 
             foreach ($fields as $field) {
                 $row = $form->addRow();
-                $row->addLabel("map[$field]", __($field));
+                $row->addLabel("map[$field]", __m($field));
                 $row->addSelect("map[$field]")
                     ->fromArray(array_combine(range(0, count($headers) - 1), $headers))
                     ->placeholder();
@@ -123,7 +123,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
 
             // add date formate in the paymentlist file
             $row = $form->addRow();
-            $row->addLabel("Academic Year", __("Academic Year"));
+            $row->addLabel("Academic Year", __m("Academic Year"));
             $row->addTextField("academicYear")
                 ->placeholder($_SESSION[$guid]["gibbonSchoolYearName"])
                 ->disabled();
@@ -131,13 +131,13 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
             $form->addHiddenValue('academicYear', $_SESSION[$guid]["gibbonSchoolYearName"]);
             // add date formate in the paymentlist file
             $row = $form->addRow();
-            $row->addLabel("Date format", __("Date format"));
+            $row->addLabel("Date format", __m("Date format"));
             $row->addSelect("dateFormat")
                 ->fromArray($availableDataFormat);
 
             // add decimal separator
             $row = $form->addRow();
-            $row->addLabel("decimalSeparator", __("Decimal Separator"));
+            $row->addLabel("decimalSeparator", __m("Decimal Separator"));
             $row->addSelect("decimalSeparator")
                 ->fromArray($DecSepFormat);
 
@@ -157,7 +157,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         $mapping = $_POST['map'] ?? null;
         $headers = $_SESSION[$guid]['sepaImportDataHeaders'] ?? [];
         if (empty($data) || empty($mapping)) {
-            $page->addError(__('Invalid data'));
+            $page->addError(__m('Invalid data'));
             return;
         }
 
@@ -275,16 +275,16 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         // Display validation results
         if (!empty($validDataCount)) {
             echo "<div class='success'>";
-            echo __($validDataCount . ' Rows are ready for import.');
+            echo sprintf(__m('%d rows are ready for import.'), $validDataCount);
             echo "</div>";
         }
         $table = DataTable::create('PaymentEntries');
-        $table->addColumn('__RowNumberInExcelFile__', __('Row No.'));
-        $table->addColumn('booking_date', __('Date'));
-        $table->addColumn('payer', __('SEPA Owner Name'));
-        $table->addColumn('amount', __('Amount'));
-        $table->addColumn('academicYearName', __('Academic Year'));
-        $table->addColumn('__RowStatusInImportProcess__', __('Process Message'));
+        $table->addColumn('__RowNumberInExcelFile__', __m('Row No.'));
+        $table->addColumn('booking_date', __m('Date'));
+        $table->addColumn('payer', __m('SEPA Owner Name'));
+        $table->addColumn('amount', __m('Amount'));
+        $table->addColumn('academicYearName', __m('Academic Year'));
+        $table->addColumn('__RowStatusInImportProcess__', __m('Process Message'));
 
         $table->modifyRows(function ($values, $row) {
             if (!$values['__RowCanBeImported__'])
@@ -305,7 +305,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
 
         $row = $form->addRow();
         $row->addFooter();
-        $row->addSubmit(__('Proceed to Import'));
+        $row->addSubmit(__m('Proceed to Import'));
 
         echo $form->getOutput();
     }
@@ -314,7 +314,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         $data = $_SESSION[$guid]['sepaProcessedData'] ?? null;
 
         if (empty($data)) {
-            $page->addError(__('Invalid data'));
+            $page->addError(__m('Invalid data'));
             return;
         }
 
@@ -344,23 +344,23 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
 
         }
 
-        echo "<div class=success> (" . $count . __(") Rows inserted sucessfully.") . "</div>";
+        echo "<div class=success>" . sprintf(__m('%d rows inserted successfully.'), $count) . "</div>";
         echo "Download the the excel export for more details.";
 
         $criteria = $SepaGateway->newQueryCriteria(true);
         $table = DataTable::create('PaymentEntries');
-        $table->addHeaderAction('export', __('Export'))
+        $table->addHeaderAction('export', __m('Export'))
             ->setIcon('download')
             ->setURL('/modules/Sepa/import_sepa_payment_export.php')
             ->directLink()
             ->displayLabel();
 
-        $table->addColumn('__RowNumberInExcelFile__', __('Row No.'));
-        $table->addColumn('booking_date', __('Date'));
-        $table->addColumn('payer', __('SEPA Owner Name'));
-        $table->addColumn('amount', __('Amount'));
-        $table->addColumn('academicYearName', __('Academic Year'));
-        $table->addColumn('__RowStatusInImportProcess__', __('Process Message'));
+        $table->addColumn('__RowNumberInExcelFile__', __m('Row No.'));
+        $table->addColumn('booking_date', __m('Date'));
+        $table->addColumn('payer', __m('SEPA Owner Name'));
+        $table->addColumn('amount', __m('Amount'));
+        $table->addColumn('academicYearName', __m('Academic Year'));
+        $table->addColumn('__RowStatusInImportProcess__', __m('Process Message'));
 
         $table->modifyRows(function ($values, $row) {
             if (!$values['__RowCanBeImported__'])
@@ -379,7 +379,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
         $form->addHiddenValue('address', $_SESSION[$guid]['address']);
         $row = $form->addRow();
         $row->addFooter();
-        $row->addSubmit(__('Final Step'));
+        $row->addSubmit(__m('Final Step'));
 
         echo $form->getOutput();
 
@@ -391,9 +391,9 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/import_sepa_payment.p
             unset($_SESSION[$guid]['sepaImportData']);
             unset($_SESSION[$guid]['sepaProcessedData']);
             unset($_SESSION[$guid]['sepaImportDataHeaders']);
-            echo __('The process is finished successfully!');
+            echo __m('The process is finished successfully!');
         } else {
-            echo __(__('No Data to process'));
+            echo __m('No Data to process');
         }
     }
 }

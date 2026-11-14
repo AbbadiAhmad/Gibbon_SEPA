@@ -2,6 +2,8 @@
 
 namespace Gibbon\Module\Sepa\Domain;
 
+require_once __DIR__ . '/../../src/i18n.php';
+
 use PDO;
 
 /**
@@ -148,22 +150,22 @@ class FamilyMerger
         ];
 
         if ($keepID <= 0 || $dropID <= 0) {
-            $errors[] = __('Choose the two families.');
+            $errors[] = __m('Choose the two families.');
             return [$plan, $errors];
         }
         if ($keepID === $dropID) {
-            $errors[] = __('A family can not be merged into itself.');
+            $errors[] = __m('A family can not be merged into itself.');
             return [$plan, $errors];
         }
         if (!$this->getFamily($keepID) || !$this->getFamily($dropID)) {
-            $errors[] = __('The specified record cannot be found.');
+            $errors[] = __m('The specified record cannot be found.');
             return [$plan, $errors];
         }
 
         // A family can hold only one SEPA in this module; stop when the data is not like that.
         foreach ([$keepID, $dropID] as $familyID) {
             if (count($this->getSepaRows($familyID)) > 1) {
-                $errors[] = sprintf(__('Family %s has more than one SEPA. Fix this first.'), $familyID);
+                $errors[] = sprintf(__m('Family %s has more than one SEPA. Fix this first.'), $familyID);
             }
         }
 
@@ -194,15 +196,15 @@ class FamilyMerger
             } elseif (strpos($action, 'merge:') === 0) {
                 $intoID = self::id(substr($action, 6));
                 if (!isset($targetMembers[$intoID]) || $targetMembers[$intoID] !== $role) {
-                    $errors[] = sprintf(__('User %s can only be merged with a user of the same type (adult / child) of the family to keep.'), $personID);
+                    $errors[] = sprintf(__m('User %s can only be merged with a user of the same type (adult / child) of the family to keep.'), $personID);
                     continue;
                 }
                 if (isset($mergedTargets[$intoID])) {
-                    $errors[] = sprintf(__('User %s is merged with more than one user.'), $intoID);
+                    $errors[] = sprintf(__m('User %s is merged with more than one user.'), $intoID);
                     continue;
                 }
                 if (($plan['targetAction'][$intoID] ?? 'keep') === 'remove') {
-                    $errors[] = sprintf(__('User %s is removed from the family and can not be merged.'), $intoID);
+                    $errors[] = sprintf(__m('User %s is removed from the family and can not be merged.'), $intoID);
                     continue;
                 }
                 $mergedTargets[$intoID] = $personID;
@@ -287,7 +289,7 @@ class FamilyMerger
             return [];
         }
         $this->update('gibbonFamily', 'gibbonFamilyID', $plan['keepFamilyID'], $set);
-        return [sprintf(__('Family data taken over from the other family: %s'), implode(', ', array_keys($set)))];
+        return [sprintf(__m('Family data taken over from the other family: %s'), implode(', ', array_keys($set)))];
     }
 
     private function mergeSepa(array $plan)
@@ -306,7 +308,7 @@ class FamilyMerger
         if (!$keepSepa) {
             $this->select("UPDATE gibbonSEPA SET gibbonFamilyID=:keep WHERE gibbonSEPAID=:id", ['keep' => $keepFamilyID, 'id' => $dropSepaID]);
             $this->select("UPDATE IGNORE gibbonSEPABalanceSnapshot SET gibbonFamilyID=:keep WHERE gibbonSEPAID=:id", ['keep' => $keepFamilyID, 'id' => $dropSepaID]);
-            return [__('The SEPA of the other family now belongs to the family to keep.')];
+            return [__m('The SEPA of the other family now belongs to the family to keep.')];
         }
 
         $keepSepaID = self::id($keepSepa['gibbonSEPAID']);
@@ -327,7 +329,7 @@ class FamilyMerger
         $counts = $this->moveSepaRecords($dropSepaID, $keepSepaID, $keepFamilyID);
 
         return [sprintf(
-            __('SEPA merged: %d payments, %d adjustments and %d snapshots moved to the SEPA of the family to keep, the other SEPA is deleted.'),
+            __m('SEPA merged: %d payments, %d adjustments and %d snapshots moved to the SEPA of the family to keep, the other SEPA is deleted.'),
             $counts['payments'],
             $counts['adjustments'],
             $counts['snapshots']
@@ -369,13 +371,13 @@ class FamilyMerger
         $drop = $this->getSepa($dropSepaID);
         $keep = $this->getSepa($keepSepaID);
         if (!$drop || !$keep) {
-            throw new \RuntimeException(__('The specified record cannot be found.'));
+            throw new \RuntimeException(__m('The specified record cannot be found.'));
         }
         if (self::id($dropSepaID) === self::id($keepSepaID)) {
-            throw new \RuntimeException(__('A SEPA can not be merged into itself.'));
+            throw new \RuntimeException(__m('A SEPA can not be merged into itself.'));
         }
         if ($keep['familyName'] === null) {
-            throw new \RuntimeException(__('The SEPA to keep must belong to an existing family.'));
+            throw new \RuntimeException(__m('The SEPA to keep must belong to an existing family.'));
         }
 
         $this->pdo->beginTransaction();
@@ -399,7 +401,7 @@ class FamilyMerger
         }
 
         return [sprintf(
-            __('SEPA %s merged into SEPA %s (%s): %d payments, %d adjustments and %d snapshots moved, the first SEPA is deleted.'),
+            __m('SEPA %s merged into SEPA %s (%s): %d payments, %d adjustments and %d snapshots moved, the first SEPA is deleted.'),
             self::id($dropSepaID),
             self::id($keepSepaID),
             $keep['familyName'],
@@ -415,7 +417,7 @@ class FamilyMerger
         $target = $this->getPerson($targetID);
         $source = $this->getPerson($sourceID);
         if (!$target || !$source) {
-            throw new \RuntimeException(__('The specified record cannot be found.'));
+            throw new \RuntimeException(__m('The specified record cannot be found.'));
         }
         $name = trim($target['preferredName'] . ' ' . $target['surname']);
 
@@ -437,18 +439,18 @@ class FamilyMerger
         // A user can not be his own relative
         $this->select("DELETE FROM gibbonFamilyRelationship WHERE gibbonPersonID1=:id AND gibbonPersonID2=:id2", ['id' => $targetID, 'id2' => $targetID]);
 
-        $report[] = sprintf(__('Users merged into %s (data taken over: %s).'), $name, empty($set) ? '-' : implode(', ', array_keys($set)));
+        $report[] = sprintf(__m('Users merged into %s (data taken over: %s).'), $name, empty($set) ? '-' : implode(', ', array_keys($set)));
 
         if (!empty($plan['moveRelated'])) {
             $leftOver = $this->repointPerson($sourceID, $targetID);
             // The old user is not deleted, but can not be used any more
             $this->select("UPDATE gibbonPerson SET status='Left', canLogin='N' WHERE gibbonPersonID=:id", ['id' => $sourceID]);
-            $report[] = sprintf(__('All records of user %s (enrolments, attendance, ...) now belong to %s; the old user is set to Left and can not log in.'), $sourceID, $name);
+            $report[] = sprintf(__m('All records of user %s (enrolments, attendance, ...) now belong to %s; the old user is set to Left and can not log in.'), $sourceID, $name);
             foreach ($leftOver as $table => $count) {
-                $report[] = sprintf(__('Warning: %d record(s) in %s stay with the old user %s, they would duplicate existing records of %s.'), $count, $table, $sourceID, $name);
+                $report[] = sprintf(__m('Warning: %d record(s) in %s stay with the old user %s, they would duplicate existing records of %s.'), $count, $table, $sourceID, $name);
             }
         } else {
-            $report[] = sprintf(__('The other records of user %s were not moved; the old user is still active.'), $sourceID);
+            $report[] = sprintf(__m('The other records of user %s were not moved; the old user is still active.'), $sourceID);
         }
 
         return $report;
@@ -514,7 +516,7 @@ class FamilyMerger
             $this->deleteMember('gibbonFamilyChild', $dropID, $personID);
         }
 
-        return [sprintf(__('%d user(s) moved to the family to keep, %d removed from a family.'), $moved, $removed)];
+        return [sprintf(__m('%d user(s) moved to the family to keep, %d removed from a family.'), $moved, $removed)];
     }
 
     private function deleteMember($table, $familyID, $personID)
