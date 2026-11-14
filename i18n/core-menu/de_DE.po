@@ -74,7 +74,7 @@ msgid "Courses"
 msgstr "Kurse"
 
 msgid "Family Balance"
-msgstr "Familiensaldo"
+msgstr "Familienkontostand"
 
 msgid "Reports"
 msgstr "Berichte"
@@ -98,7 +98,7 @@ msgid "Adjustments"
 msgstr "Anpassungen"
 
 msgid "Balance Snapshot"
-msgstr "Saldo-Momentaufnahme"
+msgstr "Kontostand-Momentaufnahme"
 
 msgid "Reports"
 msgstr "Berichte"

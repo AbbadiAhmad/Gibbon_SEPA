@@ -553,7 +553,7 @@ msgstr "Schulverwaltung"
 
 #: sepa_balance_snapshot.php:35 sepa_balance_snapshot.php:48 sepa_balance_snapshot_create.php:41
 msgid "Balance Snapshot"
-msgstr "Saldo-Momentaufnahme"
+msgstr "Kontostand-Momentaufnahme"
 
 #: sepa_balance_snapshot.php:53
 msgid "Current Status (Families with changes)"
@@ -597,11 +597,11 @@ msgstr "Familienname"
 
 #: sepa_balance_snapshot.php:171
 msgid "Last Balance (Snapshot)"
-msgstr "Letzter Saldo (Momentaufnahme)"
+msgstr "Letzter Kontostand (Momentaufnahme)"
 
 #: sepa_balance_snapshot.php:174
 msgid "Current Balance"
-msgstr "Aktueller Saldo"
+msgstr "Aktueller Kontostand"
 
 #: sepa_balance_snapshot.php:179
 msgid "Last Total Fees"
@@ -629,7 +629,7 @@ msgstr "Aktuelle Summe Gebühren+Anpassungen"
 
 #: sepa_balance_snapshot.php:200 sepa_balance_snapshot_details.php:154 sepa_check.php:104
 msgid "Balance"
-msgstr "Saldo"
+msgstr "Kontostand"
 
 #: sepa_balance_snapshot.php:205 sepa_balance_snapshot_details.php:151 sepa_payment_adjustment_bulk.php:231
 msgid "Total Fees"
@@ -661,7 +661,7 @@ msgstr "Zurück zu den Momentaufnahmen"
 
 #: sepa_balance_snapshot_create.php:204
 msgid "Create Balance Snapshot"
-msgstr "Saldo-Momentaufnahme erstellen"
+msgstr "Kontostand-Momentaufnahme erstellen"
 
 #: sepa_balance_snapshot_create.php:238
 msgid "No families with changes in fees or adjustments found."
@@ -673,7 +673,7 @@ msgstr "Dies erstellt eine Momentaufnahme für {count} Familien mit Änderungen 
 
 #: sepa_balance_snapshot_create.php:250
 msgid "The snapshot will record the current balance, fees, payments, and adjustments for each family."
-msgstr "Die Momentaufnahme hält für jede Familie den aktuellen Saldo, die Gebühren, Zahlungen und Anpassungen fest."
+msgstr "Die Momentaufnahme hält für jede Familie den aktuellen Kontostand, die Gebühren, Zahlungen und Anpassungen fest."
 
 #: sepa_balance_snapshot_create.php:257
 msgid "Families to snapshot"
@@ -717,7 +717,7 @@ msgstr "Vergleich mit der Momentaufnahme vom: "
 
 #: sepa_balance_snapshot_details.php:141
 msgid "Balance Summary"
-msgstr "Saldoübersicht"
+msgstr "Übersicht der Kontostände"
 
 #: sepa_balance_snapshot_details.php:144
 msgid "Item"
@@ -1080,11 +1080,11 @@ msgstr "Familien mit angemeldeten Schülern in diesem Jahr müssen ein SEPA habe
 
 #: sepa_check.php:46
 msgid "The balance is the balance of the selected academic year."
-msgstr "Der Saldo ist der Saldo des gewählten Schuljahres."
+msgstr "Der Kontostand bezieht sich auf das gewählte Schuljahr."
 
 #: sepa_check.php:48
 msgid "Only SEPAs with a balance not zero"
-msgstr "Nur SEPAs mit einem Saldo ungleich null"
+msgstr "Nur SEPAs mit einem Kontostand ungleich null"
 
 #: sepa_check.php:48
 msgid "All SEPAs"
@@ -1318,7 +1318,7 @@ msgstr "Zahlungen gesamt: "
 
 #: sepa_family_details.php:77 sepa_payment_view_per_family.php:81
 msgid "Balance: "
-msgstr "Saldo: "
+msgstr "Kontostand: "
 
 #: sepa_family_details.php:81 sepa_payment_view_per_family.php:85
 msgid "SEPA informaiton is not available for this family."
@@ -1390,12 +1390,12 @@ msgstr "Filter zurücksetzen"
 
 #: sepa_family_due.php:77
 msgid "Family Balance and Due in Period"
-msgstr "Familiensaldo und Fälligkeit im Zeitraum"
+msgstr "Familienkontostand und Fälligkeit im Zeitraum"
 
 #: sepa_family_due.php:79
 #, php-format
 msgid "Due in period: fees of the billable months from %1$s to %2$s. Balance: payments and adjustments minus all fees of the academic year (negative means the family owes money). Withdraw amount: the amount due in the period, or the open balance if that is smaller; nothing when the balance is not negative."
-msgstr "Fällig im Zeitraum: Gebühren der abrechenbaren Monate von %1$s bis %2$s. Saldo: Zahlungen und Anpassungen abzüglich aller Gebühren des Schuljahres (negativ bedeutet, dass die Familie Geld schuldet). Einzugsbetrag: der im Zeitraum fällige Betrag oder der offene Saldo, falls dieser kleiner ist; nichts, wenn der Saldo nicht negativ ist."
+msgstr "Fällig im Zeitraum: Gebühren der abrechenbaren Monate von %1$s bis %2$s. Kontostand: Zahlungen und Anpassungen abzüglich aller Gebühren des Schuljahres (negativ bedeutet, dass die Familie Geld schuldet). Einzugsbetrag: der im Zeitraum fällige Betrag oder der offene Betrag, falls dieser kleiner ist; nichts, wenn der Kontostand nicht negativ ist."
 
 #: sepa_family_due.php:115
 msgid "Export Withdrawals (incl. missing SEPA)"
@@ -1932,7 +1932,7 @@ msgstr "Zahlungsanpassung für mehrere Familien"
 
 #: sepa_payment_adjustment_bulk.php:81
 msgid "Enter the same adjustment (for example a discount) for many families at once. The balance is negative when a family owes money; an adjustment is a positive amount that reduces the debt, and it is never larger than what the family owes."
-msgstr "Geben Sie dieselbe Anpassung (zum Beispiel eine Ermäßigung) für viele Familien auf einmal ein. Der Saldo ist negativ, wenn eine Familie Geld schuldet; eine Anpassung ist ein positiver Betrag, der die Schuld verringert, und sie ist nie höher als das, was die Familie schuldet."
+msgstr "Geben Sie dieselbe Anpassung (zum Beispiel eine Ermäßigung) für viele Familien auf einmal ein. Der Kontostand ist negativ, wenn eine Familie Geld schuldet; eine Anpassung ist ein positiver Betrag, der die Schuld verringert, und sie ist nie höher als das, was die Familie schuldet."
 
 #: sepa_payment_adjustment_bulk.php:92
 msgid "Discount type"
@@ -2004,7 +2004,7 @@ msgstr "Geschuldeter Betrag"
 
 #: sepa_payment_adjustment_bulk.php:148
 msgid "The balance is negative when a family owes money; enter the amount owed as a positive number."
-msgstr "Der Saldo ist negativ, wenn eine Familie Geld schuldet; geben Sie den geschuldeten Betrag als positive Zahl ein."
+msgstr "Der Kontostand ist negativ, wenn eine Familie Geld schuldet; geben Sie den geschuldeten Betrag als positive Zahl ein."
 
 #: sepa_payment_adjustment_bulk.php:150
 msgid "Less than"
@@ -2074,7 +2074,7 @@ msgstr "Neue Anpassung"
 
 #: sepa_payment_adjustment_bulk.php:232
 msgid "New balance"
-msgstr "Neuer Saldo"
+msgstr "Neuer Kontostand"
 
 #: sepa_payment_adjustment_bulk.php:248
 msgid "Total of the ticked adjustments"
@@ -2562,7 +2562,7 @@ msgstr "Kurse"
 
 #: manifest.php (menu)
 msgid "Family Balance"
-msgstr "Familiensaldo"
+msgstr "Familienkontostand"
 
 #: manifest.php (menu) manifest.php (menu) manifest.php (menu)
 msgid "Reports"
