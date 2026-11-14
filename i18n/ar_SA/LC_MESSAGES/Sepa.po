@@ -100,7 +100,7 @@ msgstr "تصدير"
 msgid "Export to Excel"
 msgstr "تصدير إلى Excel"
 
-#: import_sepa_data.php:317 import_sepa_from_form.php:390
+#: import_sepa_data.php:317 import_sepa_from_form.php:390 sepa_payment_adjustment_bulk.php:229
 msgid "Select All"
 msgstr "تحديد الكل"
 
@@ -280,7 +280,7 @@ msgstr "تتم قراءة استمارات التسجيل لهذه السنة ا
 msgid "Form Status"
 msgstr "حالة الاستمارة"
 
-#: import_sepa_from_form.php:121 import_sepa_from_form.php:212
+#: import_sepa_from_form.php:121 import_sepa_from_form.php:212 sepa_payment_adjustment_bulk.php:114
 msgid "Next"
 msgstr "التالي"
 
@@ -631,11 +631,11 @@ msgstr "مجموع الرسوم والتعديلات الحالي"
 msgid "Balance"
 msgstr "الرصيد"
 
-#: sepa_balance_snapshot.php:205 sepa_balance_snapshot_details.php:151
+#: sepa_balance_snapshot.php:205 sepa_balance_snapshot_details.php:151 sepa_payment_adjustment_bulk.php:231
 msgid "Total Fees"
 msgstr "إجمالي الرسوم"
 
-#: sepa_balance_snapshot.php:208 manifest.php (menu)
+#: sepa_balance_snapshot.php:208 sepa_payment_adjustment_bulk.php:231 manifest.php (menu)
 msgid "Adjustments"
 msgstr "التعديلات"
 
@@ -1417,7 +1417,7 @@ msgstr "يوم"
 msgid "Total Dept"
 msgstr "إجمالي الديون"
 
-#: sepa_family_due.php:137 sepa_family_totals.php:102 manifest.php (menu)
+#: sepa_family_due.php:137 sepa_family_totals.php:102 sepa_payment_adjustment_bulk.php:231
 msgid "Payments"
 msgstr "المدفوعات"
 
@@ -1825,7 +1825,7 @@ msgstr "خطأ أثناء قراءة الحقول المخصصة"
 msgid "Open the full log"
 msgstr "فتح السجل الكامل"
 
-#: sepa_family_view.php:120 sepa_payment_adjustment_manage.php:58 sepa_payment_manage.php:57
+#: sepa_family_view.php:120 sepa_payment_adjustment_manage.php:63 sepa_payment_manage.php:57
 msgid "Add"
 msgstr "إضافة"
 
@@ -1901,9 +1901,193 @@ msgstr "تعديل الدفعة"
 msgid "Add payment_adjustment"
 msgstr "إضافة تعديل دفعة"
 
-#: sepa_payment_adjustment_delete.php:33 sepa_payment_adjustment_edit.php:36 sepa_payment_adjustment_manage.php:25
+#: sepa_payment_adjustment_bulk.php:34 sepa_payment_adjustment_delete.php:33 sepa_payment_adjustment_edit.php:36
 msgid "Payment Adjustment"
 msgstr "تعديل الدفعة"
+
+#: sepa_payment_adjustment_bulk.php:35 sepa_payment_adjustment_manage.php:70
+msgid "Bulk entry"
+msgstr "إدخال جماعي"
+
+#: sepa_payment_adjustment_bulk.php:65 sepa_payment_adjustment_bulk.php:101
+msgid "Discount"
+msgstr "الخصم"
+
+#: sepa_payment_adjustment_bulk.php:65
+msgid "Filters"
+msgstr "عوامل التصفية"
+
+#: sepa_payment_adjustment_bulk.php:65
+msgid "Check and enter"
+msgstr "التحقق والإدخال"
+
+#: sepa_payment_adjustment_bulk.php:69
+#, php-format
+msgid "Step %d"
+msgstr "الخطوة %d"
+
+#: sepa_payment_adjustment_bulk.php:74
+msgid "Bulk payment adjustment"
+msgstr "تعديل مدفوعات لعدة عائلات"
+
+#: sepa_payment_adjustment_bulk.php:81
+msgid "Enter the same adjustment (for example a discount) for many families at once. The balance is negative when a family owes money; an adjustment is a positive amount that reduces the debt, and it is never larger than what the family owes."
+msgstr "أدخلوا التعديل نفسه (مثل خصم) لعدة عائلات دفعة واحدة. يكون الرصيد سالبًا عندما تكون العائلة مدينة بمبلغ؛ والتعديل مبلغ موجب يقلّل الدين، ولا يكون أبدًا أكبر من المبلغ المستحق على العائلة."
+
+#: sepa_payment_adjustment_bulk.php:92
+msgid "Discount type"
+msgstr "نوع الخصم"
+
+#: sepa_payment_adjustment_bulk.php:93
+msgid "Percentage"
+msgstr "نسبة مئوية"
+
+#: sepa_payment_adjustment_bulk.php:93
+msgid "Fixed value per family"
+msgstr "مبلغ ثابت لكل عائلة"
+
+#: sepa_payment_adjustment_bulk.php:97
+msgid "Percentage of"
+msgstr "النسبة المئوية من"
+
+#: sepa_payment_adjustment_bulk.php:98
+msgid "The amount the family owes"
+msgstr "المبلغ المستحق على العائلة"
+
+#: sepa_payment_adjustment_bulk.php:98
+msgid "The total fees of the year"
+msgstr "إجمالي رسوم السنة"
+
+#: sepa_payment_adjustment_bulk.php:101
+msgid "A percentage (for example 10) or an amount (for example 50), as chosen above."
+msgstr "نسبة مئوية (مثل 10) أو مبلغ (مثل 50)، حسب الاختيار أعلاه."
+
+#: sepa_payment_adjustment_bulk.php:105
+msgid "Shown to the family. Can be changed per family later."
+msgstr "يظهر للعائلة. يمكن تغييره لكل عائلة لاحقًا."
+
+#: sepa_payment_adjustment_bulk.php:109
+msgid "For the administration. Can be changed per family later."
+msgstr "للإدارة. يمكن تغييرها لكل عائلة لاحقًا."
+
+#: sepa_payment_adjustment_bulk.php:124
+msgid "Only families with a SEPA and enrolled students in the academic year can get an adjustment. Leave a filter empty to not use it; all filters have to match."
+msgstr "فقط العائلات التي لديها SEPA وطلاب مسجلون في السنة الدراسية يمكنها الحصول على تعديل. اتركوا عامل التصفية فارغًا لعدم استخدامه؛ ويجب أن تتحقق جميع العوامل."
+
+#: sepa_payment_adjustment_bulk.php:138
+msgid "Nothing selected: all."
+msgstr "بدون اختيار: الكل."
+
+#: sepa_payment_adjustment_bulk.php:142
+msgid "Number of enrolled children"
+msgstr "عدد الأطفال المسجلين"
+
+#: sepa_payment_adjustment_bulk.php:144 sepa_payment_adjustment_bulk.php:150 sepa_payment_adjustment_bulk.php:165
+msgid "Any"
+msgstr "أي"
+
+#: sepa_payment_adjustment_bulk.php:144 sepa_payment_adjustment_bulk.php:150
+msgid "More than"
+msgstr "أكثر من"
+
+#: sepa_payment_adjustment_bulk.php:144
+msgid "Fewer than"
+msgstr "أقل من"
+
+#: sepa_payment_adjustment_bulk.php:144
+msgid "Exactly"
+msgstr "بالضبط"
+
+#: sepa_payment_adjustment_bulk.php:148
+msgid "Amount owed"
+msgstr "المبلغ المستحق"
+
+#: sepa_payment_adjustment_bulk.php:148
+msgid "The balance is negative when a family owes money; enter the amount owed as a positive number."
+msgstr "يكون الرصيد سالبًا عندما تكون العائلة مدينة بمبلغ؛ أدخلوا المبلغ المستحق كرقم موجب."
+
+#: sepa_payment_adjustment_bulk.php:150
+msgid "Less than"
+msgstr "أقل من"
+
+#: sepa_payment_adjustment_bulk.php:155
+msgid "Families with a child in one of the selected courses. Nothing selected: all."
+msgstr "العائلات التي لديها طفل في أحد المقررات المحددة. بدون اختيار: الكل."
+
+#: sepa_payment_adjustment_bulk.php:160
+msgid "Nothing paid yet"
+msgstr "لم يُدفع شيء بعد"
+
+#: sepa_payment_adjustment_bulk.php:160
+msgid "Only families without any payment in the academic year."
+msgstr "فقط العائلات التي ليس لها أي دفعة في السنة الدراسية."
+
+#: sepa_payment_adjustment_bulk.php:164
+msgid "Existing adjustments"
+msgstr "التعديلات الموجودة"
+
+#: sepa_payment_adjustment_bulk.php:165
+msgid "Families that have an adjustment in this year"
+msgstr "العائلات التي لها تعديل في هذه السنة"
+
+#: sepa_payment_adjustment_bulk.php:165
+msgid "Families without an adjustment in this year"
+msgstr "العائلات بدون تعديل في هذه السنة"
+
+#: sepa_payment_adjustment_bulk.php:199
+#, php-format
+msgid "%s%% of the total fees"
+msgstr "%s%% من إجمالي الرسوم"
+
+#: sepa_payment_adjustment_bulk.php:199
+#, php-format
+msgid "%s%% of the amount owed"
+msgstr "%s%% من المبلغ المستحق"
+
+#: sepa_payment_adjustment_bulk.php:200
+#, php-format
+msgid "%s per family"
+msgstr "%s لكل عائلة"
+
+#: sepa_payment_adjustment_bulk.php:201
+#, php-format
+msgid "Academic year %1$s, discount: %2$s."
+msgstr "السنة الدراسية %1$s، الخصم: %2$s."
+
+#: sepa_payment_adjustment_bulk.php:203
+#, php-format
+msgid "%d more families match the filters but owe nothing, they get no adjustment."
+msgstr "%d عائلات أخرى تطابق عوامل التصفية لكنها لا تدين بشيء، ولن تحصل على تعديل."
+
+#: sepa_payment_adjustment_bulk.php:213
+msgid "No family matches the filters."
+msgstr "لا توجد عائلة تطابق عوامل التصفية."
+
+#: sepa_payment_adjustment_bulk.php:227
+#, php-format
+msgid "%d families. Untick a family to skip it; the new adjustment, the description and the note can be changed."
+msgstr "%d عائلات. ألغوا تحديد العائلة لتخطيها؛ ويمكن تغيير التعديل الجديد والوصف والملاحظة."
+
+#: sepa_payment_adjustment_bulk.php:232
+msgid "New adjustment"
+msgstr "التعديل الجديد"
+
+#: sepa_payment_adjustment_bulk.php:232
+msgid "New balance"
+msgstr "الرصيد الجديد"
+
+#: sepa_payment_adjustment_bulk.php:248
+msgid "Total of the ticked adjustments"
+msgstr "مجموع التعديلات المحددة"
+
+#: sepa_payment_adjustment_bulk.php:278
+msgid "Enter the adjustments"
+msgstr "إدخال التعديلات"
+
+#: sepa_payment_adjustment_bulkProcess.php:113
+#, php-format
+msgid "%1$d adjustments entered, together %2$s."
+msgstr "تم إدخال %1$d تعديلات، بمجموع %2$s."
 
 #: sepa_payment_adjustment_delete.php:34
 msgid "Delete Ajustment"
@@ -1929,15 +2113,15 @@ msgstr "تعديل تعديل الدفعة"
 msgid "The specified Adjustment cannot be found."
 msgstr "لم يتم العثور على التعديل المحدد."
 
-#: sepa_payment_adjustment_edit.php:80 sepa_payment_adjustment_manage.php:67
+#: sepa_payment_adjustment_edit.php:80 sepa_payment_adjustment_manage.php:79
 msgid "PaymentAdjustment Amount"
 msgstr "مبلغ تعديل الدفعة"
 
-#: sepa_payment_adjustment_manage.php:43
+#: sepa_payment_adjustment_manage.php:48
 msgid "description, note"
 msgstr "الوصف، الملاحظة"
 
-#: sepa_payment_adjustment_manage.php:76
+#: sepa_payment_adjustment_manage.php:88
 msgid "User"
 msgstr "المستخدم"
 
@@ -2108,6 +2292,26 @@ msgstr "صاحب SEPA"
 #: sepa_unlinked_payment_view.php:100
 msgid "Message"
 msgstr "الرسالة"
+
+#: src/Domain/BulkAdjustment.php:38
+msgid "Select the academic year."
+msgstr "اختاروا السنة الدراسية."
+
+#: src/Domain/BulkAdjustment.php:41
+msgid "Enter a discount that is more than 0."
+msgstr "أدخلوا خصمًا أكبر من 0."
+
+#: src/Domain/BulkAdjustment.php:43
+msgid "A percentage can not be more than 100."
+msgstr "لا يمكن أن تتجاوز النسبة المئوية 100."
+
+#: src/Domain/BulkAdjustment.php:45
+msgid "The discount is too high."
+msgstr "الخصم مرتفع جدًا."
+
+#: src/Domain/BulkAdjustment.php:48
+msgid "Enter a description."
+msgstr "أدخلوا وصفًا."
 
 #: src/Domain/FamilyMerger.php:153
 msgid "Choose the two families."
@@ -2379,3 +2583,7 @@ msgstr "إدارة تعديلات مدفوعات SEPA"
 #: manifest.php (menu)
 msgid "Edit SEPA - my family"
 msgstr "تعديل SEPA - عائلتي"
+
+#: manifest.php (menu)
+msgid "Bulk Payment Adjustments"
+msgstr "تعديلات المدفوعات الجماعية"

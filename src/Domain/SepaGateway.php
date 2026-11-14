@@ -1190,6 +1190,66 @@ class SepaGateway extends QueryableGateway
         return $this->runSelect($query)->fetchAll();
     }
 
+    /**
+     * The families of an academic year with a SEPA, with what the bulk adjustment wizard needs:
+     * fees, payments, adjustments, balance, cadence, number of enrolled children, courses.
+     *
+     * @return array[] gibbonSEPAID, gibbonFamilyID, familyName, payer, cadence, children, courseIDs,
+     *                 fees, payments, adjustments, adjustmentCount, balance
+     */
+    public function getBulkAdjustmentRows($schoolYearID)
+    {
+        // enrolled children and courses per family
+        $enrolled = $this->getEnrollmentFeesBaseQuery($schoolYearID)
+            ->cols(['gibbonFamilyChild.gibbonFamilyID', 'gibbonPerson.gibbonPersonID', 'gibbonCourse.gibbonCourseID'])
+            ->distinct();
+        $children = [];
+        $courses = [];
+        foreach ($this->runSelect($enrolled)->fetchAll() as $row) {
+            $familyID = (int) $row['gibbonFamilyID'];
+            $children[$familyID][(int) $row['gibbonPersonID']] = true;
+            $courses[$familyID][(int) $row['gibbonCourseID']] = true;
+        }
+
+        $cadences = [];
+        foreach ($this->getAllSEPAWithFamily() as $sepa) {
+            $cadences[(int) $sepa['gibbonSEPAID']] = $sepa['withdrawCadence'];
+        }
+
+        $adjustmentCounts = $this->runSelect($this
+            ->newSelect()
+            ->cols(['gibbonSEPAID', 'COUNT(*) AS total'])
+            ->from('gibbonSEPAPaymentAdjustment')
+            ->where('academicYear = :schoolYearID')
+            ->bindValue('schoolYearID', $schoolYearID)
+            ->groupBy(['gibbonSEPAID']))->fetchAll(\PDO::FETCH_KEY_PAIR);
+
+        $rows = [];
+        foreach ($this->getFamilyTotals($schoolYearID, $this->newQueryCriteria(false)) as $total) {
+            if (empty($total['gibbonSEPAID'])) {
+                continue;
+            }
+            $sepaID = (int) $total['gibbonSEPAID'];
+            $familyID = (int) $total['gibbonFamilyID'];
+            $rows[$sepaID] = [
+                'gibbonSEPAID' => $sepaID,
+                'gibbonFamilyID' => $familyID,
+                'familyName' => $total['familyName'],
+                'payer' => $total['payer'],
+                'cadence' => $cadences[$sepaID] ?? self::DEFAULT_WITHDRAW_CADENCE,
+                'children' => count($children[$familyID] ?? []),
+                'courseIDs' => array_keys($courses[$familyID] ?? []),
+                'fees' => (float) $total['totalDept'],
+                'payments' => (float) $total['payments'],
+                'adjustments' => (float) $total['paymentsAdjustment'],
+                'adjustmentCount' => (int) ($adjustmentCounts[$sepaID] ?? 0),
+                'balance' => (float) $total['balance'],
+            ];
+        }
+
+        return array_values($rows);
+    }
+
     public function getChildrenEnrollmentFees($gibbonFamilyID, $schoolYearID)
     {
         $query = $this->getEnrollmentFeesBaseQuery($schoolYearID, $gibbonFamilyID)

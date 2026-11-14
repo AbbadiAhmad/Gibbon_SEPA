@@ -139,3 +139,9 @@ msgstr "SEPA-Änderungsprotokoll"
 msgid "SEPA"
 msgstr "SEPA"
 
+msgid "Bulk Payment Adjustments"
+msgstr "Zahlungsanpassungen für mehrere Familien"
+
+msgid "Adjustments"
+msgstr "Anpassungen"
+

@@ -100,7 +100,7 @@ msgstr ""
 msgid "Export to Excel"
 msgstr ""
 
-#: import_sepa_data.php:317 import_sepa_from_form.php:390
+#: import_sepa_data.php:317 import_sepa_from_form.php:390 sepa_payment_adjustment_bulk.php:229
 msgid "Select All"
 msgstr ""
 
@@ -280,7 +280,7 @@ msgstr ""
 msgid "Form Status"
 msgstr ""
 
-#: import_sepa_from_form.php:121 import_sepa_from_form.php:212
+#: import_sepa_from_form.php:121 import_sepa_from_form.php:212 sepa_payment_adjustment_bulk.php:114
 msgid "Next"
 msgstr ""
 
@@ -631,11 +631,11 @@ msgstr ""
 msgid "Balance"
 msgstr ""
 
-#: sepa_balance_snapshot.php:205 sepa_balance_snapshot_details.php:151
+#: sepa_balance_snapshot.php:205 sepa_balance_snapshot_details.php:151 sepa_payment_adjustment_bulk.php:231
 msgid "Total Fees"
 msgstr ""
 
-#: sepa_balance_snapshot.php:208 manifest.php (menu)
+#: sepa_balance_snapshot.php:208 sepa_payment_adjustment_bulk.php:231 manifest.php (menu)
 msgid "Adjustments"
 msgstr ""
 
@@ -1417,7 +1417,7 @@ msgstr ""
 msgid "Total Dept"
 msgstr ""
 
-#: sepa_family_due.php:137 sepa_family_totals.php:102 manifest.php (menu)
+#: sepa_family_due.php:137 sepa_family_totals.php:102 sepa_payment_adjustment_bulk.php:231
 msgid "Payments"
 msgstr ""
 
@@ -1825,7 +1825,7 @@ msgstr ""
 msgid "Open the full log"
 msgstr ""
 
-#: sepa_family_view.php:120 sepa_payment_adjustment_manage.php:58 sepa_payment_manage.php:57
+#: sepa_family_view.php:120 sepa_payment_adjustment_manage.php:63 sepa_payment_manage.php:57
 msgid "Add"
 msgstr ""
 
@@ -1901,8 +1901,192 @@ msgstr ""
 msgid "Add payment_adjustment"
 msgstr ""
 
-#: sepa_payment_adjustment_delete.php:33 sepa_payment_adjustment_edit.php:36 sepa_payment_adjustment_manage.php:25
+#: sepa_payment_adjustment_bulk.php:34 sepa_payment_adjustment_delete.php:33 sepa_payment_adjustment_edit.php:36
 msgid "Payment Adjustment"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:35 sepa_payment_adjustment_manage.php:70
+msgid "Bulk entry"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:65 sepa_payment_adjustment_bulk.php:101
+msgid "Discount"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:65
+msgid "Filters"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:65
+msgid "Check and enter"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:69
+#, php-format
+msgid "Step %d"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:74
+msgid "Bulk payment adjustment"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:81
+msgid "Enter the same adjustment (for example a discount) for many families at once. The balance is negative when a family owes money; an adjustment is a positive amount that reduces the debt, and it is never larger than what the family owes."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:92
+msgid "Discount type"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:93
+msgid "Percentage"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:93
+msgid "Fixed value per family"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:97
+msgid "Percentage of"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:98
+msgid "The amount the family owes"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:98
+msgid "The total fees of the year"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:101
+msgid "A percentage (for example 10) or an amount (for example 50), as chosen above."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:105
+msgid "Shown to the family. Can be changed per family later."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:109
+msgid "For the administration. Can be changed per family later."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:124
+msgid "Only families with a SEPA and enrolled students in the academic year can get an adjustment. Leave a filter empty to not use it; all filters have to match."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:138
+msgid "Nothing selected: all."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:142
+msgid "Number of enrolled children"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:144 sepa_payment_adjustment_bulk.php:150 sepa_payment_adjustment_bulk.php:165
+msgid "Any"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:144 sepa_payment_adjustment_bulk.php:150
+msgid "More than"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:144
+msgid "Fewer than"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:144
+msgid "Exactly"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:148
+msgid "Amount owed"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:148
+msgid "The balance is negative when a family owes money; enter the amount owed as a positive number."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:150
+msgid "Less than"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:155
+msgid "Families with a child in one of the selected courses. Nothing selected: all."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:160
+msgid "Nothing paid yet"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:160
+msgid "Only families without any payment in the academic year."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:164
+msgid "Existing adjustments"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:165
+msgid "Families that have an adjustment in this year"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:165
+msgid "Families without an adjustment in this year"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:199
+#, php-format
+msgid "%s%% of the total fees"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:199
+#, php-format
+msgid "%s%% of the amount owed"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:200
+#, php-format
+msgid "%s per family"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:201
+#, php-format
+msgid "Academic year %1$s, discount: %2$s."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:203
+#, php-format
+msgid "%d more families match the filters but owe nothing, they get no adjustment."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:213
+msgid "No family matches the filters."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:227
+#, php-format
+msgid "%d families. Untick a family to skip it; the new adjustment, the description and the note can be changed."
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:232
+msgid "New adjustment"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:232
+msgid "New balance"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:248
+msgid "Total of the ticked adjustments"
+msgstr ""
+
+#: sepa_payment_adjustment_bulk.php:278
+msgid "Enter the adjustments"
+msgstr ""
+
+#: sepa_payment_adjustment_bulkProcess.php:113
+#, php-format
+msgid "%1$d adjustments entered, together %2$s."
 msgstr ""
 
 #: sepa_payment_adjustment_delete.php:34
@@ -1929,15 +2113,15 @@ msgstr ""
 msgid "The specified Adjustment cannot be found."
 msgstr ""
 
-#: sepa_payment_adjustment_edit.php:80 sepa_payment_adjustment_manage.php:67
+#: sepa_payment_adjustment_edit.php:80 sepa_payment_adjustment_manage.php:79
 msgid "PaymentAdjustment Amount"
 msgstr ""
 
-#: sepa_payment_adjustment_manage.php:43
+#: sepa_payment_adjustment_manage.php:48
 msgid "description, note"
 msgstr ""
 
-#: sepa_payment_adjustment_manage.php:76
+#: sepa_payment_adjustment_manage.php:88
 msgid "User"
 msgstr ""
 
@@ -2107,6 +2291,26 @@ msgstr ""
 
 #: sepa_unlinked_payment_view.php:100
 msgid "Message"
+msgstr ""
+
+#: src/Domain/BulkAdjustment.php:38
+msgid "Select the academic year."
+msgstr ""
+
+#: src/Domain/BulkAdjustment.php:41
+msgid "Enter a discount that is more than 0."
+msgstr ""
+
+#: src/Domain/BulkAdjustment.php:43
+msgid "A percentage can not be more than 100."
+msgstr ""
+
+#: src/Domain/BulkAdjustment.php:45
+msgid "The discount is too high."
+msgstr ""
+
+#: src/Domain/BulkAdjustment.php:48
+msgid "Enter a description."
 msgstr ""
 
 #: src/Domain/FamilyMerger.php:153
@@ -2378,4 +2582,8 @@ msgstr ""
 
 #: manifest.php (menu)
 msgid "Edit SEPA - my family"
+msgstr ""
+
+#: manifest.php (menu)
+msgid "Bulk Payment Adjustments"
 msgstr ""

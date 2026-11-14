@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.8.0';            // Version number
+$version = '2.9.0';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -645,6 +645,26 @@ $actionRows[] = [
     'entryURL' => 'sepa_change_log.php',
     'entrySidebar' => 'Y',
     'menuShow' => 'Y',
+    'defaultPermissionAdmin' => 'Y',
+    'defaultPermissionTeacher' => 'N',
+    'defaultPermissionStudent' => 'N',
+    'defaultPermissionParent' => 'N',
+    'defaultPermissionSupport' => 'N',
+    'categoryPermissionStaff' => 'Y',
+    'categoryPermissionStudent' => 'N',
+    'categoryPermissionParent' => 'N',
+    'categoryPermissionOther' => 'N',
+];
+
+$actionRows[] = [
+    'name' => 'Bulk Payment Adjustments',
+    'precedence' => '22',
+    'category' => 'Adjustments',
+    'description' => 'Enter an adjustment (e.g. a discount) for many families at once',
+    'URLList' => 'sepa_payment_adjustment_bulk.php, sepa_payment_adjustment_bulkProcess.php',
+    'entryURL' => 'sepa_payment_adjustment_bulk.php',
+    'entrySidebar' => 'Y',
+    'menuShow' => 'N',
     'defaultPermissionAdmin' => 'Y',
     'defaultPermissionTeacher' => 'N',
     'defaultPermissionStudent' => 'N',

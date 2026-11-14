@@ -196,3 +196,9 @@ $count++;
 $sql[$count][0] = "2.8.0";
 $sql[$count][1] = "ALTER TABLE gibbonSEPAChangeRequest MODIFY COLUMN `gibbonSEPAID` int(8) unsigned zerofill DEFAULT NULL COMMENT 'NULL: request for a new SEPA, the family has none yet';end
 ALTER TABLE gibbonSEPAChangeLog MODIFY COLUMN `gibbonSEPAID` int(8) unsigned zerofill DEFAULT NULL COMMENT 'NULL: request for a new SEPA';";
+
+// v2.9.0 - bulk payment adjustments (wizard)
+$count++;
+$sql[$count][0] = "2.9.0";
+$sql[$count][1] = "INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'Bulk Payment Adjustments', 22, 'Adjustments', 'Enter an adjustment (e.g. a discount) for many families at once', 'sepa_payment_adjustment_bulk.php, sepa_payment_adjustment_bulkProcess.php', 'sepa_payment_adjustment_bulk.php', 'Y', 'N', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
+INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='Bulk Payment Adjustments' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
