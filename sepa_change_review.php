@@ -37,6 +37,7 @@ $page->breadcrumbs->add(__('Review'));
 
 $_GET = $container->get(Validator::class)->sanitize($_GET);
 $gateway = $container->get(SepaChangeRequestGateway::class);
+$SepaGateway = $container->get(SepaGateway::class);
 $e = function ($value) {
     return htmlspecialchars((string) ($value ?? ''), ENT_QUOTES, 'UTF-8');
 };
@@ -64,6 +65,17 @@ if (!$isPending) {
     echo "<div class='" . ($request['status'] === 'Approved' ? 'success' : 'warning') . "'>" . $e($text) . ' ' . $e(Format::dateTime($request['timestampReviewed']))
         . ($request['reviewNote'] ? '<br>' . $e($request['reviewNote']) : '') . '</div>';
 }
+
+// The members of the family
+$members = [];
+foreach ([__('Adults') => $SepaGateway->selectAdultsByFamily($request['gibbonFamilyID']), __('Children') => $SepaGateway->selectChildrenByFamily($request['gibbonFamilyID'])] as $title => $people) {
+    $names = [];
+    foreach ($people as $person) {
+        $names[] = $e(trim($person['preferredName'] . ' ' . $person['surname'])) . ($person['status'] !== 'Full' ? ' (' . $e($person['status']) . ')' : '');
+    }
+    $members[] = '<strong>' . $e($title) . ':</strong> ' . ($names ? implode(', ', $names) : '-');
+}
+echo '<p>' . implode('<br>', $members) . '</p>';
 
 // Flags
 $flags = $isPending ? $gateway->getRequestFlags($request) : [];
