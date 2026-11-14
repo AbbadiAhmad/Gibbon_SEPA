@@ -155,6 +155,10 @@ class SepaChangeRequestGateway extends QueryableGateway
 
         // Without a decision of the reviewer everything the family entered is taken over
         $final = $decision['final'] ?? $request;
+        if (empty($final['SEPA_signedDate'])) {
+            // an empty date of signature never removes the existing date
+            $final['SEPA_signedDate'] = $this->getSepaRow($request['gibbonSEPAID'])['SEPA_signedDate'] ?? null;
+        }
 
         // logged before the SEPA changes: what the approval changes, what was not accepted
         // and what the reviewer changed
@@ -222,7 +226,7 @@ class SepaChangeRequestGateway extends QueryableGateway
     public static function describeChanges(array $sepa, array $entered)
     {
         $old = self::clearValues($sepa);
-        $new = self::clearValues($entered);
+        $new = self::enteredValues($entered, $sepa);
         $encrypted = function ($stored, $clear) {
             if ($stored === null || $stored === '') {
                 return '';
@@ -472,12 +476,59 @@ class SepaChangeRequestGateway extends QueryableGateway
      */
     public function getRequestFlags(array $request)
     {
-        $entered = self::clearValues($request);
         $sepa = $this->getSepaRow($request['gibbonSEPAID']);
+        $entered = $sepa ? self::enteredValues($request, $sepa) : self::clearValues($request);
         $current = $sepa ? self::clearValues($sepa) : null;
         $others = $entered['IBAN'] ? $this->getOtherFamiliesWithIban($entered['IBAN'], $request['gibbonSEPAID']) : [];
 
         return self::validate($entered, $current, $this->getAdultSurnames($request['gibbonFamilyID']), $others);
+    }
+
+    /**
+     * Clear values the family entered. A request without a date of signature (the family left it
+     * empty, or the request is older than that field) means the date is not changed.
+     */
+    public static function enteredValues(array $request, array $sepa)
+    {
+        $entered = self::clearValues($request);
+        if ($entered['SEPA_signedDate'] === '') {
+            $entered['SEPA_signedDate'] = (string) ($sepa['SEPA_signedDate'] ?? '');
+        }
+        return $entered;
+    }
+
+    /**
+     * User input of a date field as Y-m-d ('' when empty or not a date). The field delivers
+     * Y-m-d or the date format of the installation, depending on the Gibbon version.
+     */
+    public static function inputDate($value)
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return '';
+        }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            $value = (string) \Gibbon\Services\Format::dateConvert($value);
+        }
+        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ? $value : '';
+    }
+
+    /**
+     * Which fields are accepted by default on the approval page: only the ones the family
+     * really changed to a value that is not empty.
+     *
+     * @return bool[] field => accepted
+     */
+    public static function defaultAccept(array $entered, array $current)
+    {
+        $accept = [];
+        foreach (self::FIELDS as $field) {
+            $new = (string) $entered[$field];
+            $old = (string) $current[$field];
+            $changed = $field === 'IBAN' ? IbanCipher::normalize($new) !== IbanCipher::normalize($old) : $new !== $old;
+            $accept[$field] = $changed && trim($new) !== '';
+        }
+        return $accept;
     }
 
     /**
@@ -519,7 +570,7 @@ class SepaChangeRequestGateway extends QueryableGateway
      */
     public static function buildDecision(array $request, array $sepa, array $accept, array $values)
     {
-        $entered = self::clearValues($request);
+        $entered = self::enteredValues($request, $sepa);
         $current = self::clearValues($sepa);
         $same = function ($field, $a, $b) {
             return $field === 'IBAN'

@@ -71,9 +71,10 @@ $day = (int) ($_POST['withdrawDay'] ?? 0);
 $day = ($day >= 1 && $day <= 31) ? $day : null;
 
 // Date of the signature: empty keeps the existing date, never earlier than the existing date
-$signed = !empty($_POST['SEPA_signedDate']) ? Format::dateConvert($_POST['SEPA_signedDate']) : '';
+$signed = SepaChangeRequestGateway::inputDate($_POST['SEPA_signedDate'] ?? '');
 $existingSigned = (string) ($sepa['SEPA_signedDate'] ?? '');
-if ($signed !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $signed)) {
+if ($signed === '' && trim((string) ($_POST['SEPA_signedDate'] ?? '')) !== '') {
+    // something was entered that is not a date
     header('Location: ' . $URL . '&return=error3');
     exit;
 }

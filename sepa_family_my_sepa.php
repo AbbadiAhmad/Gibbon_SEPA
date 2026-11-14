@@ -124,7 +124,7 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
                 echo '<p><a class="button" href="' . $e($editURL) . '">' . __('Change my SEPA data') . '</a></p>';
             } else {
                 $current = SepaChangeRequestGateway::clearValues($sepa);
-                $entered = SepaChangeRequestGateway::clearValues($pending);
+                $entered = SepaChangeRequestGateway::enteredValues($pending, $sepa);
                 $maskIban = function ($iban) {
                     return $iban === null ? __('not available') : IbanCipher::maskForDisplay($iban);
                 };

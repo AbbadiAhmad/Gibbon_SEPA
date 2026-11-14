@@ -59,7 +59,7 @@ try {
         }
         $posted = is_array($_POST['value'] ?? null) ? $_POST['value'] : [];
         $accept = is_array($_POST['accept'] ?? null) ? $_POST['accept'] : [];
-        $values = SepaChangeRequestGateway::cleanReviewValues($posted, SepaChangeRequestGateway::clearValues($request));
+        $values = SepaChangeRequestGateway::cleanReviewValues($posted, SepaChangeRequestGateway::enteredValues($request, $sepa));
         $decision = SepaChangeRequestGateway::buildDecision($request, $sepa, $accept, $values);
 
         // The checks are made on the values that are saved; errors need a confirmation.

@@ -173,6 +173,11 @@ function sepaFormatLogChanges($json, $forFamily = false)
     [$changes, $note, $extra] = \Gibbon\Module\Sepa\Domain\SepaChangeRequestGateway::readLogChanges($json);
     $lines = [];
     foreach ($changes as $field => [$old, $new]) {
+        if ($field === 'SEPA_signedDate') {
+            // dates in the date format of the installation
+            $old = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $old) ? \Gibbon\Services\Format::date($old) : $old;
+            $new = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $new) ? \Gibbon\Services\Format::date($new) : $new;
+        }
         if ($forFamily && $field === 'IBAN') {
             $old = \Gibbon\Module\Sepa\Security\IbanCipher::maskForDisplay($old);
             $new = \Gibbon\Module\Sepa\Security\IbanCipher::maskForDisplay($new);

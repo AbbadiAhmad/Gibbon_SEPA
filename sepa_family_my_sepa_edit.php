@@ -50,7 +50,7 @@ $sepa = $sepas[0];
 
 // The values shown: the entries waiting for approval, otherwise the current data
 $pending = $requestGateway->getPendingBySEPAID($sepa['gibbonSEPAID']);
-$values = SepaChangeRequestGateway::clearValues($pending ?: $sepa);
+$values = $pending ? SepaChangeRequestGateway::enteredValues($pending, $sepa) : SepaChangeRequestGateway::clearValues($sepa);
 $current = SepaChangeRequestGateway::clearValues($sepa);
 
 if (!empty($_SESSION[$guid]['sepaMyError'])) {
@@ -90,7 +90,11 @@ $row = $form->addRow();
 $row->addLabel('SEPA_signedDate', __('Date of SEPA signature'))->description($current['SEPA_signedDate']
     ? sprintf(__('Can not be earlier than the existing date (%s).'), \Gibbon\Services\Format::date($current['SEPA_signedDate']))
     : '');
-$row->addDate('SEPA_signedDate')->setValue($values['SEPA_signedDate'] ? \Gibbon\Services\Format::date($values['SEPA_signedDate']) : '');
+$signedField = $row->addDate('SEPA_signedDate');
+if ($values['SEPA_signedDate']) {
+    // the field takes the database date (Y-m-d) and shows it in the date format of the installation
+    $signedField->setDateFromValue($values['SEPA_signedDate']);
+}
 
 $row = $form->addRow();
 $row->addContent('<a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_family_my_sepa.php">' . __('Back') . '</a>');

@@ -45,10 +45,8 @@ if (!empty($_SESSION[$guid]['sepaLogNotice'])) {
 $search = trim($_GET['search'] ?? '');
 $event = in_array($_GET['event'] ?? '', ['Submitted', 'Updated', 'Discarded', 'Approved', 'Rejected'], true) ? $_GET['event'] : '';
 $sepaID = (int) ($_GET['sepa'] ?? 0);
-$from = !empty($_GET['from']) ? Format::dateConvert($_GET['from']) : '';
-$to = !empty($_GET['to']) ? Format::dateConvert($_GET['to']) : '';
-$from = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $from) ? $from : '';
-$to = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $to) ? $to : '';
+$from = SepaChangeRequestGateway::inputDate($_GET['from'] ?? '');
+$to = SepaChangeRequestGateway::inputDate($_GET['to'] ?? '');
 
 $form = Form::create('logFilter', $session->get('absoluteURL') . '/index.php', 'get');
 $form->setClass('noIntBorder fullWidth');
@@ -64,10 +62,16 @@ $row->addLabel('event', __('What'));
 $row->addSelect('event')->fromArray(['Submitted' => __('Entered'), 'Updated' => __('Entries changed'), 'Discarded' => __('Discarded'), 'Approved' => __('Approved'), 'Rejected' => __('Rejected')])->selected($event)->placeholder(__('All'));
 $row = $form->addRow();
 $row->addLabel('from', __('From'));
-$row->addDate('from')->setValue($from ? Format::date($from) : '');
+$fromField = $row->addDate('from');
+if ($from) {
+    $fromField->setDateFromValue($from);
+}
 $row = $form->addRow();
 $row->addLabel('to', __('To'));
-$row->addDate('to')->setValue($to ? Format::date($to) : '');
+$toField = $row->addDate('to');
+if ($to) {
+    $toField->setDateFromValue($to);
+}
 $row = $form->addRow();
 $row->addSubmit(__('Filter'));
 echo $form->getOutput();

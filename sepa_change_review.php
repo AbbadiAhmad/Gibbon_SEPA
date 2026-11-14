@@ -49,7 +49,7 @@ if (!$request || !$sepa) {
     return;
 }
 
-$entered = SepaChangeRequestGateway::clearValues($request);
+$entered = SepaChangeRequestGateway::enteredValues($request, $sepa);
 $current = SepaChangeRequestGateway::clearValues($sepa);
 $cadences = SepaGateway::getWithdrawCadenceOptions();
 $isPending = $request['status'] === 'Pending';
@@ -84,7 +84,8 @@ unset($_SESSION[$guid]['sepaReviewDraft'][$requestID]);
 
 $values = $entered;
 $values['IBAN'] = (string) $entered['IBAN'];
-$accept = array_fill_keys(SepaChangeRequestGateway::FIELDS, true);
+// ticked by default: only what the family really changed (to a value that is not empty)
+$accept = SepaChangeRequestGateway::defaultAccept($entered, SepaChangeRequestGateway::clearValues($sepa));
 if ($isPending && $draft) {
     $values = SepaChangeRequestGateway::cleanReviewValues($draft['value'] ?? [], $values);
     foreach ($accept as $field => $on) {
@@ -184,7 +185,7 @@ if (!$isPending) {
             . '<td style="text-align: center;"><input type="checkbox" name="accept[' . $field . ']" value="1"' . ($accept[$field] ? ' checked' : '') . '></td></tr>';
     }
     $html .= '</tbody></table><p><small>* ' . __('differs from the current data') . '. '
-        . __('Approve saves the ticked rows with the value in the "Value to save" column; rows that are not ticked keep the current value.') . '</small></p>';
+        . __('Approve saves the ticked rows with the value in the "Value to save" column; rows that are not ticked keep the current value. Rows the family did not change are not ticked.') . '</small></p>';
 
     $form = Form::create('sepaChangeReview', $session->get('absoluteURL') . '/modules/Sepa/sepa_change_reviewProcess.php');
     $form->addHiddenValue('address', $session->get('address'));
