@@ -509,6 +509,21 @@ class SepaGateway extends QueryableGateway
         return $this->runUpdate($query);
     }
 
+    /**
+     * Link an (unlinked) payment to a SEPA account without touching any of its other values.
+     */
+    public function linkPaymentToSEPA($gibbonSEPAPaymentRecordID, $gibbonSEPAID)
+    {
+        $query = $this
+            ->newUpdate()
+            ->table('gibbonSEPAPaymentEntry')
+            ->cols(['gibbonSEPAID' => $gibbonSEPAID])
+            ->where('gibbonSEPAPaymentRecordID = :gibbonSEPAPaymentRecordID')
+            ->bindValue('gibbonSEPAPaymentRecordID', $gibbonSEPAPaymentRecordID);
+
+        return $this->runUpdate($query);
+    }
+
     public function deletePayment($gibbonSEPAPaymentRecordID)
     {
         $query = $this

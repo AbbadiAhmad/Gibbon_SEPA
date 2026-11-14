@@ -25,6 +25,7 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
     $gibbonSEPAPaymentRecordID = $_GET['gibbonSEPAPaymentRecordID'] ?? '';
     $family_details = $_GET['family_details'] ?? '';
     $LockFamily = $_GET['LockFamily'] ?? false;
+    $linkOnly = ($_GET['linkOnly'] ?? '') === 'Y';
 
 
     if (empty($gibbonSEPAPaymentRecordID)) {
@@ -45,6 +46,45 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
 
     if (!$payment) {
         $page->addError(__m('Payment entry not found.'));
+        return;
+    }
+
+    // Coming from the Unlinked Payments list (usually bank statement data): the payment is only
+    // assigned to a family and its values are shown read-only. The normal edit page stays editable.
+    if ($linkOnly && empty($payment['gibbonSEPAID'])) {
+        $form = Form::create('paymentLink', $session->get('absoluteURL') . '/modules/Sepa/sepa_payment_editProcess.php');
+        $form->addHiddenValue('address', $_SESSION[$guid]['address']);
+        $form->addHiddenValue('gibbonSEPAPaymentRecordID', $gibbonSEPAPaymentRecordID);
+        $form->addHiddenValue('family_details', $family_details);
+        $form->addHiddenValue('linkOnly', 'Y');
+
+        $readOnly = [
+            __m('Booking Date') => $payment['booking_date'],
+            __m('Academic Year') => $schoolYears[$payment['academicYear']] ?? $payment['academicYear'],
+            __m('Payment Method') => $payment['payment_method'],
+            __m('Amount') => $payment['amount'],
+            __m('Payer') => $payment['payer'],
+            __m('IBAN') => IbanCipher::format(IbanCipher::decrypt($payment['IBAN'])),
+            __m('Transaction Reference') => $payment['transaction_reference'],
+            __m('Transaction Message') => $payment['transaction_message'],
+            __m('Note') => $payment['note'],
+        ];
+        foreach ($readOnly as $label => $value) {
+            $row = $form->addRow();
+            $row->addLabel('ro_' . md5($label), $label);
+            $row->addContent(htmlspecialchars((string) $value))->addClass('flex-1 text-right');
+        }
+
+        $row = $form->addRow();
+        $row->addLabel('gibbonSEPAID', __m('SEPA Account'));
+        $sepaOptions = array_column($sepaList->toArray(), 'payer', 'gibbonSEPAID');
+        $row->addSelect('gibbonSEPAID')->fromArray($sepaOptions)->placeholder('')->required();
+
+        $row = $form->addRow();
+        $row->addFooter();
+        $row->addSubmit(__m('Assign to Family'));
+
+        echo $form->getOutput();
         return;
     }
 
@@ -92,7 +132,29 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
 
     $row = $form->addRow();
     $row->addLabel('amount', __m('Amount'));
-    $row->addNumber('amount')->required()->decimalPlaces(2)->minimum(0)->setValue($payment['amount']);
+    $row->addNumber('amount')->required()->decimalPlaces(2)->setValue($payment['amount']);
+
+    // A negative amount (e.g. a rejected/refunded SEPA order) increases what the payer owes.
+    // The admin has to explicitly confirm it.
+    $row = $form->addRow('negativeConfirmRow')->addClass('hidden');
+    $row->addLabel('confirmNegative', __m('Confirm negative amount'))
+        ->description(__m('A negative payment increases the amount owed by the payer instead of reducing it.'));
+    $row->addCheckbox('confirmNegative')->description(__m('I understand this negative amount will increase the amount owed.'))->setValue('Y');
+    $form->addRow()->addContent("<script>
+        (function () {
+            var amount = document.getElementById('amount');
+            var row = document.getElementById('negativeConfirmRow');
+            var box = document.getElementById('confirmNegative');
+            function toggle() {
+                var neg = parseFloat((amount.value || '').replace(',', '.')) < 0;
+                row.classList.toggle('hidden', !neg);
+                row.style.display = neg ? '' : 'none';
+                if (!neg && box) box.checked = false;
+            }
+            amount.addEventListener('input', toggle);
+            toggle();
+        })();
+    </script>");
 
     $row = $form->addRow();
     $row->addLabel('payer', __m('Payer'));

@@ -34,6 +34,23 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
 
     $SepaGateway = $container->get(SepaGateway::class);
 
+    // Assigning an unlinked payment: only the SEPA account is taken from the form, never the payment values.
+    if (($_POST['linkOnly'] ?? '') === 'Y') {
+        $existing = $SepaGateway->getPaymentByID($gibbonSEPAPaymentRecordID);
+        $gibbonSEPAID = $_POST['gibbonSEPAID'] ?? '';
+        if (!$existing || !empty($existing['gibbonSEPAID']) || empty($gibbonSEPAID)) {
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_unlinked_payment_view.php&return=error1");
+            exit;
+        }
+        $SepaGateway->linkPaymentToSEPA($gibbonSEPAPaymentRecordID, $gibbonSEPAID);
+        if (!empty($family_details)) {
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_family_details.php&gibbonFamilyID={$family_details}&return=success0");
+        } else {
+            header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_unlinked_payment_view.php&return=success1");
+        }
+        exit;
+    }
+
     $paymentData = [
         'booking_date' => $_POST['booking_date'] ?? '',
         'payer' => $_POST['payer'] ?? '',
@@ -46,6 +63,12 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_edit.php
         'payment_method' => $_POST['payment_method'] ?? '',
         'gibbonSEPAID' => $_POST['gibbonSEPAID'] ?? null,
     ];
+
+    // Negative amounts (rejected/refunded orders) must be explicitly confirmed by the admin.
+    if (is_numeric($paymentData['amount']) && (float)$paymentData['amount'] < 0 && ($_POST['confirmNegative'] ?? '') !== 'Y') {
+        header("Location: {$session->get('absoluteURL')}/index.php?q=/modules/Sepa/sepa_payment_edit.php&gibbonSEPAPaymentRecordID={$gibbonSEPAPaymentRecordID}&return=error1");
+        exit;
+    }
 
     // Try to match with existing SEPA record
     $sepaMatches = $SepaGateway->getSEPAForPaymentEntry($paymentData);
