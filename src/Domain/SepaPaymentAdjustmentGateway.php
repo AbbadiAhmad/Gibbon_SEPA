@@ -43,6 +43,7 @@ class SepaPaymentAdjustmentGateway extends QueryableGateway
             ->cols([
                 'gibbonSEPAPaymentAdjustment.*',
                 'gibbonFamily.name as familyName',
+                'gibbonFamily.gibbonFamilyID as gibbonFamilyID',
                 'gibbonSchoolYear.name as yearName',
                 'gibbonSEPAPaymentAdjustment.gibbonPersonID'
             ])
