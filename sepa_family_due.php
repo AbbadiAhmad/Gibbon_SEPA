@@ -40,8 +40,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
     $search = $_GET['search'] ?? '';
 
     // Period: defaults to the current month. Whole months are used (any day inside a month selects it).
-    $periodFrom = !empty($_GET['periodFrom']) ? Format::dateConvert($_GET['periodFrom']) : date('Y-m-01');
-    $periodTo = !empty($_GET['periodTo']) ? Format::dateConvert($_GET['periodTo']) : date('Y-m-t');
+    $periodFrom = sepaParseDate($_GET['periodFrom'] ?? '') ?: date('Y-m-01');
+    $periodTo = sepaParseDate($_GET['periodTo'] ?? '') ?: date('Y-m-t');
     if (strtotime($periodTo) < strtotime($periodFrom)) {
         $periodTo = date('Y-m-t', strtotime($periodFrom));
     }
@@ -58,11 +58,11 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
 
     $row = $form->addRow();
     $row->addLabel('periodFrom', __m('Period from'))->description(__m('The whole month of this date is included.'));
-    $row->addDate('periodFrom')->setValue(Format::date($periodFrom))->required();
+    $row->addDate('periodFrom')->setValue($periodFrom)->required();
 
     $row = $form->addRow();
     $row->addLabel('periodTo', __m('Period to'))->description(__m('The whole month of this date is included.'));
-    $row->addDate('periodTo')->setValue(Format::date($periodTo))->required();
+    $row->addDate('periodTo')->setValue($periodTo)->required();
 
     $row = $form->addRow();
     $row->addLabel('search', __m('Search For'))->description(__m('Family Name, Payer'));
@@ -106,8 +106,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
     $table->addHeaderAction('export', __m('Export to Excel'))
         ->setURL('/modules/Sepa/sepa_family_balance_export.php')
         ->addParam('schoolYearID', $schoolYearID)
-        ->addParam('periodFrom', Format::date($periodFrom))
-        ->addParam('periodTo', Format::date($periodTo))
+        ->addParam('periodFrom', $periodFrom)
+        ->addParam('periodTo', $periodTo)
         ->addParam('search', $search)
         ->directLink()
         ->displayLabel();
@@ -115,8 +115,8 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_due.php'
     $table->addHeaderAction('exportWithdraw', __m('Export Withdrawals (incl. missing SEPA)'))
         ->setURL('/modules/Sepa/sepa_family_balance_export.php')
         ->addParam('schoolYearID', $schoolYearID)
-        ->addParam('periodFrom', Format::date($periodFrom))
-        ->addParam('periodTo', Format::date($periodTo))
+        ->addParam('periodFrom', $periodFrom)
+        ->addParam('periodTo', $periodTo)
         ->addParam('search', $search)
         ->addParam('onlyWithdraw', 1)
         ->directLink()

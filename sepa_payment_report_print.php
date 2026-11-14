@@ -28,8 +28,8 @@ $SepaGateway = $container->get(SepaGateway::class);
 $settingGateway = $container->get(SettingGateway::class);
 
 // Get date range and SEPA ID from POST parameters (secure from tampering)
-$fromDate = $_POST['fromDate'] ?? '';
-$toDate = $_POST['toDate'] ?? '';
+$fromDate = sepaParseDate($_POST['fromDate'] ?? '');
+$toDate = sepaParseDate($_POST['toDate'] ?? '');
 $gibbonSEPAID = $_POST['gibbonSEPAID'] ?? '';
 
 if (empty($fromDate) || empty($toDate)) {

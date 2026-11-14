@@ -64,13 +64,13 @@ $row = $form->addRow();
 $row->addLabel('from', __m('From'));
 $fromField = $row->addDate('from');
 if ($from) {
-    $fromField->setDateFromValue($from);
+    $fromField->setValue($from);
 }
 $row = $form->addRow();
 $row->addLabel('to', __m('To'));
 $toField = $row->addDate('to');
 if ($to) {
-    $toField->setDateFromValue($to);
+    $toField->setValue($to);
 }
 $row = $form->addRow();
 $row->addSubmit(__m('Filter'));

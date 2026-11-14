@@ -32,8 +32,8 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
 
     // Calculate date range based on year type
     $currentYear = date('Y');
-    $fromDate = $_GET['fromDate'] ?? $currentYear . '-01-01';
-    $toDate = $_GET['toDate'] ?? $currentYear . '-12-31';
+    $fromDate = sepaParseDate($_GET['fromDate'] ?? '') ?: $currentYear . '-01-01';
+    $toDate = sepaParseDate($_GET['toDate'] ?? '') ?: $currentYear . '-12-31';
     $gibbonSEPAID = $_GET['gibbonSEPAID'] ?? '';
 
     // Get all SEPA accounts for dropdown
@@ -81,9 +81,9 @@ if (isActionAccessible($guid, $connection2, "/modules/Sepa/sepa_payment_report.p
         if (empty($gibbonSEPAID) || $gibbonSEPAID === 'all') {
             echo "<div class='message'>" . __m('Please select a specific SEPA account to generate the report.') . "</div>";
         } else {
-            // Convert dates from display format to database format if needed
-            $fromDateDB = Format::dateConvert($fromDate);
-            $toDateDB = Format::dateConvert($toDate);
+            // $fromDate / $toDate are already normalized to Y-m-d
+            $fromDateDB = $fromDate;
+            $toDateDB = $toDate;
 
             // Validate date range
             if (strtotime($fromDateDB) > strtotime($toDateDB)) {

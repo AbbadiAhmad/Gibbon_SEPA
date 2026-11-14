@@ -109,8 +109,8 @@ $row->addLabel('SEPA_signedDate', __m('Date of SEPA signature'))->description($c
     : '');
 $signedField = $row->addDate('SEPA_signedDate');
 if ($values['SEPA_signedDate']) {
-    // the field takes the database date (Y-m-d) and shows it in the date format of the installation
-    $signedField->setDateFromValue($values['SEPA_signedDate']);
+    // date fields take the database date (Y-m-d)
+    $signedField->setValue($values['SEPA_signedDate']);
 }
 
 $row = $form->addRow();
