@@ -7,7 +7,12 @@
  * Gibbon provides __m() for this; the function below is only used when the Gibbon version has none.
  * Without a translation of the user's language the English text is shown.
  */
-if (!function_exists('__m')) {
+// Gibbon core declares __m() unconditionally in its functions.php. That file is often loaded AFTER this one
+// (moduleFunctions.php is required before gibbon.php), so function_exists() alone is not enough:
+// declaring the fallback first would cause "Cannot redeclare __m()". Only declare it when the core has none.
+$sepaCoreFunctions = dirname(__DIR__, 3) . '/functions.php';
+$sepaCoreHasM = is_file($sepaCoreFunctions) && strpos((string) file_get_contents($sepaCoreFunctions), 'function __m(') !== false;
+if (!$sepaCoreHasM && !function_exists('__m')) {
     function __m($text, $params = [], $options = [])
     {
         static $bound = false;
