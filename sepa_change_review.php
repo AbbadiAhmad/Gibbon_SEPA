@@ -43,11 +43,14 @@ $e = function ($value) {
 };
 
 $request = $gateway->getByID((int) ($_GET['gibbonSEPAChangeRequestID'] ?? 0));
-$sepa = $request ? $gateway->getSepaRow($request['gibbonSEPAID']) : null;
-if (!$request || !$sepa) {
+if (!$request) {
     $page->addError(__('The specified record cannot be found.'));
     return;
 }
+// The SEPA the request is about; a family without SEPA asks for a new one (current data empty)
+$target = $gateway->getTargetSepa($request);
+$isNew = !$target;
+$sepa = $target ?: SepaChangeRequestGateway::emptySepa();
 
 $entered = SepaChangeRequestGateway::enteredValues($request, $sepa);
 $current = SepaChangeRequestGateway::clearValues($sepa);
@@ -57,7 +60,7 @@ $fullIban = function ($iban) {
     return $iban === null ? '[' . __('cannot decrypt - check the encryption key') . ']' : IbanCipher::format($iban);
 };
 
-echo '<h2>' . sprintf(__('SEPA change of family %s'), $e($request['familyName'])) . '</h2>';
+echo '<h2>' . sprintf($isNew && $request['status'] === 'Pending' ? __('New SEPA of family %s') : __('SEPA change of family %s'), $e($request['familyName'])) . '</h2>';
 echo '<p>' . sprintf(__('Entered by %1$s on %2$s.'), $e($request['submittedBy']), $e(Format::dateTime($request['timestampUpdated'] ?: $request['timestampSubmitted']))) . '</p>';
 
 if (!$isPending) {
@@ -210,7 +213,7 @@ if (!$isPending) {
 
 // ------------------------------------------------------------------ the last log lines of this SEPA
 echo '<h3>' . __('Last changes of this SEPA') . '</h3>';
-echo sepaRenderChangeLog($gateway->selectLog($request['gibbonSEPAID'], 10), false);
-if (isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_change_log.php')) {
-    echo '<p><a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_log.php&sepa=' . (int) $request['gibbonSEPAID'] . '">' . __('More: the full log of this SEPA') . '</a></p>';
+echo sepaRenderChangeLog($isNew ? $gateway->selectLog(null, 10, $request['gibbonFamilyID']) : $gateway->selectLog($sepa['gibbonSEPAID'], 10), false);
+if (!$isNew && isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_change_log.php')) {
+    echo '<p><a href="' . $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_change_log.php&sepa=' . (int) $sepa['gibbonSEPAID'] . '">' . __('More: the full log of this SEPA') . '</a></p>';
 }

@@ -41,6 +41,53 @@ class SepaChangeRequestGateway extends QueryableGateway
         return $this->runSelect($query)->fetch() ?: null;
     }
 
+    /**
+     * The open request of a family: for its SEPA, or (without SEPA) the request for a new SEPA.
+     */
+    public function getPending($gibbonSEPAID, $gibbonFamilyID)
+    {
+        if (!empty($gibbonSEPAID) && (int) $gibbonSEPAID > 0) {
+            return $this->getPendingBySEPAID($gibbonSEPAID);
+        }
+
+        $query = $this
+            ->newSelect()
+            ->cols(['*'])
+            ->from($this->getTableName())
+            ->where("gibbonSEPAID IS NULL AND gibbonFamilyID = :gibbonFamilyID AND status = 'Pending'")
+            ->bindValue('gibbonFamilyID', $gibbonFamilyID);
+
+        return $this->runSelect($query)->fetch() ?: null;
+    }
+
+    /** A SEPA row without data: the "current" data of a family that has no SEPA yet. */
+    public static function emptySepa()
+    {
+        return ['gibbonSEPAID' => null, 'payer' => '', 'IBAN' => null, 'BIC' => '', 'withdrawCadence' => '', 'withdrawDay' => '', 'SEPA_signedDate' => ''];
+    }
+
+    /**
+     * The SEPA a request is about: its SEPA, or for a request for a new SEPA the SEPA the family
+     * got in the meantime. Null when the family (still) has no SEPA.
+     */
+    public function getTargetSepa(array $request)
+    {
+        if (!empty($request['gibbonSEPAID']) && (int) $request['gibbonSEPAID'] > 0) {
+            return $this->getSepaRow($request['gibbonSEPAID']);
+        }
+
+        $query = $this
+            ->newSelect()
+            ->cols(['*'])
+            ->from('gibbonSEPA')
+            ->where('gibbonFamilyID = :gibbonFamilyID')
+            ->bindValue('gibbonFamilyID', $request['gibbonFamilyID'])
+            ->orderBy(['gibbonSEPAID'])
+            ->limit(1);
+
+        return $this->runSelect($query)->fetch() ?: null;
+    }
+
     public function getPendingBySEPAID($gibbonSEPAID)
     {
         $query = $this
@@ -92,10 +139,12 @@ class SepaChangeRequestGateway extends QueryableGateway
             'SEPA_signedDate' => $values['SEPA_signedDate'],
         ];
 
-        $sepa = $this->getSepaRow($gibbonSEPAID);
-        $changes = $sepa ? self::describeChanges($sepa, $values) : [];
+        // without SEPA: a request for a new SEPA, everything entered is new
+        $gibbonSEPAID = !empty($gibbonSEPAID) && (int) $gibbonSEPAID > 0 ? $gibbonSEPAID : null;
+        $sepa = $gibbonSEPAID ? $this->getSepaRow($gibbonSEPAID) : null;
+        $changes = self::describeChanges($sepa ?: self::emptySepa(), $values);
 
-        $pending = $this->getPendingBySEPAID($gibbonSEPAID);
+        $pending = $this->getPending($gibbonSEPAID, $gibbonFamilyID);
         if ($pending) {
             $query = $this
                 ->newUpdate()
@@ -124,27 +173,32 @@ class SepaChangeRequestGateway extends QueryableGateway
     }
 
     /** The family discards its open request. */
-    public function discardPending($gibbonSEPAID, $gibbonPersonID = null)
+    public function discardPending($gibbonSEPAID, $gibbonPersonID = null, $gibbonFamilyID = null)
     {
-        $pending = $this->getPendingBySEPAID($gibbonSEPAID);
-        $sepa = $pending ? $this->getSepaRow($gibbonSEPAID) : null;
-        if ($pending && $sepa && $gibbonPersonID) {
+        $pending = $this->getPending($gibbonSEPAID, $gibbonFamilyID);
+        if (!$pending) {
+            return true;
+        }
+        if ($gibbonPersonID) {
             // what was thrown away
-            $this->log($gibbonSEPAID, $pending['gibbonFamilyID'], $pending['gibbonSEPAChangeRequestID'], 'Discarded', $gibbonPersonID, self::describeChanges($sepa, $pending));
+            $sepa = $this->getTargetSepa($pending) ?: self::emptySepa();
+            $this->log($pending['gibbonSEPAID'], $pending['gibbonFamilyID'], $pending['gibbonSEPAChangeRequestID'], 'Discarded', $gibbonPersonID, self::describeChanges($sepa, $pending));
         }
 
         $query = $this
             ->newDelete()
             ->from($this->getTableName())
-            ->where("gibbonSEPAID = :gibbonSEPAID AND status = 'Pending'")
-            ->bindValue('gibbonSEPAID', $gibbonSEPAID);
+            ->where("gibbonSEPAChangeRequestID = :id AND status = 'Pending'")
+            ->bindValue('id', $pending['gibbonSEPAChangeRequestID']);
 
         return $this->runDelete($query);
     }
 
     /**
-     * Approve: the entered values replace the SEPA data (the IBAN is copied as stored, encrypted).
-     * Only a request that is still pending is handled.
+     * Approve: the entered values replace the SEPA data (the IBAN is copied as stored, encrypted);
+     * for a family without SEPA the SEPA is created. Only a request that is still pending is handled.
+     *
+     * @return mixed the ID of the SEPA that was changed / created, false when nothing was done
      */
     public function approve($gibbonSEPAChangeRequestID, $gibbonPersonID, $note = '', array $decision = null)
     {
@@ -155,39 +209,69 @@ class SepaChangeRequestGateway extends QueryableGateway
 
         // Without a decision of the reviewer everything the family entered is taken over
         $final = $decision['final'] ?? $request;
+        // The SEPA to change; null: the family has no SEPA, it is created now
+        $sepaBefore = $this->getTargetSepa($request);
+        $sepaID = $sepaBefore['gibbonSEPAID'] ?? null;
         if (empty($final['SEPA_signedDate'])) {
             // an empty date of signature never removes the existing date
-            $final['SEPA_signedDate'] = $this->getSepaRow($request['gibbonSEPAID'])['SEPA_signedDate'] ?? null;
+            $final['SEPA_signedDate'] = $sepaBefore['SEPA_signedDate'] ?? null;
         }
 
         // logged before the SEPA changes: what the approval changes, what was not accepted
         // and what the reviewer changed
-        $sepaBefore = $this->getSepaRow($request['gibbonSEPAID']);
-        $changes = $sepaBefore ? self::describeChanges($sepaBefore, $final) : [];
+        $changes = self::describeChanges($sepaBefore ?: self::emptySepa(), $final);
         if (!empty($decision['rejected'])) {
             $changes['_rejected'] = array_values($decision['rejected']);
         }
         if (!empty($decision['edited'])) {
             $changes['_edited'] = array_values($decision['edited']);
         }
-        $this->log($request['gibbonSEPAID'], $request['gibbonFamilyID'], $gibbonSEPAChangeRequestID, 'Approved', $gibbonPersonID, $changes, $note);
+        $this->log($sepaID, $request['gibbonFamilyID'], $gibbonSEPAChangeRequestID, 'Approved', $gibbonPersonID, $changes, $note);
 
-        $query = $this
-            ->newUpdate()
-            ->table('gibbonSEPA')
-            ->cols([
-                'payer' => $final['payer'],
-                'IBAN' => $final['IBAN'],
-                'BIC' => $final['BIC'] !== '' ? $final['BIC'] : null,
-                'withdrawCadence' => $final['withdrawCadence'],
-                'withdrawDay' => $final['withdrawDay'] !== '' ? $final['withdrawDay'] : null,
-                'SEPA_signedDate' => !empty($final['SEPA_signedDate']) ? $final['SEPA_signedDate'] : null,
-            ])
-            ->where('gibbonSEPAID = :gibbonSEPAID')
-            ->bindValue('gibbonSEPAID', $request['gibbonSEPAID']);
-        $this->runUpdate($query);
+        $cols = [
+            'payer' => $final['payer'],
+            'IBAN' => $final['IBAN'],
+            'BIC' => !empty($final['BIC']) ? $final['BIC'] : null,
+            'withdrawCadence' => in_array($final['withdrawCadence'], SepaGateway::WITHDRAW_CADENCES, true) ? $final['withdrawCadence'] : 'Monthly',
+            'withdrawDay' => !empty($final['withdrawDay']) ? $final['withdrawDay'] : null,
+            'SEPA_signedDate' => !empty($final['SEPA_signedDate']) ? $final['SEPA_signedDate'] : null,
+        ];
 
-        return $this->markReviewed($gibbonSEPAChangeRequestID, 'Approved', $gibbonPersonID, $note);
+        if ($sepaID) {
+            $query = $this
+                ->newUpdate()
+                ->table('gibbonSEPA')
+                ->cols($cols)
+                ->where('gibbonSEPAID = :gibbonSEPAID')
+                ->bindValue('gibbonSEPAID', $sepaID);
+            $this->runUpdate($query);
+        } else {
+            // New SEPA for the family
+            $query = $this
+                ->newInsert()
+                ->into('gibbonSEPA')
+                ->cols($cols + ['gibbonFamilyID' => $request['gibbonFamilyID']]);
+            $sepaID = $this->runInsert($query);
+            if (!$sepaID) {
+                return false;
+            }
+        }
+
+        // A request for a new SEPA (and its log) now belongs to the SEPA
+        if (empty($request['gibbonSEPAID']) || (int) $request['gibbonSEPAID'] === 0) {
+            foreach (['gibbonSEPAChangeRequest', 'gibbonSEPAChangeLog'] as $table) {
+                $query = $this
+                    ->newUpdate()
+                    ->table($table)
+                    ->cols(['gibbonSEPAID' => $sepaID])
+                    ->where('gibbonSEPAChangeRequestID = :id AND gibbonSEPAID IS NULL')
+                    ->bindValue('id', $gibbonSEPAChangeRequestID);
+                $this->runUpdate($query);
+            }
+        }
+
+        $this->markReviewed($gibbonSEPAChangeRequestID, 'Approved', $gibbonPersonID, $note);
+        return $sepaID;
     }
 
     public function reject($gibbonSEPAChangeRequestID, $gibbonPersonID, $note = '')
@@ -196,8 +280,8 @@ class SepaChangeRequestGateway extends QueryableGateway
         if (!$request || $request['status'] !== 'Pending') {
             return false;
         }
-        $sepa = $this->getSepaRow($request['gibbonSEPAID']);
-        $this->log($request['gibbonSEPAID'], $request['gibbonFamilyID'], $gibbonSEPAChangeRequestID, 'Rejected', $gibbonPersonID, $sepa ? self::describeChanges($sepa, $request) : [], $note);
+        $sepa = $this->getTargetSepa($request);
+        $this->log($sepa['gibbonSEPAID'] ?? null, $request['gibbonFamilyID'], $gibbonSEPAChangeRequestID, 'Rejected', $gibbonPersonID, self::describeChanges($sepa ?: self::emptySepa(), $request), $note);
 
         return $this->markReviewed($gibbonSEPAChangeRequestID, 'Rejected', $gibbonPersonID, $note);
     }
@@ -380,8 +464,9 @@ class SepaChangeRequestGateway extends QueryableGateway
      * The log, newest first.
      *
      * @param int|null $gibbonSEPAID only the log of this SEPA
+     * @param int|null $familyWithoutSepa without SEPA: the log of the requests for a new SEPA of this family
      */
-    public function selectLog($gibbonSEPAID = null, $limit = 200)
+    public function selectLog($gibbonSEPAID = null, $limit = 200, $familyWithoutSepa = null)
     {
         $query = $this
             ->newSelect()
@@ -394,6 +479,8 @@ class SepaChangeRequestGateway extends QueryableGateway
 
         if ($gibbonSEPAID) {
             $query->where('gibbonSEPAChangeLog.gibbonSEPAID = :gibbonSEPAID')->bindValue('gibbonSEPAID', $gibbonSEPAID);
+        } elseif ($familyWithoutSepa) {
+            $query->where('gibbonSEPAChangeLog.gibbonSEPAID IS NULL AND gibbonSEPAChangeLog.gibbonFamilyID = :logFamily')->bindValue('logFamily', $familyWithoutSepa);
         }
 
         return $this->runSelect($query)->fetchAll();
@@ -476,10 +563,10 @@ class SepaChangeRequestGateway extends QueryableGateway
      */
     public function getRequestFlags(array $request)
     {
-        $sepa = $this->getSepaRow($request['gibbonSEPAID']);
+        $sepa = $this->getTargetSepa($request);
         $entered = $sepa ? self::enteredValues($request, $sepa) : self::clearValues($request);
         $current = $sepa ? self::clearValues($sepa) : null;
-        $others = $entered['IBAN'] ? $this->getOtherFamiliesWithIban($entered['IBAN'], $request['gibbonSEPAID']) : [];
+        $others = $entered['IBAN'] ? $this->getOtherFamiliesWithIban($entered['IBAN'], (int) ($sepa['gibbonSEPAID'] ?? 0)) : [];
 
         return self::validate($entered, $current, $this->getAdultSurnames($request['gibbonFamilyID']), $others);
     }
@@ -642,8 +729,8 @@ class SepaChangeRequestGateway extends QueryableGateway
      */
     public function getFlagsForValues(array $clearValues, array $request)
     {
-        $sepa = $this->getSepaRow($request['gibbonSEPAID']);
-        $others = !empty($clearValues['IBAN']) ? $this->getOtherFamiliesWithIban($clearValues['IBAN'], $request['gibbonSEPAID']) : [];
+        $sepa = $this->getTargetSepa($request);
+        $others = !empty($clearValues['IBAN']) ? $this->getOtherFamiliesWithIban($clearValues['IBAN'], (int) ($sepa['gibbonSEPAID'] ?? 0)) : [];
 
         return self::validate($clearValues, $sepa ? self::clearValues($sepa) : null, $this->getAdultSurnames($request['gibbonFamilyID']), $others);
     }
@@ -737,6 +824,9 @@ class SepaChangeRequestGateway extends QueryableGateway
         // Date of the SEPA signature: not earlier than the existing date
         $signed = trim((string) ($new['SEPA_signedDate'] ?? ''));
         $signedBefore = trim((string) ($current['SEPA_signedDate'] ?? ''));
+        if ($signed === '') {
+            $flag('Warning', 'signedMissing', __('Date of SEPA signature is missing'));
+        }
         if ($signed !== '') {
             if ($signedBefore !== '' && $signed < $signedBefore) {
                 $flag('Error', 'signedEarlier', sprintf(__('The date of the SEPA signature is earlier than the existing date (%s)'), $signedBefore));
@@ -749,6 +839,9 @@ class SepaChangeRequestGateway extends QueryableGateway
         }
 
         // What differs from the current SEPA deserves attention
+        if ($current === null) {
+            $flag('Warning', 'newSepa', __('New SEPA: the family has no SEPA yet, it is created on approval'));
+        }
         if ($current !== null) {
             if ($iban !== null && $current['IBAN'] !== null && IbanCipher::normalize($iban) !== IbanCipher::normalize($current['IBAN'])) {
                 $flag('Warning', 'ibanChanged', __('The IBAN is changed'));

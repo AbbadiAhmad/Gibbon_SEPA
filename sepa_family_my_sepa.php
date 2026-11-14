@@ -73,16 +73,20 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
             . '</div>';
     }
 
-    if (empty($FamilySEPA)) {
-        // No SEPA for this family: nothing to show, change or check
+    $cadences = SepaGateway::getWithdrawCadenceOptions();
+    $hasSepa = !empty($FamilySEPA);
+    if (!$hasSepa && !$canEdit) {
+        // No SEPA for this family and no right to enter one: nothing to show, change or check
         echo "<div class='error'>" . __('SEPA information is not available for this family.') . ' ' . __('Please contact the school administration.') . '</div>';
         return;
-    } else {
+    }
+    if (!$hasSepa) {
+        echo "<div class='warning'>" . __('There is no SEPA for your family yet. You can enter the SEPA data here; the school administration checks it before it is used.') . '</div>';
+    }
+    {
         if (count($FamilySEPA) > 1) {
             echo "<div class='error'>" . __('More than one SEPA record is entered for this family. Please contact the school administration.') . '</div>';
         }
-        $cadences = SepaGateway::getWithdrawCadenceOptions();
-
         foreach ($FamilySEPA as $sepa) {
             $iban = IbanCipher::decrypt($sepa['IBAN'] ?? '');
             $ibanText = $iban === null ? __('not available') : IbanCipher::maskForDisplay($iban);
@@ -103,8 +107,10 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
         }
 
         // History of changes of this SEPA (the IBAN half hidden)
-        if (count($FamilySEPA) === 1) {
-            $history = $requestGateway->selectLog($FamilySEPA[0]['gibbonSEPAID'], 20);
+        if (count($FamilySEPA) <= 1) {
+            $history = $hasSepa
+                ? $requestGateway->selectLog($FamilySEPA[0]['gibbonSEPAID'], 20)
+                : $requestGateway->selectLog(null, 20, $gibbonFamilyID);
             if (!empty($history)) {
                 // folded by default
                 echo '<details style="margin: 1em 0;"><summary style="cursor: pointer; font-weight: bold;">' . __('History of changes') . ' (' . count($history) . ')</summary>';
@@ -114,13 +120,14 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
         }
 
         // Changes entered by the family: current and entered values until the administration decides
-        if ($canEdit && count($FamilySEPA) === 1) {
-            $sepa = $FamilySEPA[0];
+        if ($canEdit && count($FamilySEPA) <= 1) {
+            // without SEPA the "current" data is empty and the request is for a new SEPA
+            $sepa = $FamilySEPA[0] ?? SepaChangeRequestGateway::emptySepa();
             $editURL = $session->get('absoluteURL') . '/index.php?q=/modules/Sepa/sepa_family_my_sepa_edit.php';
-            $pending = $requestGateway->getPendingBySEPAID($sepa['gibbonSEPAID']);
+            $pending = $requestGateway->getPending($sepa['gibbonSEPAID'], $gibbonFamilyID);
 
             if (!$pending) {
-                echo '<p><a class="button" href="' . $e($editURL) . '">' . __('Change my SEPA data') . '</a></p>';
+                echo '<p><a class="button" href="' . $e($editURL) . '">' . ($hasSepa ? __('Change my SEPA data') : __('Enter my SEPA data')) . '</a></p>';
             } else {
                 $current = SepaChangeRequestGateway::clearValues($sepa);
                 $entered = SepaChangeRequestGateway::enteredValues($pending, $sepa);
@@ -128,8 +135,10 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
                     return $iban === null ? __('not available') : IbanCipher::maskForDisplay($iban);
                 };
 
-                echo '<h3>' . __('Your changes are waiting for approval') . '</h3>';
-                echo '<p>' . sprintf(__('Entered on %s. The school administration has to approve them; until then the current data is used.'), $e(\Gibbon\Services\Format::dateTime($pending['timestampUpdated'] ?: $pending['timestampSubmitted']))) . '</p>';
+                echo '<h3>' . ($hasSepa ? __('Your changes are waiting for approval') : __('Your SEPA data is waiting for approval')) . '</h3>';
+                echo '<p>' . sprintf($hasSepa
+                    ? __('Entered on %s. The school administration has to approve them; until then the current data is used.')
+                    : __('Entered on %s. The school administration has to approve it before the SEPA is used.'), $e(\Gibbon\Services\Format::dateTime($pending['timestampUpdated'] ?: $pending['timestampSubmitted']))) . '</p>';
                 echo "<table class='smallIntBorder fullWidth' cellspacing='0'><thead><tr><th></th><th>" . __('Current') . '</th><th>' . __('Entered (waiting for approval)') . '</th></tr></thead><tbody>';
                 $compare = [
                     __('Account holder') => [$current['payer'], $entered['payer']],
@@ -146,9 +155,9 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
                 echo '</tbody></table>';
 
                 // Problems of the entered values (no data of other families)
-                $others = $entered['IBAN'] ? $requestGateway->getOtherFamiliesWithIban($entered['IBAN'], $sepa['gibbonSEPAID']) : [];
-                foreach (SepaChangeRequestGateway::validate($entered, $current, $requestGateway->getAdultSurnames($gibbonFamilyID), $others) as $flag) {
-                    if (in_array($flag['code'], ['ibanChanged', 'payerChanged', 'signedChanged'], true)) {
+                $others = $entered['IBAN'] ? $requestGateway->getOtherFamiliesWithIban($entered['IBAN'], (int) $sepa['gibbonSEPAID']) : [];
+                foreach (SepaChangeRequestGateway::validate($entered, $hasSepa ? $current : null, $requestGateway->getAdultSurnames($gibbonFamilyID), $others) as $flag) {
+                    if (in_array($flag['code'], ['ibanChanged', 'payerChanged', 'signedChanged', 'newSepa'], true)) {
                         continue;
                     }
                     $text = $flag['code'] === 'sharedIban' ? __('The IBAN is also used by another family.') : $flag['text'];
@@ -163,6 +172,11 @@ if (!isActionAccessible($guid, $connection2, '/modules/Sepa/sepa_family_my_sepa.
                 echo $discard->getOutput();
             }
         }
+    }
+
+    // Without SEPA there is nothing to check
+    if (!$hasSepa) {
+        return;
     }
 
     // Problems with the data (without internal details or data of other families)

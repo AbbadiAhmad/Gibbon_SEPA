@@ -37,3 +37,4 @@ v2.7.1: Approval page: the approval comes first, then the last 10 log lines with
 v2.7.2: Approval: rows the family did not change or left empty are not ticked by default; the date of the SEPA signature is shown correctly (empty = not changed, date field and log use the date format).
 v2.7.3: Signature date for a SEPA without a date: zero dates count as no date, the reviewer's date accepts any date format, and a save that did not store the values is reported instead of shown as success.
 v2.7.4: SEPA check treats a zero signature date (0000-00-00) as missing.
+v2.8.0: Families without SEPA can enter a new SEPA for approval (same flow: entered data, flags, change/discard, approval with per-field accept and corrections); the SEPA is created on approval.

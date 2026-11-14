@@ -48,15 +48,17 @@ if (count($families) !== 1) {
 }
 $gibbonFamilyID = array_values($families)[0];
 $sepas = $sepaGateway->getFamilySEPA($gibbonFamilyID);
-if (count($sepas) !== 1 || !$requestGateway->isFamilyAdult($personID, $gibbonFamilyID)) {
+if (count($sepas) > 1 || !$requestGateway->isFamilyAdult($personID, $gibbonFamilyID)) {
     header('Location: ' . $URL . '&return=error0');
     exit;
 }
-$sepa = $sepas[0];
+// Without SEPA the family enters a new one (created when the administration approves it)
+$isNew = empty($sepas);
+$sepa = $sepas[0] ?? SepaChangeRequestGateway::emptySepa();
 
 // Discard the entries waiting for approval
 if (($_POST['action'] ?? '') === 'discard') {
-    $requestGateway->discardPending($sepa['gibbonSEPAID'], $personID);
+    $requestGateway->discardPending($sepa['gibbonSEPAID'], $personID, $gibbonFamilyID);
     $_SESSION[$guid]['sepaMyNotice'] = __('Your changes have been discarded.');
     header('Location: ' . $URLView . '&return=success0');
     exit;
@@ -66,7 +68,7 @@ if (($_POST['action'] ?? '') === 'discard') {
 $payer = trim(preg_replace('/\s+/', ' ', (string) ($_POST['payer'] ?? '')));
 $iban = IbanCipher::normalize($_POST['IBAN'] ?? '');
 $bic = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) ($_POST['BIC'] ?? '')));
-$cadence = in_array($_POST['withdrawCadence'] ?? '', SepaGateway::WITHDRAW_CADENCES, true) ? $_POST['withdrawCadence'] : $sepa['withdrawCadence'];
+$cadence = in_array($_POST['withdrawCadence'] ?? '', SepaGateway::WITHDRAW_CADENCES, true) ? $_POST['withdrawCadence'] : ($sepa['withdrawCadence'] ?: SepaGateway::DEFAULT_WITHDRAW_CADENCE);
 $day = (int) ($_POST['withdrawDay'] ?? 0);
 $day = ($day >= 1 && $day <= 31) ? $day : null;
 
@@ -86,7 +88,7 @@ if ($signed === '') {
     exit;
 }
 
-if ($payer === '' || mb_strlen($payer) > 255 || mb_strlen($iban) > 40 || strlen($bic) > 11) {
+if ($payer === '' || mb_strlen($payer) > 255 || mb_strlen($iban) > 40 || strlen($bic) > 11 || ($isNew && $iban === '')) {
     header('Location: ' . $URL . '&return=error3');
     exit;
 }
@@ -105,8 +107,8 @@ $values = ['payer' => $payer, 'IBAN' => $storedIban, 'BIC' => $bic ?: null, 'wit
 $new = SepaChangeRequestGateway::clearValues($values);
 $old = SepaChangeRequestGateway::clearValues($sepa);
 $sameIban = IbanCipher::normalize((string) $new['IBAN']) === IbanCipher::normalize((string) $old['IBAN']);
-if ($sameIban && $new['payer'] === $old['payer'] && $new['BIC'] === $old['BIC'] && $new['withdrawCadence'] === $old['withdrawCadence'] && (string) $new['withdrawDay'] === (string) $old['withdrawDay'] && $new['SEPA_signedDate'] === $old['SEPA_signedDate']) {
-    $requestGateway->discardPending($sepa['gibbonSEPAID'], $personID);
+if (!$isNew && $sameIban && $new['payer'] === $old['payer'] && $new['BIC'] === $old['BIC'] && $new['withdrawCadence'] === $old['withdrawCadence'] && (string) $new['withdrawDay'] === (string) $old['withdrawDay'] && $new['SEPA_signedDate'] === $old['SEPA_signedDate']) {
+    $requestGateway->discardPending($sepa['gibbonSEPAID'], $personID, $gibbonFamilyID);
     $_SESSION[$guid]['sepaMyNotice'] = __('Nothing is different from the current data, so there is nothing to approve.');
     header('Location: ' . $URLView . '&return=success0');
     exit;
@@ -120,7 +122,7 @@ try {
 }
 
 // Read back what is stored: the family must not be told "saved" when it is not
-if (!SepaChangeRequestGateway::holdsValues($requestGateway->getPendingBySEPAID($sepa['gibbonSEPAID']), $values)) {
+if (!SepaChangeRequestGateway::holdsValues($requestGateway->getPending($sepa['gibbonSEPAID'], $gibbonFamilyID), $values)) {
     $_SESSION[$guid]['sepaMyError'] = __('Your changes could not be saved completely. Please tell the school administration (the SEPA module may need its database update).');
     header('Location: ' . $URL . '&return=error2');
     exit;

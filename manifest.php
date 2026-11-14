@@ -8,7 +8,7 @@ $description = 'Manage SEPA information and transaction';            // Short te
 $entryURL = "sepa_family_totals.php";   // The landing page for the unit, used in the main menu
 $type = "Additional";  // Do not change.
 $category = 'Other';            // The main menu area to place the module in
-$version = '2.7.0';            // Version number
+$version = '2.8.0';            // Version number
 $author = 'Ahmad';            // Your name
 $url = '';            // Your URL
 
@@ -129,7 +129,7 @@ $moduleTables[] = "
 $moduleTables[] = "
     CREATE TABLE `gibbonSEPAChangeRequest` (
     `gibbonSEPAChangeRequestID` int(10) unsigned NOT NULL AUTO_INCREMENT,
-    `gibbonSEPAID` int(8) unsigned zerofill NOT NULL,
+    `gibbonSEPAID` int(8) unsigned zerofill DEFAULT NULL COMMENT 'NULL: request for a new SEPA, the family has none yet',
     `gibbonFamilyID` int(7) unsigned zerofill NOT NULL,
     `payer` varchar(255) NOT NULL,
     `IBAN` varchar(255) DEFAULT NULL COMMENT 'AES-256-GCM encrypted, see IbanCipher',
@@ -153,7 +153,7 @@ $moduleTables[] = "
 $moduleTables[] = "
     CREATE TABLE `gibbonSEPAChangeLog` (
     `gibbonSEPAChangeLogID` int(12) unsigned NOT NULL AUTO_INCREMENT,
-    `gibbonSEPAID` int(8) unsigned zerofill NOT NULL,
+    `gibbonSEPAID` int(8) unsigned zerofill DEFAULT NULL COMMENT 'NULL: request for a new SEPA',
     `gibbonFamilyID` int(7) unsigned zerofill NOT NULL,
     `gibbonSEPAChangeRequestID` int(10) unsigned DEFAULT NULL,
     `event` enum('Submitted','Updated','Discarded','Approved','Rejected') NOT NULL,

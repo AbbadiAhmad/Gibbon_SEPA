@@ -190,3 +190,9 @@ $count++;
 $sql[$count][0] = "2.7.0";
 $sql[$count][1] = "INSERT INTO gibbonAction (gibbonModuleID, name, precedence, category, description, URLList, entryURL, entrySidebar, menuShow, defaultPermissionAdmin, defaultPermissionTeacher, defaultPermissionStudent, defaultPermissionParent, defaultPermissionSupport, categoryPermissionStaff, categoryPermissionStudent, categoryPermissionParent, categoryPermissionOther) SELECT gibbonModuleID, 'SEPA Change Log', 21, 'SEPA', 'Log of the SEPA changes entered by families, with data retention', 'sepa_change_log.php, sepa_change_logProcess.php', 'sepa_change_log.php', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'Y', 'N', 'N', 'N' FROM gibbonModule WHERE name='Sepa';end
 INSERT INTO gibbonPermission (gibbonRoleID, gibbonActionID) SELECT '001', gibbonActionID FROM gibbonAction WHERE name='SEPA Change Log' AND gibbonModuleID=(SELECT gibbonModuleID FROM gibbonModule WHERE name='Sepa');";
+
+// v2.8.0 - families without SEPA can enter a new SEPA for approval (request / log without SEPA)
+$count++;
+$sql[$count][0] = "2.8.0";
+$sql[$count][1] = "ALTER TABLE gibbonSEPAChangeRequest MODIFY COLUMN `gibbonSEPAID` int(8) unsigned zerofill DEFAULT NULL COMMENT 'NULL: request for a new SEPA, the family has none yet';end
+ALTER TABLE gibbonSEPAChangeLog MODIFY COLUMN `gibbonSEPAID` int(8) unsigned zerofill DEFAULT NULL COMMENT 'NULL: request for a new SEPA';";

@@ -52,34 +52,43 @@ try {
         $gateway->reject($id, $personID, $note);
     } else {
         // What the reviewer accepts per field, with the corrected values
-        $sepa = $gateway->getSepaRow($request['gibbonSEPAID']);
-        if (!$sepa) {
-            header('Location: ' . $URLList . '&return=error1');
-            exit;
-        }
+        // a family without SEPA asks for a new one: the current data is empty
+        $target = $gateway->getTargetSepa($request);
+        $sepa = $target ?: SepaChangeRequestGateway::emptySepa();
         $posted = is_array($_POST['value'] ?? null) ? $_POST['value'] : [];
         $accept = is_array($_POST['accept'] ?? null) ? $_POST['accept'] : [];
         $values = SepaChangeRequestGateway::cleanReviewValues($posted, SepaChangeRequestGateway::enteredValues($request, $sepa));
         $decision = SepaChangeRequestGateway::buildDecision($request, $sepa, $accept, $values);
+        // what is stored in the end: an empty date keeps the existing one, a SEPA always has a cadence
+        if (empty($decision['final']['SEPA_signedDate'])) {
+            $decision['final']['SEPA_signedDate'] = SepaChangeRequestGateway::clearValues($sepa)['SEPA_signedDate'] ?: null;
+        }
+        $hasChanges = !empty(SepaChangeRequestGateway::describeChanges($sepa, $decision['final']));
+        if ($hasChanges && empty($decision['final']['withdrawCadence'])) {
+            $decision['final']['withdrawCadence'] = \Gibbon\Module\Sepa\Domain\SepaGateway::DEFAULT_WITHDRAW_CADENCE;
+            $decision['finalClear']['withdrawCadence'] = $decision['final']['withdrawCadence'];
+        }
 
         // The checks are made on the values that are saved; errors need a confirmation.
         // The reviewer's values are kept for the page.
         $errors = array_filter($gateway->getFlagsForValues($decision['finalClear'], $request), function ($flag) {
             return $flag['severity'] === 'Error';
         });
-        if (!empty($errors) && empty($_POST['confirmErrors'])) {
+        // a new SEPA can not be created without account holder, whatever is confirmed
+        $noPayer = !$target && $hasChanges && trim((string) $decision['final']['payer']) === '';
+        if ($noPayer || (!empty($errors) && empty($_POST['confirmErrors']))) {
             $_SESSION[$guid]['sepaReviewDraft'][$id] = ['value' => $posted, 'accept' => $accept, 'reviewNote' => $note];
             header('Location: ' . $URL . '&return=error3');
             exit;
         }
 
         // Nothing accepted that differs from the current data: that is a rejection
-        if (empty(SepaChangeRequestGateway::describeChanges($sepa, $decision['final']))) {
+        if (!$hasChanges) {
             $gateway->reject($id, $personID, $note);
         } else {
-            $gateway->approve($id, $personID, $note, $decision);
-            // Read back: the SEPA must hold the approved values now
-            if (!SepaChangeRequestGateway::holdsValues($gateway->getSepaRow($request['gibbonSEPAID']), $decision['final'])) {
+            $sepaID = $gateway->approve($id, $personID, $note, $decision);
+            // Read back: the SEPA (changed or created) must hold the approved values now
+            if (!$sepaID || !SepaChangeRequestGateway::holdsValues($gateway->getSepaRow($sepaID), $decision['final'])) {
                 header('Location: ' . $URL . '&return=error2');
                 exit;
             }
